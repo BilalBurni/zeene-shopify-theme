@@ -1,0 +1,134 @@
+{%- liquid
+  assign s = section.settings
+-%}
+
+{%- style -%}
+#about-{{ section.id }} { background: {{ s.bg_color }}; color: {{ s.text_color }}; padding: {{ s.padding_top }}px 0 {{ s.padding_bottom }}px; }
+#about-{{ section.id }} .abt__inner { max-width: {{ s.max_width }}px; margin: 0 auto; padding: 0 var(--zeene-pad, 16px); }
+#about-{{ section.id }} .abt__eyebrow { display: inline-block; margin: 0 0 12px; font-family: 'Zen Maru Gothic', sans-serif; font-size: 11px; font-weight: 700; text-transform: uppercase; color: {{ s.text_color }}; opacity: 0.5; }
+#about-{{ section.id }} .abt__heading { margin: 0; font-family: 'Zen Maru Gothic', sans-serif; font-size: clamp(26px, 4vw, 40px); font-weight: 700; line-height: 1.2; color: {{ s.text_color }}; }
+#about-{{ section.id }} .abt__lead { margin: 18px 0 0; font-family: 'Zen Maru Gothic', sans-serif; font-size: clamp(15px, 1.7vw, 17px); font-weight: 400; line-height: 1.7; color: {{ s.text_color }}; opacity: 0.78; }
+#about-{{ section.id }} .abt__lead p { margin: 0; }
+
+#about-{{ section.id }} .abt__media { margin: 40px 0 0; }
+#about-{{ section.id }} .abt__media--full { padding: 0; }
+#about-{{ section.id }} .abt__media img { display: block; width: 100%; height: auto; max-height: {{ s.image_height }}px; object-fit: cover; }
+
+#about-{{ section.id }} .abt__body { margin: 40px auto 0; font-family: 'Zen Maru Gothic', sans-serif; font-size: 14px; font-weight: 400; line-height: 1.85; color: {{ s.text_color }}; opacity: 0.72; }
+#about-{{ section.id }} .abt__body p { margin: 0 0 18px; }
+#about-{{ section.id }} .abt__body p:last-child { margin-bottom: 0; }
+#about-{{ section.id }} .abt__body strong { font-weight: 600; opacity: 1; }
+#about-{{ section.id }} .abt__body h2, #about-{{ section.id }} .abt__body h3 { margin: 30px 0 10px; font-size: 17px; font-weight: 600; line-height: 1.35; opacity: 1; }
+
+{%- comment -%} Value pillars — icon + title + text. {%- endcomment -%}
+#about-{{ section.id }} .abt__pillars { display: grid; grid-template-columns: repeat({{ section.blocks.size | at_least: 1 | at_most: 4 }}, minmax(0, 1fr)); gap: 28px 32px; margin: 48px 0 0; padding-top: 40px; border-top: 1px solid rgba(0,0,0,0.09); }
+#about-{{ section.id }} .abt__pillar-ic { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; margin-bottom: 14px; border-radius: 50%; background: {{ s.accent_color }}; color: #0a0a0a; }
+#about-{{ section.id }} .abt__pillar-title { margin: 0 0 7px; font-family: 'Zen Maru Gothic', sans-serif; font-size: 14px; font-weight: 700; color: {{ s.text_color }}; }
+#about-{{ section.id }} .abt__pillar-text { margin: 0; font-family: 'Zen Maru Gothic', sans-serif; font-size: 13px; font-weight: 400; line-height: 1.65; color: {{ s.text_color }}; opacity: 0.65; }
+
+{%- comment -%} Closing band: black text on a neon fill, never neon text on white. {%- endcomment -%}
+#about-{{ section.id }} .abt__closing { margin: 52px 0 0; padding: 34px var(--zeene-pad, 16px); text-align: center; background: {{ s.accent_color }}; }
+#about-{{ section.id }} .abt__closing span { font-family: 'Zen Maru Gothic', sans-serif; font-size: clamp(18px, 2.6vw, 26px); font-weight: 800; letter-spacing: 0.01em; color: #0a0a0a; }
+
+@media (max-width: 749px) {
+  #about-{{ section.id }} .abt__pillars { grid-template-columns: 1fr; gap: 24px; margin-top: 36px; padding-top: 30px; }
+  #about-{{ section.id }} .abt__body { margin-top: 30px; }
+  #about-{{ section.id }} .abt__media { margin-top: 28px; }
+  #about-{{ section.id }} .abt__closing { margin-top: 38px; padding: 26px var(--zeene-pad, 16px); }
+}
+{%- endstyle -%}
+
+<div id="about-{{ section.id }}" class="abt">
+  <div class="abt__inner">
+    {%- if s.eyebrow != blank -%}<span class="abt__eyebrow">{{ s.eyebrow }}</span>{%- endif -%}
+    {%- if s.heading != blank -%}<h1 class="abt__heading">{{ s.heading }}</h1>{%- endif -%}
+    {%- if s.lead != blank -%}<div class="abt__lead">{{ s.lead }}</div>{%- endif -%}
+  </div>
+
+  {%- if s.image != blank -%}
+    <div class="abt__media{% if s.image_full %} abt__media--full{% else %} abt__inner{% endif %}">
+      <img src="{{ s.image | image_url: width: 1800 }}" srcset="{{ s.image | image_url: width: 800 }} 800w, {{ s.image | image_url: width: 1400 }} 1400w, {{ s.image | image_url: width: 1800 }} 1800w" sizes="100vw" alt="{{ s.image.alt | default: s.heading | escape }}" width="{{ s.image.width }}" height="{{ s.image.height }}" loading="lazy" decoding="async">
+    </div>
+  {%- endif -%}
+
+  {%- if s.body != blank -%}
+    <div class="abt__inner"><div class="abt__body rte">{{ s.body }}</div></div>
+  {%- endif -%}
+
+  {%- if section.blocks.size > 0 -%}
+    <div class="abt__inner">
+      <div class="abt__pillars">
+        {%- for block in section.blocks -%}
+          <div class="abt__pillar" {{ block.shopify_attributes }}>
+            <span class="abt__pillar-ic">
+              {%- case block.settings.icon -%}
+                {%- when 'shield' -%}<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6z"/><path d="M9 12l2 2 4-4"/></svg>
+                {%- when 'tag' -%}<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 13.4 12 22l-9-9V4h9l8.6 8.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.4"/></svg>
+                {%- when 'truck' -%}<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 4h12v11H1z"/><path d="M13 8h5l4 4v3h-9z"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="18" r="2"/></svg>
+                {%- when 'heart' -%}<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 5.6a5 5 0 0 0-7.1 0L12 7.3l-1.7-1.7a5 5 0 1 0-7.1 7.1L12 21.5l8.8-8.8a5 5 0 0 0 0-7.1z"/></svg>
+                {%- when 'users' -%}<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 20v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 20v-2a4 4 0 0 0-3-3.9"/><path d="M16 3.1a4 4 0 0 1 0 7.8"/></svg>
+                {%- else -%}<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5l2.9 6.3 6.9.6-5.2 4.5 1.6 6.8L12 17.2l-6.2 3.5 1.6-6.8-5.2-4.5 6.9-.6z"/></svg>
+              {%- endcase -%}
+            </span>
+            {%- if block.settings.title != blank -%}<h3 class="abt__pillar-title">{{ block.settings.title }}</h3>{%- endif -%}
+            {%- if block.settings.text != blank -%}<p class="abt__pillar-text">{{ block.settings.text }}</p>{%- endif -%}
+          </div>
+        {%- endfor -%}
+      </div>
+    </div>
+  {%- endif -%}
+
+  {%- if s.closing != blank -%}
+    <p class="abt__closing"><span>{{ s.closing }}</span></p>
+  {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "About",
+  "tag": "section",
+  "class": "section-about",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "About us" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "About Zeene Lifestyle" },
+    { "type": "richtext", "id": "lead", "label": "Lead paragraph", "default": "<p>At Zeene Lifestyle, we believe clothing is more than fashion, it's a reflection of confidence, ambition, and individuality. Our mission is to create premium everyday essentials that combine modern design, exceptional comfort, and lasting quality for the new generation.</p>" },
+    { "type": "header", "content": "Image" },
+    { "type": "image_picker", "id": "image", "label": "Brand image" },
+    { "type": "checkbox", "id": "image_full", "label": "Full width image", "default": false },
+    { "type": "range", "id": "image_height", "min": 240, "max": 720, "step": 20, "unit": "px", "label": "Max image height", "default": 460 },
+    { "type": "header", "content": "Body" },
+    { "type": "richtext", "id": "body", "label": "Body text" },
+    { "type": "header", "content": "Closing" },
+    { "type": "text", "id": "closing", "label": "Closing statement", "default": "Wear Confidence. Live Zeene." },
+    { "type": "header", "content": "Appearance" },
+    { "type": "range", "id": "max_width", "min": 700, "max": 1200, "step": 20, "unit": "px", "label": "Text width", "default": 860, "info": "Parhne ke liye tang rakhi gayi hai — full-width text parhna mushkil hota hai." },
+    { "type": "color", "id": "bg_color", "label": "Background", "default": "#ffffff" },
+    { "type": "color", "id": "text_color", "label": "Text", "default": "#0a0a0a" },
+    { "type": "color", "id": "accent_color", "label": "Neon accent", "default": "#C6F135" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 120, "step": 4, "unit": "px", "label": "Padding top", "default": 56 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 120, "step": 4, "unit": "px", "label": "Padding bottom", "default": 0 }
+  ],
+  "blocks": [
+    {
+      "type": "pillar",
+      "name": "Value pillar",
+      "settings": [
+        { "type": "select", "id": "icon", "label": "Icon", "options": [ { "value": "star", "label": "Star" }, { "value": "shield", "label": "Shield" }, { "value": "tag", "label": "Tag" }, { "value": "truck", "label": "Truck" }, { "value": "heart", "label": "Heart" }, { "value": "users", "label": "Community" } ], "default": "star" },
+        { "type": "text", "id": "title", "label": "Title", "default": "Premium craftsmanship" },
+        { "type": "textarea", "id": "text", "label": "Text", "default": "Clean aesthetics, premium fabrics, and precise craftsmanship in every piece." }
+      ]
+    }
+  ],
+  "max_blocks": 4,
+  "presets": [
+    {
+      "name": "About",
+      "blocks": [
+        { "type": "pillar", "settings": { "icon": "star", "title": "Premium craftsmanship", "text": "Clean aesthetics, premium fabrics, and precise craftsmanship in every piece." } },
+        { "type": "pillar", "settings": { "icon": "tag", "title": "Honest pricing", "text": "Luxury-inspired fashion at honest prices, without compromising on quality." } },
+        { "type": "pillar", "settings": { "icon": "shield", "title": "Shop with confidence", "text": "Secure shopping, reliable cash on delivery, and dedicated customer support." } }
+      ]
+    }
+  ]
+}
+{% endschema %}

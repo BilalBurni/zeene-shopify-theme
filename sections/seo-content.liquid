@@ -1,0 +1,138 @@
+{%- comment -%} Content is pulled from the source, not typed here: collection.description on collections, the custom.seo_content metafield on pages, the section setting elsewhere. No content = no section. {%- endcomment -%}
+{%- liquid
+  assign s = section.settings
+
+  assign seo_html = ''
+  case request.page_type
+    when 'collection'
+      assign seo_html = collection.description
+    when 'page'
+# metafield_tag is required: rich_text_field values are JSON, so plain output prints raw JSON.
+      if page.metafields.custom.seo_content != blank
+        capture seo_html
+          echo page.metafields.custom.seo_content | metafield_tag
+        endcapture
+      endif
+    else
+      assign seo_html = s.content
+  endcase
+-%}
+
+{%- if seo_html != blank -%}
+  <div id="seo-{{ section.id }}" class="seo" style="--seo-bg:{{ s.bg_color }};--seo-text:{{ s.text_color }};--seo-maxw:{{ s.max_width }}px;--seo-h:{{ s.collapsed_height }}px;">
+    <div class="seo__inner">
+      <div class="seo__body rte">{%- if s.heading != blank -%}<h2 class="seo__title">{{ s.heading }}</h2>{%- endif -%}{{ seo_html }}</div>
+      <button type="button" class="seo__more js-seo-more" aria-expanded="false" aria-controls="seo-body-{{ section.id }}">
+        <span class="js-seo-label">{{ s.more_label | default: 'Read More' }}</span>
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+    </div>
+  </div>
+
+  {%- style -%}
+  #seo-{{ section.id }} { background: var(--seo-bg); color: var(--seo-text); padding: {{ s.padding_top }}px 0 {{ s.padding_bottom }}px; }
+  #seo-{{ section.id }} .seo__inner { max-width: var(--seo-maxw); margin: 0 auto; padding: 0 16px; }
+  #seo-{{ section.id }} .seo__body { position: relative; max-height: var(--seo-h); overflow: hidden; transition: max-height 0.5s cubic-bezier(.16,1,.3,1); }
+  #seo-{{ section.id }} .seo__body::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 96px; background: linear-gradient(to bottom, rgba(255,255,255,0), var(--seo-bg)); pointer-events: none; transition: opacity 0.35s ease; }
+  #seo-{{ section.id }}.is-open .seo__body::after, #seo-{{ section.id }}.is-short .seo__body::after { opacity: 0; }
+  {%- comment -%} Content chhota ho to na cap, na fade, na button (JS lagata hai). {%- endcomment -%}
+  #seo-{{ section.id }}.is-short .seo__body { max-height: none; }
+  #seo-{{ section.id }} .seo__body > *:first-child { margin-top: 0; }
+  #seo-{{ section.id }} .seo__body h1, #seo-{{ section.id }} .seo__body h2, #seo-{{ section.id }} .seo__title { margin: 0 0 14px; font-family: 'Zen Maru Gothic', sans-serif; font-size: clamp(20px, 2.6vw, 26px); font-weight: 600; line-height: 1.3; letter-spacing: normal; color: var(--seo-text); }
+  #seo-{{ section.id }} .seo__body h3, #seo-{{ section.id }} .seo__body h4, #seo-{{ section.id }} .seo__body h5 { margin: 22px 0 8px; font-family: 'Zen Maru Gothic', sans-serif; font-size: 15px; font-weight: 600; line-height: 1.4; color: var(--seo-text); }
+  #seo-{{ section.id }} .seo__body p { margin: 0 0 14px; font-family: 'Zen Maru Gothic', sans-serif; font-size: 13px; font-weight: 400; line-height: 1.75; color: var(--seo-text); opacity: 0.68; }
+  #seo-{{ section.id }} .seo__body ul, #seo-{{ section.id }} .seo__body ol { margin: 0 0 14px; padding-left: 18px; }
+  #seo-{{ section.id }} .seo__body li { font-family: 'Zen Maru Gothic', sans-serif; font-size: 13px; line-height: 1.75; color: var(--seo-text); opacity: 0.68; margin-bottom: 4px; }
+  #seo-{{ section.id }} .seo__body strong, #seo-{{ section.id }} .seo__body b { font-weight: 600; opacity: 1; }
+  #seo-{{ section.id }} .seo__body a { color: var(--seo-text); text-decoration: underline; text-underline-offset: 2px; }
+  #seo-{{ section.id }} .seo__body img { max-width: 100%; height: auto; }
+  #seo-{{ section.id }} .seo__body table { max-width: 100%; }
+  #seo-{{ section.id }} .seo__more { display: inline-flex; align-items: center; gap: 8px; margin-top: 18px; padding: 12px 22px; border: 0; border-radius: 9999px; background: {{ s.button_bg }}; color: {{ s.button_text }}; font-family: 'Zen Maru Gothic', sans-serif; font-size: 12.5px; font-weight: 600; cursor: pointer; transition: transform 0.18s ease, filter 0.2s ease; }
+  #seo-{{ section.id }} .seo__more:hover { transform: translateY(-1px); filter: brightness(1.15); }
+  #seo-{{ section.id }} .seo__more[hidden] { display: none; }
+  #seo-{{ section.id }} .seo__more svg { transition: transform 0.35s cubic-bezier(.16,1,.3,1); }
+  #seo-{{ section.id }}.is-open .seo__more svg { transform: rotate(180deg); }
+  @media (max-width: 749px) { #seo-{{ section.id }} .seo__body::after { height: 72px; } }
+  @media (prefers-reduced-motion: reduce) { #seo-{{ section.id }} .seo__body, #seo-{{ section.id }} .seo__more, #seo-{{ section.id }} .seo__more svg { transition: none; } }
+  {%- endstyle -%}
+
+  <script>
+  (function () {
+    var root = document.getElementById('seo-{{ section.id }}');
+    if (!root) return;
+    var body = root.querySelector('.seo__body');
+    var btn = root.querySelector('.js-seo-more');
+    var label = root.querySelector('.js-seo-label');
+    if (!body || !btn) return;
+
+    body.id = 'seo-body-{{ section.id }}';
+    var MORE = {{ s.more_label | default: 'Read More' | json }};
+    var LESS = {{ s.less_label | default: 'Read Less' | json }};
+    var collapsed = parseInt(getComputedStyle(root).getPropertyValue('--seo-h'), 10) || 180;
+
+function measure() {
+      if (root.classList.contains('is-open')) return; // khula ho to scrollHeight se faisla galat hoga.
+      root.classList.remove('is-short');
+      btn.hidden = false;
+      if (body.scrollHeight <= collapsed + 8) {
+        root.classList.add('is-short');
+        btn.hidden = true;
+      }
+    }
+    measure();
+    window.addEventListener('resize', measure);
+
+body.addEventListener('transitionend', function (e) {
+      if (e.propertyName === 'max-height' && root.classList.contains('is-open')) body.style.maxHeight = 'none';
+    });
+
+    btn.addEventListener('click', function () {
+      if (root.classList.contains('is-open')) {
+        body.style.maxHeight = body.scrollHeight + 'px'; // 'none' se seedha collapse karte to jump hota.
+        requestAnimationFrame(function () {
+          root.classList.remove('is-open');
+          body.style.maxHeight = ''; // CSS ki var(--seo-h) par wapas.
+        });
+        btn.setAttribute('aria-expanded', 'false');
+        if (label) label.textContent = MORE;
+      } else {
+        body.style.maxHeight = body.scrollHeight + 'px';
+        root.classList.add('is-open');
+        btn.setAttribute('aria-expanded', 'true');
+        if (label) label.textContent = LESS;
+      }
+    });
+  })();
+  </script>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "SEO content",
+  "tag": "section",
+  "class": "section-seo-content",
+  "settings": [
+    { "type": "paragraph", "content": "Content khud aata hai — COLLECTION par uski Description se, PAGE par uske metafield custom.seo_content se (page ka apna content nahi, warna wo do baar dikhta). Content khali ho to ye section bilkul nahi dikhta." },
+    { "type": "header", "content": "Homepage / baaki templates" },
+    { "type": "paragraph", "content": "Ye do settings sirf wahan use hoti hain jahan koi collection/page source na ho (misal homepage). Collection aur page templates par inhe khali chhorein — wahan heading content ke andar hi likh dein." },
+    { "type": "text", "id": "heading", "label": "Heading", "info": "Ye <h2> ban kar content se upar aati hai." },
+    { "type": "html", "id": "content", "label": "Content (HTML)", "info": "Poora HTML chalta hai — <h3>, <p>, <ul>, <table>. (Richtext setting mein headings allowed nahi hotin, is liye HTML rakha hai.) Styling theme khud karta hai, class/inline CSS ki zarurat nahi." },
+    { "type": "header", "content": "Read more" },
+    { "type": "range", "id": "collapsed_height", "min": 80, "max": 400, "step": 10, "unit": "px", "label": "Collapsed height", "default": 180 },
+    { "type": "text", "id": "more_label", "label": "Expand label", "default": "Read More" },
+    { "type": "text", "id": "less_label", "label": "Collapse label", "default": "Read Less" },
+    { "type": "header", "content": "Appearance" },
+    { "type": "range", "id": "max_width", "min": 800, "max": 1600, "step": 20, "unit": "px", "label": "Max content width", "default": 1280 },
+    { "type": "color", "id": "bg_color", "label": "Background", "default": "#ffffff", "info": "Fade isi color mein ghulta hai — section ke background se milta hona chahiye." },
+    { "type": "color", "id": "text_color", "label": "Text", "default": "#0a0a0a" },
+    { "type": "color", "id": "button_bg", "label": "Button background", "default": "#0a0a0a" },
+    { "type": "color", "id": "button_text", "label": "Button text", "default": "#ffffff" },
+    { "type": "header", "content": "Spacing" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 100, "step": 4, "unit": "px", "label": "Padding top", "default": 40 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 100, "step": 4, "unit": "px", "label": "Padding bottom", "default": 48 }
+  ],
+  "presets": [
+    { "name": "SEO content" }
+  ]
+}
+{% endschema %}

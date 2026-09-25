@@ -1,0 +1,104 @@
+{%- comment -%}
+  Page hero banner with the heading sitting on top of the image.
+  Shared by the bundle and flash sale pages so both look the same.
+
+  With no image it falls back to a dark panel with a neon glow, so the hero never looks broken.
+
+  Params:
+    uid (required, unique id) , image, image_mobile, eyebrow, heading, text
+    height, height_mobile (px) , overlay (0-90), align ('left' | 'center')
+    full_width (bool), radius, max_width, accent
+    breadcrumb (bool) - draw the breadcrumb over the banner instead of above it
+{%- endcomment -%}
+{%- liquid
+  assign uid = uid | default: 'hero'
+  assign h = height | default: 340
+  assign hm = height_mobile | default: 240
+  assign ov = overlay | default: 45
+  assign al = align | default: 'center'
+  assign rad = radius | default: 18
+  assign mw = max_width | default: 1280
+  assign ac = accent | default: '#C6F135'
+  assign has_img = false
+  if image != blank
+    assign has_img = true
+  endif
+-%}
+
+<div
+  id="page-hero-{{ uid }}"
+  class="phero{% if full_width %} phero--full{% endif %}{% unless has_img %} phero--plain{% endunless %} phero--{{ al }}"
+  style="--ph-h:{{ h }}px;--ph-hm:{{ hm }}px;--ph-rad:{{ rad }}px;--ph-maxw:{{ mw }}px;--ph-accent:{{ ac }};"
+>
+  <div class="phero__frame">
+    {%- if has_img -%}
+      <picture>
+        {%- if image_mobile != blank -%}
+          <source
+            media="(max-width: 749px)"
+            srcset="{{ image_mobile | image_url: width: 750 }} 750w, {{ image_mobile | image_url: width: 1100 }} 1100w"
+            sizes="100vw"
+          >
+        {%- endif -%}
+        <img
+          class="phero__img"
+          src="{{ image | image_url: width: 1800 }}"
+          srcset="{{ image | image_url: width: 900 }} 900w, {{ image | image_url: width: 1400 }} 1400w, {{ image | image_url: width: 1800 }} 1800w, {{ image | image_url: width: 2400 }} 2400w"
+          sizes="100vw"
+          alt="{{ heading | default: 'Banner' | escape }}"
+          width="1800"
+          height="600"
+          fetchpriority="high"
+          decoding="async"
+        >
+      </picture>
+    {%- endif -%}
+    <span class="phero__scrim" aria-hidden="true"></span>
+
+    {%- if breadcrumb -%}
+      {%- render 'breadcrumbs', from_section: true, overlay: true -%}
+    {%- endif -%}
+
+    <div class="phero__inner">
+      <div class="phero__content">
+        {%- if eyebrow != blank -%}<span class="phero__eyebrow">{{ eyebrow }}</span>{%- endif -%}
+        {%- if heading != blank -%}<h1 class="phero__heading">{{ heading }}</h1>{%- endif -%}
+        {%- if text != blank -%}<p class="phero__text">{{ text }}</p>{%- endif -%}
+      </div>
+    </div>
+  </div>
+</div>
+
+{%- style -%}
+  #page-hero-{{ uid }} { padding: 0 16px; margin-bottom: 34px; }
+  #page-hero-{{ uid }}.phero--full { padding: 0; }
+  #page-hero-{{ uid }} * { box-sizing: border-box; }
+  #page-hero-{{ uid }} .phero__frame { position: relative; height: var(--ph-h); max-width: var(--ph-maxw); margin: 0 auto; border-radius: var(--ph-rad); overflow: hidden; background: #0f0f12; }
+  #page-hero-{{ uid }}.phero--full .phero__frame { max-width: none; border-radius: 0; }
+  #page-hero-{{ uid }} .phero__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
+  #page-hero-{{ uid }} .phero__scrim { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,{{ ov | times: 0.006 }}) 0%, rgba(0,0,0,{{ ov | times: 0.01 }}) 55%, rgba(0,0,0,{{ ov | times: 0.014 }}) 100%); }
+  {%- comment -%} No image: dark panel with a neon glow so the hero still reads as designed. {%- endcomment -%}
+  #page-hero-{{ uid }}.phero--plain .phero__frame { background: radial-gradient(120% 120% at 80% 0%, {{ ac | color_modify: 'alpha', 0.28 }} 0%, transparent 55%), #101014; }
+  #page-hero-{{ uid }}.phero--plain .phero__scrim { background: none; }
+
+  #page-hero-{{ uid }} .breadcrumb--overlay .breadcrumb__list { max-width: none; padding-left: clamp(20px, 4vw, 48px); padding-right: clamp(20px, 4vw, 48px); }
+  #page-hero-{{ uid }} .phero__inner { position: relative; z-index: 2; height: 100%; max-width: var(--ph-maxw); margin: 0 auto; padding: 0 clamp(20px, 4vw, 48px); display: flex; align-items: center; }
+  #page-hero-{{ uid }}.phero--center .phero__inner { justify-content: center; text-align: center; }
+  #page-hero-{{ uid }} .phero__content { max-width: 640px; }
+
+  #page-hero-{{ uid }} .phero__eyebrow { display: inline-block; margin: 0 0 12px; padding: 6px 13px; font-family: 'Zen Maru Gothic', sans-serif; font-size: 10.5px; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; color: #0a0a0a; background: var(--ph-accent); border-radius: 7px; }
+  #page-hero-{{ uid }} .phero__heading { margin: 0; font-family: 'Zen Maru Gothic', sans-serif; font-size: clamp(28px, 4.6vw, 48px); font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; color: #fff; text-shadow: 0 2px 18px rgba(0,0,0,0.35); }
+  #page-hero-{{ uid }} .phero__text { margin: 14px 0 0; font-size: clamp(13.5px, 1.5vw, 16px); line-height: 1.6; color: #fff; opacity: 0.86; text-shadow: 0 1px 12px rgba(0,0,0,0.4); }
+  #page-hero-{{ uid }}.phero--center .phero__content { margin: 0 auto; }
+
+  @media (max-width: 749px) {
+    #page-hero-{{ uid }} { padding: 0 14px; margin-bottom: 22px; }
+    #page-hero-{{ uid }}.phero--full { padding: 0; }
+    #page-hero-{{ uid }} .phero__frame { height: var(--ph-hm); border-radius: {{ rad | at_most: 14 }}px; }
+    #page-hero-{{ uid }}.phero--full .phero__frame { border-radius: 0; }
+    #page-hero-{{ uid }} .phero__inner { padding: 0 16px; }
+    #page-hero-{{ uid }} .phero__eyebrow { margin-bottom: 9px; padding: 5px 10px; font-size: 9.5px; letter-spacing: 0.16em; }
+    #page-hero-{{ uid }} .phero__heading { font-size: clamp(24px, 7vw, 32px); }
+    #page-hero-{{ uid }} .phero__text { margin-top: 10px; font-size: 13px; }
+  }
+{%- endstyle -%}

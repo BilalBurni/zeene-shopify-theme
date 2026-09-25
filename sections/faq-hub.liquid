@@ -1,0 +1,504 @@
+{%- liquid
+  assign s = section.settings
+  assign cats = section.blocks | where: 'type', 'category'
+  assign questions = section.blocks | where: 'type', 'question'
+  assign cards = section.blocks | where: 'type', 'help_card'
+  assign side_menu = linklists[s.sidebar_menu]
+-%}
+
+<div
+  id="faq-hub-{{ section.id }}"
+  class="fh"
+  style="--fh-bg:{{ s.bg_color }};--fh-text:{{ s.text_color }};--fh-accent:{{ s.accent_color }};--fh-line:{{ s.divider_color }};--fh-maxw:{{ s.max_width }}px;--fh-pt:{{ s.padding_top }}px;--fh-pb:{{ s.padding_bottom }}px;"
+>
+  <div class="fh__inner">
+    <header class="fh__head">
+      {%- if s.eyebrow != blank -%}<span class="fh__eyebrow">{{ s.eyebrow }}</span>{%- endif -%}
+      {%- if s.heading != blank -%}<h1 class="fh__heading">{{ s.heading }}</h1>{%- endif -%}
+      {%- if s.subheading != blank -%}<p class="fh__sub">{{ s.subheading }}</p>{%- endif -%}
+
+      {%- if s.show_search and questions.size > 0 -%}
+        <div class="fh__search">
+          <span class="fh__search-ic" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg>
+          </span>
+          <input type="search" class="fh__search-input js-fh-search" placeholder="{{ s.search_placeholder | default: 'Search a question…' | escape }}" autocomplete="off" spellcheck="false" aria-label="Search questions">
+          <button type="button" class="fh__search-clear js-fh-clear" aria-label="Clear search" hidden>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          </button>
+        </div>
+      {%- endif -%}
+    </header>
+
+    <div class="fh__layout">
+      <aside class="fh__side">
+        {%- if cats.size > 0 -%}
+          <div class="fh__side-card">
+            <span class="fh__side-label">{{ s.topics_label | default: 'Topics' }}</span>
+            <nav class="fh__nav js-fh-nav" aria-label="FAQ topics">
+              {%- for cat in cats -%}
+                {%- liquid
+                  assign cnt = 0
+                  assign started = false
+                  for b in section.blocks
+                    if b.id == cat.id
+                      assign started = true
+                      continue
+                    endif
+                    if started
+                      if b.type == 'category'
+                        break
+                      endif
+                      if b.type == 'question'
+                        assign cnt = cnt | plus: 1
+                      endif
+                    endif
+                  endfor
+                -%}
+                <a class="fh__nav-link{% if forloop.first %} is-active{% endif %}" href="#fh-cat-{{ cat.id }}" data-target="fh-cat-{{ cat.id }}">
+                  <span class="fh__nav-text">{{ cat.settings.title }}</span>
+                  <span class="fh__nav-count">{{ cnt }}</span>
+                </a>
+              {%- endfor -%}
+            </nav>
+          </div>
+        {%- endif -%}
+
+        {%- if side_menu != blank and side_menu.links.size > 0 -%}
+          <div class="fh__side-card fh__side-card--links">
+            <span class="fh__side-label">{{ s.sidebar_menu_label | default: 'Help &amp; policies' }}</span>
+            <nav class="fh__links" aria-label="Support links">
+              {%- for link in side_menu.links -%}
+                <a class="fh__link" href="{{ link.url }}">
+                  {{ link.title }}
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                </a>
+              {%- endfor -%}
+            </nav>
+          </div>
+        {%- endif -%}
+      </aside>
+
+      <div class="fh__main js-fh-main">
+        {%- comment -%} Questions placed before the first category get their own unnamed group. {%- endcomment -%}
+        {%- assign loose = 0 -%}
+        {%- for b in section.blocks -%}
+          {%- if b.type == 'category' -%}{%- break -%}{%- endif -%}
+          {%- if b.type == 'question' -%}{%- assign loose = loose | plus: 1 -%}{%- endif -%}
+        {%- endfor -%}
+
+        {%- if loose > 0 -%}
+          <section class="fh__cat js-fh-cat" id="fh-cat-{{ section.id }}-general">
+            <div class="fh__items">
+              {%- for b in section.blocks -%}
+                {%- if b.type == 'category' -%}{%- break -%}{%- endif -%}
+                {%- if b.type == 'question' -%}
+                  {%- render 'faq-hub-item', block: b -%}
+                {%- endif -%}
+              {%- endfor -%}
+            </div>
+          </section>
+        {%- endif -%}
+
+        {%- for cat in cats -%}
+          <section class="fh__cat js-fh-cat" id="fh-cat-{{ cat.id }}" {{ cat.shopify_attributes }}>
+            <div class="fh__cat-head">
+              <span class="fh__cat-num">{{ forloop.index | prepend: '0' | slice: -2, 2 }}</span>
+              <div>
+                <h2 class="fh__cat-title">{{ cat.settings.title }}</h2>
+                {%- if cat.settings.description != blank -%}<p class="fh__cat-desc">{{ cat.settings.description }}</p>{%- endif -%}
+              </div>
+            </div>
+            <div class="fh__items">
+              {%- comment -%} This category's questions are the question blocks after it, up to the next category. {%- endcomment -%}
+              {%- assign started = false -%}
+              {%- for b in section.blocks -%}
+                {%- if b.id == cat.id -%}{%- assign started = true -%}{%- continue -%}{%- endif -%}
+                {%- unless started -%}{%- continue -%}{%- endunless -%}
+                {%- if b.type == 'category' -%}{%- break -%}{%- endif -%}
+                {%- if b.type == 'question' -%}
+                  {%- render 'faq-hub-item', block: b -%}
+                {%- endif -%}
+              {%- endfor -%}
+            </div>
+          </section>
+        {%- endfor -%}
+
+        <p class="fh__noresults js-fh-noresults" hidden>
+          No question matches <span class="js-fh-term"></span>. Try a different word, or
+          <a href="{{ s.contact_link | default: '/pages/contact' }}">contact our support team</a>.
+        </p>
+      </div>
+    </div>
+
+    {%- if cards.size > 0 -%}
+      <div class="fh__help">
+        {%- if s.help_heading != blank -%}<h2 class="fh__help-heading">{{ s.help_heading }}</h2>{%- endif -%}
+        <div class="fh__cards">
+          {%- for block in cards -%}
+            {%- assign c = block.settings -%}
+            <a class="fh__card" href="{{ c.link | default: '#' }}"{% if c.new_tab %} target="_blank" rel="noopener"{% endif %} {{ block.shopify_attributes }}>
+              <span class="fh__card-ic" aria-hidden="true">
+                {%- case c.icon -%}
+                  {%- when 'whatsapp' -%}
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.46 1.32 4.96L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.21h.01c5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2zm5.43 12.38c-.3-.15-1.75-.86-2.02-.96-.27-.1-.47-.15-.67.15-.2.3-.77.96-.94 1.16-.17.2-.35.22-.64.07-.3-.15-1.25-.46-2.38-1.47-.88-.78-1.47-1.75-1.65-2.05-.17-.3-.02-.46.13-.6.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.6-.92-2.2-.24-.58-.49-.5-.67-.5h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.01-1.04 2.47s1.06 2.86 1.21 3.06c.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.69.63.71.22 1.36.19 1.87.12.57-.09 1.75-.72 2-1.41.25-.69.25-1.28.17-1.41-.07-.13-.27-.2-.57-.35z"/></svg>
+                  {%- when 'mail' -%}
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+                  {%- when 'phone' -%}
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1.1 1A16 16 0 0 1 4 5.1 1 1 0 0 1 5 4z"/></svg>
+                  {%- when 'truck' -%}
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7z"/><circle cx="7" cy="18" r="1.8"/><circle cx="17" cy="18" r="1.8"/></svg>
+                  {%- when 'return' -%}
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h11a5 5 0 0 1 0 10H9"/><path d="m8 5-4 4 4 4"/></svg>
+                  {%- else -%}
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 1 1-3.2-6.4"/><path d="M9.5 9a2.6 2.6 0 1 1 3.4 2.5c-.6.2-.9.7-.9 1.3v.5"/><path d="M12 17h.01"/></svg>
+                {%- endcase -%}
+              </span>
+              <span class="fh__card-body">
+                <span class="fh__card-title">{{ c.title }}</span>
+                {%- if c.text != blank -%}<span class="fh__card-text">{{ c.text }}</span>{%- endif -%}
+                {%- if c.link_label != blank -%}
+                  <span class="fh__card-cta">{{ c.link_label }}
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                  </span>
+                {%- endif -%}
+              </span>
+            </a>
+          {%- endfor -%}
+        </div>
+      </div>
+    {%- endif -%}
+  </div>
+</div>
+
+{%- if s.enable_schema and questions.size > 0 -%}
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {%- for block in questions -%}
+          {
+            "@type": "Question",
+            "name": {{ block.settings.question | strip_html | json }},
+            "acceptedAnswer": { "@type": "Answer", "text": {{ block.settings.answer | strip_html | strip_newlines | json }} }
+          }{%- unless forloop.last -%},{%- endunless -%}
+        {%- endfor -%}
+      ]
+    }
+  </script>
+{%- endif -%}
+
+{%- style -%}
+#faq-hub-{{ section.id }} { background: var(--fh-bg); color: var(--fh-text); padding: var(--fh-pt) 0 var(--fh-pb); }
+#faq-hub-{{ section.id }} .fh__inner { max-width: var(--fh-maxw); margin: 0 auto; padding: 0 16px; }
+
+#faq-hub-{{ section.id }} .fh__head { max-width: 760px; margin: 0 0 40px; }
+#faq-hub-{{ section.id }} .fh__eyebrow { display: inline-block; margin: 0 0 10px; font-size: 11px; font-weight: 800; letter-spacing: 0.24em; text-transform: uppercase; opacity: 0.5; }
+#faq-hub-{{ section.id }} .fh__heading { margin: 0; font-family: 'Zen Maru Gothic', sans-serif; font-size: clamp(26px, 4vw, 40px); font-weight: 500; line-height: 1.18; letter-spacing: -0.015em; }
+#faq-hub-{{ section.id }} .fh__sub { margin: 12px 0 0; font-size: 15px; line-height: 1.65; opacity: 0.62; }
+
+#faq-hub-{{ section.id }} .fh__search { display: flex; align-items: center; gap: 10px; margin-top: 24px; padding: 0 14px; background: #fff; border: 1.5px solid {{ s.text_color | color_modify: 'alpha', 0.16 }}; border-radius: 12px; transition: border-color 0.18s ease, box-shadow 0.18s ease; }
+#faq-hub-{{ section.id }} .fh__search:focus-within { border-color: var(--fh-text); box-shadow: 0 0 0 4px {{ s.accent_color | color_modify: 'alpha', 0.32 }}; }
+#faq-hub-{{ section.id }} .fh__search-ic { display: inline-flex; flex-shrink: 0; opacity: 0.45; }
+#faq-hub-{{ section.id }} .fh__search-ic svg { width: 19px; height: 19px; }
+#faq-hub-{{ section.id }} .fh__search-input { flex: 1; min-width: 0; height: 50px; border: 0; outline: 0; background: transparent; font-family: 'Zen Maru Gothic', sans-serif; font-size: 15px; color: var(--fh-text); }
+#faq-hub-{{ section.id }} .fh__search-input::placeholder { color: {{ s.text_color | color_modify: 'alpha', 0.42 }}; }
+#faq-hub-{{ section.id }} .fh__search-input::-webkit-search-cancel-button { -webkit-appearance: none; }
+#faq-hub-{{ section.id }} .fh__search-clear { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; flex-shrink: 0; padding: 0; border: 0; border-radius: 50%; background: {{ s.text_color | color_modify: 'alpha', 0.08 }}; color: var(--fh-text); cursor: pointer; }
+#faq-hub-{{ section.id }} .fh__search-clear svg { width: 14px; height: 14px; }
+#faq-hub-{{ section.id }} .fh__search-clear[hidden] { display: none; }
+
+#faq-hub-{{ section.id }} .fh__layout { display: grid; grid-template-columns: minmax(0, 258px) minmax(0, 1fr); gap: 48px; align-items: start; }
+
+#faq-hub-{{ section.id }} .fh__side { position: sticky; top: 96px; display: flex; flex-direction: column; gap: 16px; }
+#faq-hub-{{ section.id }} .fh__side-card { padding: 20px 18px; border: 1px solid var(--fh-line); border-radius: 16px; background: #fff; }
+#faq-hub-{{ section.id }} .fh__side-label { display: block; margin-bottom: 12px; font-size: 10.5px; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; opacity: 0.45; }
+#faq-hub-{{ section.id }} .fh__nav { display: flex; flex-direction: column; gap: 2px; }
+#faq-hub-{{ section.id }} .fh__nav-link { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 11px; font-family: 'Zen Maru Gothic', sans-serif; font-size: 13.5px; font-weight: 500; line-height: 1.35; color: var(--fh-text); text-decoration: none; border-radius: 9px; transition: background-color 0.16s ease, color 0.16s ease; }
+#faq-hub-{{ section.id }} .fh__nav-link:hover { background: {{ s.text_color | color_modify: 'alpha', 0.05 }}; }
+#faq-hub-{{ section.id }} .fh__nav-link.is-active { background: {{ s.accent_color | color_modify: 'alpha', 0.26 }}; font-weight: 700; }
+#faq-hub-{{ section.id }} .fh__nav-count { flex-shrink: 0; min-width: 20px; padding: 2px 6px; text-align: center; font-size: 10.5px; font-weight: 700; opacity: 0.5; background: {{ s.text_color | color_modify: 'alpha', 0.07 }}; border-radius: 6px; }
+#faq-hub-{{ section.id }} .fh__nav-link.is-active .fh__nav-count { background: rgba(255,255,255,0.65); opacity: 0.75; }
+#faq-hub-{{ section.id }} .fh__links { display: flex; flex-direction: column; }
+#faq-hub-{{ section.id }} .fh__link { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 11px 0; font-size: 13.5px; font-weight: 500; color: var(--fh-text); text-decoration: none; border-bottom: 1px solid var(--fh-line); transition: gap 0.18s ease, opacity 0.18s ease; }
+#faq-hub-{{ section.id }} .fh__link:last-child { border-bottom: 0; padding-bottom: 0; }
+#faq-hub-{{ section.id }} .fh__link svg { flex-shrink: 0; opacity: 0.35; }
+#faq-hub-{{ section.id }} .fh__link:hover { gap: 14px; opacity: 0.72; }
+
+#faq-hub-{{ section.id }} .fh__cat { margin-bottom: 40px; scroll-margin-top: 110px; }
+#faq-hub-{{ section.id }} .fh__cat:last-of-type { margin-bottom: 0; }
+#faq-hub-{{ section.id }} .fh__cat-head { display: flex; align-items: flex-start; gap: 14px; padding-bottom: 14px; margin-bottom: 4px; border-bottom: 2px solid var(--fh-text); }
+#faq-hub-{{ section.id }} .fh__cat-num { flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; min-width: 30px; height: 30px; font-family: 'Zen Maru Gothic', sans-serif; font-size: 12px; font-weight: 800; letter-spacing: 0.02em; background: var(--fh-accent); border-radius: 8px; }
+#faq-hub-{{ section.id }} .fh__cat-title { margin: 3px 0 0; font-family: 'Zen Maru Gothic', sans-serif; font-size: clamp(17px, 2.2vw, 21px); font-weight: 600; line-height: 1.25; }
+#faq-hub-{{ section.id }} .fh__cat-desc { margin: 6px 0 0; font-size: 13.5px; line-height: 1.6; opacity: 0.6; }
+
+#faq-hub-{{ section.id }} .fh__item { border-bottom: 1px solid var(--fh-line); }
+#faq-hub-{{ section.id }} .fh__q { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 18px 0; background: none; border: 0; cursor: pointer; text-align: left; font-family: 'Zen Maru Gothic', sans-serif; font-size: {{ s.question_size }}px; font-weight: 600; line-height: 1.45; color: var(--fh-text); }
+#faq-hub-{{ section.id }} .fh__q:hover .fh__q-text { opacity: 0.68; }
+#faq-hub-{{ section.id }} .fh__q-text { transition: opacity 0.18s ease; }
+#faq-hub-{{ section.id }} .fh__q-ic { flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: 1px solid var(--fh-line); border-radius: 50%; transition: transform 0.32s cubic-bezier(.16,1,.3,1), background-color 0.2s ease, border-color 0.2s ease; }
+#faq-hub-{{ section.id }} .fh__q-ic svg { width: 15px; height: 15px; }
+#faq-hub-{{ section.id }} .fh__item.is-open .fh__q-ic { transform: rotate(135deg); background: var(--fh-accent); border-color: var(--fh-accent); }
+#faq-hub-{{ section.id }} .fh__wrap { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.34s cubic-bezier(.16,1,.3,1); }
+#faq-hub-{{ section.id }} .fh__item.is-open .fh__wrap { grid-template-rows: 1fr; }
+#faq-hub-{{ section.id }} .fh__a { min-height: 0; overflow: hidden; font-size: {{ s.answer_size }}px; line-height: 1.75; opacity: 0.75; }
+#faq-hub-{{ section.id }} .fh__item.is-open .fh__a { padding-bottom: 20px; }
+#faq-hub-{{ section.id }} .fh__a p:first-child { margin-top: 0; }
+#faq-hub-{{ section.id }} .fh__a p:last-child { margin-bottom: 0; }
+#faq-hub-{{ section.id }} .fh__a ul, #faq-hub-{{ section.id }} .fh__a ol { list-style-position: outside; margin: 8px 0; padding-left: 18px; }
+#faq-hub-{{ section.id }} .fh__a li { margin: 0 0 6px; }
+#faq-hub-{{ section.id }} .fh__a li > p { margin: 0; }
+#faq-hub-{{ section.id }} .fh__a a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+#faq-hub-{{ section.id }} .fh__item[hidden], #faq-hub-{{ section.id }} .fh__cat[hidden] { display: none; }
+
+#faq-hub-{{ section.id }} .fh__noresults { padding: 30px 0; font-size: 14px; line-height: 1.7; opacity: 0.7; }
+#faq-hub-{{ section.id }} .fh__noresults[hidden] { display: none; }
+#faq-hub-{{ section.id }} .fh__noresults span { font-weight: 700; opacity: 1; }
+#faq-hub-{{ section.id }} .fh__noresults a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+
+#faq-hub-{{ section.id }} .fh__help { margin-top: 64px; padding-top: 40px; border-top: 1px solid var(--fh-line); }
+#faq-hub-{{ section.id }} .fh__help-heading { margin: 0 0 22px; font-family: 'Zen Maru Gothic', sans-serif; font-size: clamp(18px, 2.4vw, 23px); font-weight: 600; }
+#faq-hub-{{ section.id }} .fh__cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+#faq-hub-{{ section.id }} .fh__card { display: flex; gap: 14px; padding: 20px; text-decoration: none; color: inherit; border: 1px solid var(--fh-line); border-radius: 16px; transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease; }
+#faq-hub-{{ section.id }} .fh__card:hover { border-color: {{ s.text_color | color_modify: 'alpha', 0.55 }}; transform: translateY(-2px); box-shadow: 0 16px 32px -24px rgba(10,10,10,0.6); }
+#faq-hub-{{ section.id }} .fh__card-ic { flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 12px; background: {{ s.accent_color | color_modify: 'alpha', 0.26 }}; }
+#faq-hub-{{ section.id }} .fh__card-ic svg { width: 21px; height: 21px; }
+#faq-hub-{{ section.id }} .fh__card-body { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+#faq-hub-{{ section.id }} .fh__card-title { font-family: 'Zen Maru Gothic', sans-serif; font-size: 15px; font-weight: 700; }
+#faq-hub-{{ section.id }} .fh__card-text { font-size: 13px; line-height: 1.6; opacity: 0.6; }
+#faq-hub-{{ section.id }} .fh__card-cta { display: inline-flex; align-items: center; gap: 6px; margin-top: 4px; font-size: 11.5px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; }
+
+@media (max-width: 989px) {
+  #faq-hub-{{ section.id }} .fh__layout { grid-template-columns: 1fr; gap: 26px; }
+  #faq-hub-{{ section.id }} .fh__side { position: static; }
+  #faq-hub-{{ section.id }} .fh__side-card { padding: 0; border: 0; background: none; }
+  #faq-hub-{{ section.id }} .fh__nav { flex-direction: row; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; }
+  #faq-hub-{{ section.id }} .fh__nav::-webkit-scrollbar { display: none; }
+  #faq-hub-{{ section.id }} .fh__nav-link { flex: 0 0 auto; padding: 9px 14px; border: 1px solid var(--fh-line); border-radius: 9999px; white-space: nowrap; }
+  #faq-hub-{{ section.id }} .fh__nav-link.is-active { border-color: transparent; }
+  #faq-hub-{{ section.id }} .fh__nav-count { display: none; }
+  #faq-hub-{{ section.id }} .fh__side-card--links { padding: 18px; border: 1px solid var(--fh-line); background: #fff; }
+  #faq-hub-{{ section.id }} .fh__cards { grid-template-columns: 1fr; }
+}
+@media (max-width: 749px) {
+  #faq-hub-{{ section.id }} { padding: {{ s.padding_top | times: 0.6 | round }}px 0 {{ s.padding_bottom | times: 0.6 | round }}px; }
+  #faq-hub-{{ section.id }} .fh__inner { padding: 0 14px; }
+  #faq-hub-{{ section.id }} .fh__head { margin-bottom: 26px; }
+  #faq-hub-{{ section.id }} .fh__search-input { height: 44px; font-size: 14px; }
+  #faq-hub-{{ section.id }} .fh__cat { margin-bottom: 30px; scroll-margin-top: 84px; }
+  #faq-hub-{{ section.id }} .fh__q { font-size: {{ s.question_size | minus: 1 }}px; padding: 15px 0; gap: 12px; }
+  #faq-hub-{{ section.id }} .fh__help { margin-top: 44px; padding-top: 30px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #faq-hub-{{ section.id }} .fh__wrap, #faq-hub-{{ section.id }} .fh__q-ic, #faq-hub-{{ section.id }} .fh__card { transition: none; }
+}
+{%- endstyle -%}
+
+<script>
+(function () {
+  var root = document.getElementById('faq-hub-{{ section.id }}');
+  if (!root) return;
+
+  var main = root.querySelector('.js-fh-main');
+  var items = [].slice.call(root.querySelectorAll('.js-fh-item'));
+  var groups = [].slice.call(root.querySelectorAll('.js-fh-cat'));
+  var navLinks = [].slice.call(root.querySelectorAll('.fh__nav-link'));
+  var single = {{ s.one_at_a_time | default: false }};
+
+  // ---- Accordion ----
+  if (main) {
+    main.addEventListener('click', function (e) {
+      var btn = e.target.closest ? e.target.closest('.js-fh-q') : null;
+      if (!btn) return;
+      var item = btn.parentElement;
+      var willOpen = !item.classList.contains('is-open');
+
+      if (single && willOpen) {
+        items.forEach(function (o) {
+          if (o === item || !o.classList.contains('is-open')) return;
+          o.classList.remove('is-open');
+          var ob = o.querySelector('.js-fh-q');
+          if (ob) ob.setAttribute('aria-expanded', 'false');
+        });
+      }
+
+      item.classList.toggle('is-open', willOpen);
+      btn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+    });
+  }
+
+  // ---- Live search ----
+  var input = root.querySelector('.js-fh-search');
+  var clearBtn = root.querySelector('.js-fh-clear');
+  var noResults = root.querySelector('.js-fh-noresults');
+  var termEl = root.querySelector('.js-fh-term');
+
+var haystacks = items.map(function (item) { return (item.textContent || '').toLowerCase().replace(/\s+/g, ' '); });
+
+  function filter(q) {
+    var term = q.trim().toLowerCase();
+    var matches = 0;
+
+    items.forEach(function (item, i) {
+      var hit = !term || haystacks[i].indexOf(term) !== -1;
+      item.hidden = !hit;
+      if (hit) matches++;
+if (term) {
+        item.classList.remove('is-open');
+        var b = item.querySelector('.js-fh-q');
+        if (b) b.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    groups.forEach(function (g) {
+      g.hidden = term ? g.querySelectorAll('.js-fh-item:not([hidden])').length === 0 : false;
+    });
+
+    if (noResults) {
+      noResults.hidden = !(term && matches === 0);
+      if (termEl) termEl.textContent = '“' + q.trim() + '”';
+    }
+    if (clearBtn) clearBtn.hidden = !term;
+  }
+
+  if (input) {
+    var t = null;
+    input.addEventListener('input', function () {
+      clearTimeout(t);
+      t = setTimeout(function () { filter(input.value); }, 120);
+    });
+    input.addEventListener('keydown', function (e) { if (e.key === 'Escape') { input.value = ''; filter(''); } });
+  }
+  if (clearBtn) {
+    clearBtn.addEventListener('click', function () { if (input) { input.value = ''; input.focus(); } filter(''); });
+  }
+
+  // ---- Topic nav: smooth scroll + scroll spy ----
+  navLinks.forEach(function (link) {
+    link.addEventListener('click', function (e) {
+      var target = document.getElementById(link.getAttribute('data-target'));
+      if (!target) return;
+      e.preventDefault();
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      history.replaceState(null, '', '#' + link.getAttribute('data-target'));
+      setActive(link.getAttribute('data-target'));
+    });
+  });
+
+  function setActive(id) {
+    navLinks.forEach(function (l) { l.classList.toggle('is-active', l.getAttribute('data-target') === id); });
+  }
+
+  if (navLinks.length && 'IntersectionObserver' in window) {
+    var spy = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) setActive(entry.target.id);
+      });
+    }, { rootMargin: '-120px 0px -65% 0px', threshold: 0 });
+    groups.forEach(function (g) { if (g.id) spy.observe(g); });
+  }
+
+  // Direct link (misal /pages/faqs#fh-cat-xxxx) par us topic tak scroll.
+  if (window.location.hash) {
+    var hashed = document.getElementById(window.location.hash.slice(1));
+    if (hashed && hashed.classList.contains('js-fh-cat')) {
+      setTimeout(function () { hashed.scrollIntoView({ block: 'start' }); setActive(hashed.id); }, 60);
+    }
+  }
+})();
+</script>
+
+{% schema %}
+{
+  "name": "FAQ hub",
+  "tag": "section",
+  "class": "section-faq-hub",
+  "settings": [
+    { "type": "header", "content": "Page header" },
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Support" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Frequently Asked Questions" },
+    { "type": "textarea", "id": "subheading", "label": "Subheading", "default": "Orders, delivery, exchanges and sizing — everything answered in one place. Can’t find it? Our team replies within a few hours." },
+    { "type": "checkbox", "id": "show_search", "label": "Show search box", "default": true },
+    { "type": "text", "id": "search_placeholder", "label": "Search placeholder", "default": "Search a question…" },
+
+    { "type": "header", "content": "Sidebar" },
+    { "type": "text", "id": "topics_label", "label": "Topics list label", "default": "Topics" },
+    { "type": "link_list", "id": "sidebar_menu", "label": "Support links menu", "info": "Optional — e.g. Track order, Shipping, Returns, Privacy policy." },
+    { "type": "text", "id": "sidebar_menu_label", "label": "Support links label", "default": "Help & policies" },
+
+    { "type": "header", "content": "Questions" },
+    { "type": "checkbox", "id": "one_at_a_time", "label": "Open one question at a time", "default": false },
+    { "type": "range", "id": "question_size", "min": 12, "max": 22, "step": 1, "unit": "px", "label": "Question text size", "default": 15 },
+    { "type": "range", "id": "answer_size", "min": 11, "max": 18, "step": 1, "unit": "px", "label": "Answer text size", "default": 14 },
+    { "type": "url", "id": "contact_link", "label": "Contact page link", "info": "Used in the “no results” message. Leave empty to use /pages/contact." },
+
+    { "type": "header", "content": "Help cards" },
+    { "type": "text", "id": "help_heading", "label": "Help cards heading", "default": "Still need a hand?" },
+
+    { "type": "header", "content": "Colors & spacing" },
+    { "type": "color", "id": "bg_color", "label": "Background", "default": "#ffffff" },
+    { "type": "color", "id": "text_color", "label": "Text", "default": "#0a0a0a" },
+    { "type": "color", "id": "accent_color", "label": "Neon accent", "default": "#C6F135" },
+    { "type": "color", "id": "divider_color", "label": "Lines & borders", "default": "#e6e6e6" },
+    { "type": "range", "id": "max_width", "min": 1000, "max": 1600, "step": 20, "unit": "px", "label": "Max content width", "default": 1280 },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 100, "step": 4, "unit": "px", "label": "Padding top", "default": 40 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 100, "step": 4, "unit": "px", "label": "Padding bottom", "default": 72 },
+
+    { "type": "header", "content": "SEO" },
+    { "type": "checkbox", "id": "enable_schema", "label": "Add FAQ schema for Google", "default": true, "info": "Lets Google show these questions directly in search results." }
+  ],
+  "blocks": [
+    {
+      "type": "category",
+      "name": "Category",
+      "settings": [
+        { "type": "paragraph", "content": "Every Question block placed under this one belongs to this category — until the next Category block." },
+        { "type": "text", "id": "title", "label": "Category title", "default": "Orders" },
+        { "type": "text", "id": "description", "label": "Short description", "info": "Optional." }
+      ]
+    },
+    {
+      "type": "question",
+      "name": "Question",
+      "settings": [
+        { "type": "text", "id": "question", "label": "Question", "default": "How long does delivery take?" },
+        { "type": "richtext", "id": "answer", "label": "Answer", "default": "<p>Orders are usually delivered within 3–5 working days across Pakistan.</p>" }
+      ]
+    },
+    {
+      "type": "help_card",
+      "name": "Help card",
+      "settings": [
+        {
+          "type": "select", "id": "icon", "label": "Icon", "default": "whatsapp",
+          "options": [
+            { "value": "whatsapp", "label": "WhatsApp" },
+            { "value": "mail", "label": "Email" },
+            { "value": "phone", "label": "Phone" },
+            { "value": "truck", "label": "Shipping" },
+            { "value": "return", "label": "Returns" },
+            { "value": "help", "label": "Help" }
+          ]
+        },
+        { "type": "text", "id": "title", "label": "Title", "default": "Chat on WhatsApp" },
+        { "type": "text", "id": "text", "label": "Text", "default": "Fastest way to reach us — we reply within a few hours." },
+        { "type": "text", "id": "link_label", "label": "Link label", "default": "Start a chat" },
+        { "type": "url", "id": "link", "label": "Link" },
+        { "type": "checkbox", "id": "new_tab", "label": "Open in a new tab", "default": false }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "FAQ hub",
+      "blocks": [
+        { "type": "category" },
+        { "type": "question" },
+        { "type": "question" },
+        { "type": "help_card" }
+      ]
+    }
+  ]
+}
+{% endschema %}

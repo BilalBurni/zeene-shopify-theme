@@ -1,0 +1,876 @@
+<link rel="stylesheet" href="{{ 'component-list-menu.css' | asset_url }}" media="print" onload="this.media='all'">
+<link rel="stylesheet" href="{{ 'component-search.css' | asset_url }}" media="print" onload="this.media='all'">
+<link rel="stylesheet" href="{{ 'component-menu-drawer.css' | asset_url }}" media="print" onload="this.media='all'">
+<link
+  rel="stylesheet"
+  href="{{ 'component-cart-notification.css' | asset_url }}"
+  media="print"
+  onload="this.media='all'"
+>
+
+{%- if settings.predictive_search_enabled -%}
+  <link rel="stylesheet" href="{{ 'component-price.css' | asset_url }}" media="print" onload="this.media='all'">
+{%- endif -%}
+
+{%- if section.settings.menu_type_desktop == 'mega' -%}
+  <link rel="stylesheet" href="{{ 'component-mega-menu.css' | asset_url }}" media="print" onload="this.media='all'">
+{%- endif -%}
+
+<style>
+  header-drawer {
+    justify-self: start;
+    margin-left: -1.2rem;
+  }
+
+  {%- if section.settings.sticky_header_type == 'reduce-logo-size' -%}
+    .scrolled-past-header .header__heading-logo-wrapper {
+      width: 75%;
+    }
+  {%- endif -%}
+
+  {%- if section.settings.menu_type_desktop != "drawer" -%}
+    @media screen and (min-width: 990px) {
+      header-drawer {
+        display: none;
+      }
+    }
+  {%- endif -%}
+
+  .menu-drawer-container {
+    display: flex;
+  }
+
+  .list-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .list-menu--inline {
+    display: inline-flex;
+    flex-wrap: wrap;
+  }
+
+  summary.list-menu__item {
+    padding-right: 2.7rem;
+  }
+
+  .list-menu__item {
+    display: flex;
+    align-items: center;
+    line-height: calc(1 + 0.3 / var(--font-body-scale));
+  }
+
+  .list-menu__item--link {
+    text-decoration: none;
+    padding-bottom: 1rem;
+    padding-top: 1rem;
+    line-height: calc(1 + 0.8 / var(--font-body-scale));
+  }
+
+  @media screen and (min-width: 750px) {
+    .list-menu__item--link {
+      padding-bottom: 0.5rem;
+      padding-top: 0.5rem;
+    }
+  }
+</style>
+
+{%- style -%}
+  .header {
+    padding: {{ section.settings.padding_top | times: 0.5 | round: 0 }}px 3rem {{ section.settings.padding_bottom | times: 0.5 | round: 0 }}px 3rem;
+  }
+
+  .section-header {
+    position: sticky; /* This is for fixing a Safari z-index issue. PR #2147 */
+    margin-bottom: {{ section.settings.margin_bottom | times: 0.75 | round: 0 }}px;
+  }
+
+  @media screen and (min-width: 750px) {
+    .section-header {
+      margin-bottom: {{ section.settings.margin_bottom }}px;
+    }
+  }
+
+  @media screen and (min-width: 990px) {
+    .header {
+      padding-top: {{ section.settings.padding_top }}px;
+      padding-bottom: {{ section.settings.padding_bottom }}px;
+    }
+  }
+
+  {%- assign container_w = section.settings.container_width | default: 1400 -%}
+  .header.page-width { max-width: {{ container_w }}px; padding-left: 16px; padding-right: 16px; }
+  @media screen and (min-width: 990px) {
+    .header:not(.drawer-menu).page-width { max-width: {{ container_w }}px; padding-left: 16px; padding-right: 16px; }
+    .header--middle-left { grid-template-columns: 1fr auto 1fr; }
+    .header--middle-left .header__inline-menu { justify-self: center; margin-left: 0; }
+  }
+
+  {%- if section.settings.transparent_on_home -%}
+  #MainContent[data-template^='index'] { margin-top: calc(-1 * var(--header-height, 0px)); position: relative; z-index: 0; }
+  #MainContent[data-template^='index'] > .shopify-section:first-child .hero-slider__container { padding-top: calc(var(--header-height, 0px) + 1rem) !important; }
+  @media screen and (min-width: 768px) { #MainContent[data-template^='index'] > .shopify-section:first-child .hero-slider__container { padding-top: calc(var(--header-height, 0px) + 1.5rem) !important; } }
+  .header-wrapper--transparent { position: relative; z-index: 4; background: linear-gradient(to bottom, rgba(0,0,0,0.34), rgba(0,0,0,0)) !important; border-bottom-color: transparent !important; transition: background 0.3s ease; }
+  .section-header:not(.scrolled-past-header) .header-wrapper--transparent .header__heading-link span, .section-header:not(.scrolled-past-header) .header-wrapper--transparent .header__menu-item, .section-header:not(.scrolled-past-header) .header-wrapper--transparent .header__menu-item .header__active-menu-item, .section-header:not(.scrolled-past-header) .header-wrapper--transparent .header__active-menu-item, .section-header:not(.scrolled-past-header) .header-wrapper--transparent .header__icon { color: #ffffff; }
+  .section-header:not(.scrolled-past-header) .header-wrapper--transparent .header__icon svg, .section-header:not(.scrolled-past-header) .header-wrapper--transparent .header__menu-item svg, .section-header:not(.scrolled-past-header) .header-wrapper--transparent .header__icon .svg-wrapper { color: #ffffff; }
+  .section-header.scrolled-past-header .header-wrapper--transparent { background: rgb(var(--color-background)) !important; }
+  .section-header.scrolled-past-header .header-wrapper--transparent { border-bottom: 1px solid rgba(0,0,0,0.07) !important; box-shadow: 0 8px 24px -16px rgba(0,0,0,0.22); }
+  .header__logo--transparent { display: none; }
+  .section-header:not(.scrolled-past-header) .header-wrapper--transparent .header__logo--solid { display: none; }
+  .section-header:not(.scrolled-past-header) .header-wrapper--transparent .header__logo--transparent { display: block; }
+  {%- endif -%}
+
+  .header-wrapper:not(.header-wrapper--transparent) { border-bottom: 1px solid rgba(0,0,0,0.07); }
+  .section-header.shopify-section-header-sticky .header-wrapper:not(.header-wrapper--transparent) { box-shadow: 0 8px 26px -16px rgba(0,0,0,0.18); }
+
+  .mega-menu__content { padding-top: 34px; padding-bottom: 38px; border-top: 1px solid rgba(0,0,0,0.06); box-shadow: 0 26px 58px -30px rgba(0,0,0,0.3); }
+  .js .mega-menu__content { opacity: 0; transform: translateY(-14px); }
+  .mega-menu[open] .mega-menu__content { opacity: 1; transform: translateY(0); transition: opacity 0.3s ease, transform 0.45s cubic-bezier(.16,1,.3,1); }
+  .mega-menu[open].is-closing .mega-menu__content { opacity: 0; transform: translateY(-8px); transition: opacity 0.18s ease, transform 0.2s ease; }
+
+  .mega-menu__layout.page-width { display: flex; align-items: flex-start; gap: 48px; max-width: {{ container_w }}px; padding-left: 16px; padding-right: 16px; margin: 0 auto; }
+  .mega-menu__layout .mega-menu__list { flex: 1 1 auto; margin: 0; }
+  .mega-menu__layout--has-feat .mega-menu__list, .mega-menu__layout--has-promo .mega-menu__list { flex: 0 1 auto; max-width: 38%; }
+
+  {%- comment -%} Featured products — mega menu ki khali jagah bharte hain. {%- endcomment -%}
+  .mega-menu__feat { flex: 1 1 auto; min-width: 0; }
+  .mega-menu__feat-head { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; padding-bottom: 11px; margin-bottom: 15px; border-bottom: 1px solid rgba(0,0,0,0.08); }
+  .mega-menu__feat-title { font-family: 'Zen Maru Gothic', sans-serif; font-size: 11.5px; font-weight: 600; text-transform: uppercase; color: #0a0a0a; }
+  .mega-menu__feat-all { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 500; color: rgba(10,10,10,0.55); text-decoration: none; transition: color 0.2s ease, gap 0.25s ease; }
+  .mega-menu__feat-all:hover { color: #0a0a0a; gap: 9px; }
+  .mega-menu__feat-row { display: grid; grid-template-columns: repeat(var(--mm-feat-cols, 4), minmax(0, 1fr)); gap: 16px; }
+  .mega-menu__feat-card { display: block; text-decoration: none; }
+  .mega-menu__feat-media { display: block; position: relative; width: 100%; aspect-ratio: 4/5; border-radius: 0; overflow: hidden; background: #f2f2f2; }
+  .mega-menu__feat-media img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.6s cubic-bezier(.22,.61,.36,1); }
+  .mega-menu__feat-card:hover .mega-menu__feat-media img { transform: scale(1.07); }
+  .mega-menu__feat-media::after { content: ''; position: absolute; inset: 0; box-shadow: inset 0 0 0 0 #C6F135; transition: box-shadow 0.3s ease; }
+  .mega-menu__feat-card:hover .mega-menu__feat-media::after { box-shadow: inset 0 0 0 2px #C6F135; }
+  .mega-menu__feat-name { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; margin-top: 9px; font-family: 'Zen Maru Gothic', sans-serif; font-size: 12px; font-weight: 400; line-height: 1.4; color: #0a0a0a; }
+  .mega-menu__feat-price { display: flex; flex-wrap: wrap; align-items: baseline; gap: 5px; margin-top: 3px; font-family: 'Zen Maru Gothic', sans-serif; font-size: 11px; font-weight: 500; color: #0a0a0a; }
+  .mega-menu__feat-price--sale { color: #d11a2a; }
+  .mega-menu__feat-price s { font-size: 11px; font-weight: 500; color: #0a0a0a; opacity: 0.45; }
+  .mega-menu[open]:not(.is-closing) .mega-menu__feat-card { animation: zMegaIn 0.5s cubic-bezier(.16,1,.3,1) backwards; }
+  .mega-menu[open]:not(.is-closing) .mega-menu__feat-card:nth-child(1) { animation-delay: 0.1s; }
+  .mega-menu[open]:not(.is-closing) .mega-menu__feat-card:nth-child(2) { animation-delay: 0.15s; }
+  .mega-menu[open]:not(.is-closing) .mega-menu__feat-card:nth-child(3) { animation-delay: 0.2s; }
+  .mega-menu[open]:not(.is-closing) .mega-menu__feat-card:nth-child(4) { animation-delay: 0.25s; }
+
+  .mega-menu__layout .mega-menu__list:not(.mega-menu__list--condensed) { display: grid; grid-template-columns: repeat(auto-fit, minmax(155px, 1fr)); gap: 2.4rem 2.8rem; }
+
+  {%- comment -%} Staggered reveal: 'backwards' fill keeps the element hidden during its delay. {%- endcomment -%}
+  @keyframes zMegaIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+  .mega-menu[open]:not(.is-closing) .mega-menu__list > li { animation: zMegaIn 0.5s cubic-bezier(.16,1,.3,1) backwards; }
+  .mega-menu[open]:not(.is-closing) .mega-menu__list > li:nth-child(1) { animation-delay: 0.06s; }
+  .mega-menu[open]:not(.is-closing) .mega-menu__list > li:nth-child(2) { animation-delay: 0.1s; }
+  .mega-menu[open]:not(.is-closing) .mega-menu__list > li:nth-child(3) { animation-delay: 0.14s; }
+  .mega-menu[open]:not(.is-closing) .mega-menu__list > li:nth-child(4) { animation-delay: 0.18s; }
+  .mega-menu[open]:not(.is-closing) .mega-menu__list > li:nth-child(5) { animation-delay: 0.22s; }
+  .mega-menu[open]:not(.is-closing) .mega-menu__list > li:nth-child(n+6) { animation-delay: 0.26s; }
+
+  .mega-menu__list .mega-menu__link--level-2 { position: relative; display: inline-block; font-size: 11.5px; font-weight: 600; text-transform: uppercase; color: #0a0a0a; padding: 0 0 11px; margin-bottom: 9px; }
+  .mega-menu__list .mega-menu__link--level-2::after { content: ''; position: absolute; left: 0; bottom: 0; width: 20px; height: 2px; background: #C6F135; transform: none; transition: width 0.35s cubic-bezier(.16,1,.3,1); }
+  .mega-menu__list .mega-menu__link--level-2:hover { color: #0a0a0a; text-decoration: none; }
+  .mega-menu__list li:hover > .mega-menu__link--level-2::after { width: 100%; }
+
+  {%- comment -%} Child links — Dawn ka plain underline hata kar left-to-right sweep. {%- endcomment -%}
+  .mega-menu__list ul .mega-menu__link { position: relative; display: inline-block; font-size: 13px; color: rgba(10,10,10,0.6); transition: color 0.22s ease; }
+  .mega-menu__list ul .mega-menu__link:hover, .mega-menu__list ul .mega-menu__link--active { color: #0a0a0a; text-decoration: none; }
+  .mega-menu__list ul .mega-menu__link::after { content: ''; position: absolute; left: 0; bottom: 3px; width: 100%; height: 1px; background: currentColor; transform: scaleX(0); transform-origin: right; transition: transform 0.32s cubic-bezier(.16,1,.3,1); }
+  .mega-menu__list ul .mega-menu__link:hover::after { transform: scaleX(1); transform-origin: left; }
+
+  .mega-menu .mega-menu__list--condensed { display: grid; grid-template-columns: repeat(auto-fit, minmax(155px, 1fr)); gap: 2.4rem 2.8rem; align-content: start; padding-left: 0; }
+
+  .mega-menu__promo { display: flex; gap: 18px; flex: 0 0 auto; margin-left: auto; }
+  .mega-menu[open]:not(.is-closing) .mega-menu__promo-card { animation: zMegaIn 0.55s cubic-bezier(.16,1,.3,1) backwards; }
+  .mega-menu[open]:not(.is-closing) .mega-menu__promo-card:nth-child(1) { animation-delay: 0.14s; }
+  .mega-menu[open]:not(.is-closing) .mega-menu__promo-card:nth-child(2) { animation-delay: 0.2s; }
+  .mega-menu[open]:not(.is-closing) .mega-menu__promo-card:nth-child(3) { animation-delay: 0.26s; }
+  .mega-menu__promo-card { position: relative; display: block; width: 220px; aspect-ratio: 4/5; border-radius: 14px; overflow: hidden; background: #f0f0f0; text-decoration: none; isolation: isolate; transition: transform 0.45s cubic-bezier(.16,1,.3,1), box-shadow 0.45s ease; }
+  .mega-menu__promo-card:only-child { width: 300px; }
+  .mega-menu__promo-card:first-child:nth-last-child(2), .mega-menu__promo-card:first-child:nth-last-child(2) ~ .mega-menu__promo-card { width: 245px; }
+  .mega-menu__layout--has-feat .mega-menu__promo-card { width: 190px; }
+  .mega-menu__layout--has-feat .mega-menu__promo-card:only-child { width: 215px; }
+  .mega-menu__promo-card:hover { transform: translateY(-5px); box-shadow: 0 22px 40px -20px rgba(0,0,0,0.48); }
+  .mega-menu__promo-card img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.7s cubic-bezier(.22,.61,.36,1); }
+  .mega-menu__promo-card:hover img { transform: scale(1.08); }
+  .mega-menu__promo-card::after { content: ''; position: absolute; inset: 0; z-index: 3; border-radius: 14px; box-shadow: inset 0 0 0 0 #C6F135; transition: box-shadow 0.35s ease; pointer-events: none; }
+  .mega-menu__promo-card:hover::after { box-shadow: inset 0 0 0 2px #C6F135; }
+  .mega-menu__promo-overlay { position: absolute; inset: 0; z-index: 1; background: linear-gradient(to top, rgba(8,8,8,0.78) 0%, rgba(8,8,8,0.08) 58%, rgba(8,8,8,0) 82%); }
+  .mega-menu__promo-cap { position: absolute; left: 16px; right: 16px; bottom: 15px; z-index: 2; display: inline-flex; align-items: center; gap: 8px; color: #fff; font-size: 14px; font-weight: 600; transition: transform 0.4s cubic-bezier(.16,1,.3,1); }
+  .mega-menu__promo-card:hover .mega-menu__promo-cap { transform: translateY(-4px); }
+  .mega-menu__promo-cap svg { flex-shrink: 0; width: 26px; height: 26px; padding: 6px; border-radius: 50%; background: #C6F135; color: #0a0a0a; transform: translateX(-6px) scale(0.7); opacity: 0; transition: transform 0.4s cubic-bezier(.16,1,.3,1), opacity 0.3s ease; }
+  .mega-menu__promo-card:hover .mega-menu__promo-cap svg { transform: translateX(0) scale(1); opacity: 1; }
+  @media screen and (max-width: 1100px) { .mega-menu__promo-card { width: 180px; } .mega-menu__layout--has-promo .mega-menu__list { max-width: none; } }
+  @media (prefers-reduced-motion: reduce) { .mega-menu[open] .mega-menu__list > li, .mega-menu[open] .mega-menu__promo-card, .mega-menu[open] .mega-menu__feat-card { animation: none; } .mega-menu__content, .mega-menu__promo-card, .mega-menu__promo-card img, .mega-menu__promo-cap, .mega-menu__list ul .mega-menu__link::after, .mega-menu__feat-media img, .mega-menu__feat-media::after { transition: none !important; } }
+
+  .header__inline-menu .header__menu-item { font-size: 14px; font-weight: 600; }
+  .mega-menu__link { font-weight: 400; }
+  .mega-menu__link--level-2 { font-weight: 600; }
+  .header__inline-menu .header__active-menu-item { text-decoration: none; }
+  .header__inline-menu .header__menu-item:hover .header__active-menu-item { text-decoration: none; }
+  .header__inline-menu .header__menu-item > span { position: relative; }
+  .header__inline-menu .header__menu-item > span::after { content: ''; position: absolute; left: 0; bottom: -3px; width: 100%; height: 1px; background: currentColor; transform: scaleX(0); transform-origin: right; transition: transform 0.3s cubic-bezier(.16,1,.3,1); }
+  .header__inline-menu .header__menu-item:hover > span::after { transform: scaleX(1); transform-origin: left; }
+  @media (prefers-reduced-motion: reduce) { .header__inline-menu .header__menu-item > span::after { transition: none; } }
+
+  /* Flash sale link: normal text plus a red "live" dot that pings and bounces. */
+  .header__inline-menu .header__menu-item--flash { font-weight: 700; }
+  .header__flash-dot { display: inline-block; margin-bottom: -4px; flex: 0 0 auto; vertical-align: middle; align-self: center; width: 7px; height: 7px; margin-left: 8px; border-radius: 50%; background: #d11a2a; animation: zFlashPing 1.6s ease-out infinite, zFlashBounce 1.15s ease-in-out infinite; }
+  @keyframes zFlashPing { 0% { box-shadow: 0 0 0 0 rgba(209,26,42,0.55); } 70%, 100% { box-shadow: 0 0 0 7px rgba(209,26,42,0); } }
+  @keyframes zFlashBounce { 0%, 100% { transform: translateY(1px); } 50% { transform: translateY(-1px); } }
+  @media (prefers-reduced-motion: reduce) { .header__flash-dot { animation: none; } }
+  /* Mega menu banner: products row ka aakhri card — product card jaisa hi frame. */
+  .mega-menu__feat-card--banner .mega-menu__feat-media { background: #101014; }
+  .mega-menu__feat-card--banner-plain .mega-menu__feat-media { background: radial-gradient(120% 160% at 88% 10%, rgba(198,241,53,0.35) 0%, transparent 58%), #101014; }
+  .mega-menu__feat-card--banner .mega-menu__feat-media::after { z-index: 3; }
+  .mega-menu__banner-scrim { position: absolute; inset: 0; z-index: 1; background: linear-gradient(to top, rgba(8,8,8,0.85) 0%, rgba(8,8,8,0.3) 52%, rgba(8,8,8,0) 80%); }
+  .mega-menu__feat-card--banner-plain .mega-menu__banner-scrim { background: none; }
+  .mega-menu__banner-body { position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 14px; }
+  .mega-menu__banner-h { font-family: 'Zen Maru Gothic', sans-serif; font-size: 15px; font-weight: 700; line-height: 1.2; letter-spacing: -0.01em; color: #fff; }
+  .mega-menu__banner-t { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 11px; line-height: 1.45; color: #fff; opacity: 0.82; }
+  .mega-menu__banner-btn { display: inline-flex; align-items: center; gap: 6px; margin-top: 5px; padding: 7px 12px; font-family: 'Zen Maru Gothic', sans-serif; font-size: 9.5px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: #0a0a0a; background: #C6F135; border-radius: 7px; transition: gap 0.2s ease, filter 0.18s ease; }
+  .mega-menu__feat-card--banner:hover .mega-menu__banner-btn { gap: 10px; filter: brightness(0.95); }
+  {%- comment -%} Featured products na hon to banner akela card ban kar right side lag jata hai. {%- endcomment -%}
+  .mega-menu__feat--solo { flex: 0 0 auto; width: 210px; margin-left: auto; }
+  @media (prefers-reduced-motion: reduce) { .mega-menu__banner-btn { transition: none; } }
+  .header__inline-menu .header__menu-item--sale { color: #d11a2a; }
+  .header__inline-menu .header__menu-item--sale:hover { color: #d11a2a; }
+  .header__inline-menu .header__menu-item--sale span { background: linear-gradient(-45deg, #d11a2a 20%, #ffffff 40%, #d11a2a 60%); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: zSaleShine 3s linear infinite; }
+  @keyframes zSaleShine { 0% { background-position: -100% 0; } 100% { background-position: 100% 0; } }
+  @media (prefers-reduced-motion: reduce) { .header__inline-menu .header__menu-item--sale span { animation: none; background: none; -webkit-text-fill-color: #d11a2a; } }
+{%- endstyle -%}
+
+<script src="{{ 'cart-notification.js' | asset_url }}" defer="defer"></script>
+
+{%- liquid
+  for block in section.blocks
+    if block.type == '@app'
+      assign has_app_block = true
+    endif
+  endfor
+-%}
+
+{% liquid
+  assign header_tag = 'div'
+
+  if section.settings.sticky_header_type != 'none'
+    assign header_tag = 'sticky-header'
+  endif
+%}
+
+<{{ header_tag }}
+  {% if header_tag == 'sticky-header' %}
+    data-sticky-type="{{ section.settings.sticky_header_type }}"
+  {% endif %}
+  class="header-wrapper color-{{ section.settings.color_scheme }} gradient{% if section.settings.show_line_separator %} header-wrapper--border-bottom{% endif %}{% if request.page_type == 'index' and section.settings.transparent_on_home %} header-wrapper--transparent{% endif %}"
+>
+  {%- liquid
+    assign social_links = false
+    assign localization_forms = false
+
+    if settings.social_twitter_link != blank or settings.social_facebook_link != blank or settings.social_pinterest_link != blank or settings.social_instagram_link != blank or settings.social_youtube_link != blank or settings.social_vimeo_link != blank or settings.social_tiktok_link != blank or settings.social_tumblr_link != blank or settings.social_snapchat_link != blank
+      assign social_links = true
+    endif
+
+    if localization.available_countries.size > 1 and section.settings.enable_country_selector or section.settings.enable_language_selector and localization.available_languages.size > 1
+      assign localization_forms = true
+    endif
+  -%}
+  <header class="header header--{{ section.settings.logo_position }} header--mobile-{{ section.settings.mobile_logo_position }} page-width{% if section.settings.menu_type_desktop == 'drawer' %} drawer-menu{% endif %}{% if section.settings.menu != blank %} header--has-menu{% endif %}{% if has_app_block %} header--has-app{% endif %}{% if social_links %} header--has-social{% endif %}{% if shop.customer_accounts_enabled %} header--has-account{% endif %}{% if localization_forms %} header--has-localizations{% endif %}">
+    {%- liquid
+      if section.settings.menu != blank
+        render 'header-drawer'
+      endif
+
+      if section.settings.logo_position == 'top-center' or section.settings.menu == blank
+        render 'header-search', input_id: 'Search-In-Modal-1'
+      endif
+    -%}
+
+    {%- if section.settings.logo_position != 'middle-center' -%}
+      {%- if request.page_type == 'index' -%}
+        <h1 class="header__heading">
+      {%- endif -%}
+      <a href="{{ routes.root_url }}" class="header__heading-link link link--text focus-inset">
+        {%- if settings.logo != blank -%}
+          <div class="header__heading-logo-wrapper">
+            {%- assign logo_alt = settings.logo.alt | default: shop.name | escape -%}
+            {%- assign logo_height = settings.logo_width | divided_by: settings.logo.aspect_ratio -%}
+            {% capture sizes %}(max-width: {{ settings.logo_width | times: 2 }}px) 50vw, {{ settings.logo_width }}px{% endcapture %}
+            {% capture widths %}{{ settings.logo_width }}, {{ settings.logo_width | times: 1.5 | round }}, {{ settings.logo_width | times: 2 }}{% endcapture %}
+            {{
+              settings.logo
+              | image_url: width: 600
+              | image_tag:
+                class: 'header__heading-logo motion-reduce header__logo--solid',
+                widths: widths,
+                height: logo_height,
+                width: settings.logo_width,
+                alt: logo_alt,
+                sizes: sizes,
+                preload: true
+            }}
+            {%- if section.settings.transparent_logo != blank -%}
+              {%- assign tlogo_height = settings.logo_width | divided_by: section.settings.transparent_logo.aspect_ratio -%}
+              {{ section.settings.transparent_logo | image_url: width: 600 | image_tag: class: 'header__heading-logo motion-reduce header__logo--transparent', widths: widths, height: tlogo_height, width: settings.logo_width, alt: logo_alt, sizes: sizes }}
+            {%- endif -%}
+          </div>
+        {%- else -%}
+          <span class="h2">{{ shop.name }}</span>
+        {%- endif -%}
+      </a>
+      {%- if request.page_type == 'index' -%}
+        </h1>
+      {%- endif -%}
+    {%- endif -%}
+
+    {%- liquid
+      if section.settings.menu != blank
+        if section.settings.menu_type_desktop == 'dropdown'
+          render 'header-dropdown-menu'
+        elsif section.settings.menu_type_desktop != 'drawer'
+          render 'header-mega-menu'
+        endif
+      endif
+    %}
+
+    {%- if section.settings.logo_position == 'middle-center' -%}
+      {%- if request.page_type == 'index' -%}
+        <h1 class="header__heading">
+      {%- endif -%}
+      <a href="{{ routes.root_url }}" class="header__heading-link link link--text focus-inset">
+        {%- if settings.logo != blank -%}
+          <div class="header__heading-logo-wrapper">
+            {%- assign logo_alt = settings.logo.alt | default: shop.name | escape -%}
+            {%- assign logo_height = settings.logo_width | divided_by: settings.logo.aspect_ratio -%}
+            {% capture sizes %}(min-width: 750px) {{ settings.logo_width }}px, 50vw{% endcapture %}
+            {% capture widths %}{{ settings.logo_width }}, {{ settings.logo_width | times: 1.5 | round }}, {{ settings.logo_width | times: 2 }}{% endcapture %}
+            {{
+              settings.logo
+              | image_url: width: 600
+              | image_tag:
+                class: 'header__heading-logo header__logo--solid',
+                widths: widths,
+                height: logo_height,
+                width: settings.logo_width,
+                alt: logo_alt,
+                sizes: sizes,
+                preload: true
+            }}
+            {%- if section.settings.transparent_logo != blank -%}
+              {%- assign tlogo_height = settings.logo_width | divided_by: section.settings.transparent_logo.aspect_ratio -%}
+              {{ section.settings.transparent_logo | image_url: width: 600 | image_tag: class: 'header__heading-logo header__logo--transparent', widths: widths, height: tlogo_height, width: settings.logo_width, alt: logo_alt, sizes: sizes }}
+            {%- endif -%}
+          </div>
+        {%- else -%}
+          <span class="h2">{{ shop.name }}</span>
+        {%- endif -%}
+      </a>
+      {%- if request.page_type == 'index' -%}
+        </h1>
+      {%- endif -%}
+    {%- endif -%}
+
+    <div class="header__icons{% if section.settings.enable_country_selector or section.settings.enable_language_selector %} header__icons--localization header-localization{% endif %}">
+      <div class="desktop-localization-wrapper">
+        {%- if section.settings.enable_country_selector and localization.available_countries.size > 1 -%}
+          <localization-form class="small-hide medium-hide" data-prevent-hide>
+            {%- form 'localization', id: 'HeaderCountryForm', class: 'localization-form' -%}
+              <div>
+                <h2 class="visually-hidden" id="HeaderCountryLabel">{{ 'localization.country_label' | t }}</h2>
+                {%- render 'country-localization', localPosition: 'HeaderCountry' -%}
+              </div>
+            {%- endform -%}
+          </localization-form>
+        {% endif %}
+
+        {%- if section.settings.enable_language_selector and localization.available_languages.size > 1 -%}
+          <localization-form class="small-hide medium-hide" data-prevent-hide>
+            {%- form 'localization', id: 'HeaderLanguageForm', class: 'localization-form' -%}
+              <div>
+                <h2 class="visually-hidden" id="HeaderLanguageLabel">{{ 'localization.language_label' | t }}</h2>
+                {%- render 'language-localization', localPosition: 'HeaderLanguage' -%}
+              </div>
+            {%- endform -%}
+          </localization-form>
+        {%- endif -%}
+      </div>
+      {% render 'header-search', input_id: 'Search-In-Modal' %}
+
+      {%- if shop.customer_accounts_enabled and section.settings.show_account_icon -%}
+        <a
+          href="{%- if customer -%}{{ routes.account_url }}{%- else -%}{{ routes.account_login_url }}{%- endif -%}"
+          class="header__icon header__icon--account link focus-inset{% if section.settings.menu != blank %} small-hide{% endif %}"
+          rel="nofollow"
+        >
+          {%- if section.settings.enable_customer_avatar -%}
+            <account-icon>
+              {%- if customer and customer.has_avatar? -%}
+                {{ customer | avatar }}
+              {%- else -%}
+                <span class="svg-wrapper">{{ 'icon-account.svg' | inline_asset_content }}</span>
+              {%- endif -%}
+            </account-icon>
+          {%- else -%}
+            <span class="svg-wrapper">{{ 'icon-account.svg' | inline_asset_content }}</span>
+          {%- endif -%}
+          <span class="visually-hidden">
+            {%- liquid
+              if customer
+                echo 'customer.account_fallback' | t
+              else
+                echo 'customer.log_in' | t
+              endif
+            -%}
+          </span>
+        </a>
+      {%- endif -%}
+
+      {%- for block in section.blocks -%}
+        {%- case block.type -%}
+          {%- when '@app' -%}
+            {% render block %}
+        {%- endcase -%}
+      {%- endfor -%}
+
+      <a href="{{ routes.cart_url }}" class="header__icon header__icon--cart link focus-inset" id="cart-icon-bubble">
+        {% if cart == empty %}
+          <span class="svg-wrapper">{{ 'icon-cart-empty.svg' | inline_asset_content }}</span>
+        {% else %}
+          <span class="svg-wrapper">{{ 'icon-cart.svg' | inline_asset_content }}</span>
+        {% endif %}
+        <span class="visually-hidden">{{ 'templates.cart.cart' | t }}</span>
+        {%- if cart != empty -%}
+          <div class="cart-count-bubble">
+            {%- if cart.item_count < 100 -%}
+              <span aria-hidden="true">{{ cart.item_count }}</span>
+            {%- endif -%}
+            <span class="visually-hidden">{{ 'sections.header.cart_count' | t: count: cart.item_count }}</span>
+          </div>
+        {%- endif -%}
+      </a>
+    </div>
+  </header>
+</{{ header_tag }}>
+
+{%- if settings.cart_type == 'notification' -%}
+  {%- render 'cart-notification',
+    color_scheme: section.settings.color_scheme,
+    desktop_menu_type: section.settings.menu_type_desktop
+  -%}
+{%- endif -%}
+
+{% javascript %}
+  class StickyHeader extends HTMLElement {
+    constructor() {
+      super();
+    }
+
+    connectedCallback() {
+      this.header = document.querySelector('.section-header');
+      this.headerIsAlwaysSticky =
+        this.getAttribute('data-sticky-type') === 'always' ||
+        this.getAttribute('data-sticky-type') === 'reduce-logo-size';
+      this.headerBounds = {};
+
+      this.setHeaderHeight();
+
+      window.matchMedia('(max-width: 990px)').addEventListener('change', this.setHeaderHeight.bind(this));
+
+      if (this.headerIsAlwaysSticky) {
+        this.header.classList.add('shopify-section-header-sticky');
+      }
+
+      this.currentScrollTop = 0;
+      this.preventReveal = false;
+      this.predictiveSearch = this.querySelector('predictive-search');
+
+      this.onScrollHandler = this.onScroll.bind(this);
+      this.hideHeaderOnScrollUp = () => (this.preventReveal = true);
+
+      this.addEventListener('preventHeaderReveal', this.hideHeaderOnScrollUp);
+      window.addEventListener('scroll', this.onScrollHandler, false);
+
+      this.createObserver();
+    }
+
+    setHeaderHeight() {
+      document.documentElement.style.setProperty('--header-height', `${this.header.offsetHeight}px`);
+    }
+
+    disconnectedCallback() {
+      this.removeEventListener('preventHeaderReveal', this.hideHeaderOnScrollUp);
+      window.removeEventListener('scroll', this.onScrollHandler);
+    }
+
+    createObserver() {
+      let observer = new IntersectionObserver((entries, observer) => {
+        this.headerBounds = entries[0].intersectionRect;
+        observer.disconnect();
+      });
+
+      observer.observe(this.header);
+    }
+
+    onScroll() {
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+      if (this.predictiveSearch && this.predictiveSearch.isOpen) return;
+
+      if (scrollTop > this.currentScrollTop && scrollTop > this.headerBounds.bottom) {
+        this.header.classList.add('scrolled-past-header');
+        if (this.preventHide) return;
+        requestAnimationFrame(this.hide.bind(this));
+      } else if (scrollTop < this.currentScrollTop && scrollTop > this.headerBounds.bottom) {
+        this.header.classList.add('scrolled-past-header');
+        if (!this.preventReveal) {
+          requestAnimationFrame(this.reveal.bind(this));
+        } else {
+          window.clearTimeout(this.isScrolling);
+
+          this.isScrolling = setTimeout(() => {
+            this.preventReveal = false;
+          }, 66);
+
+          requestAnimationFrame(this.hide.bind(this));
+        }
+      } else if (scrollTop <= this.headerBounds.top) {
+        this.header.classList.remove('scrolled-past-header');
+        requestAnimationFrame(this.reset.bind(this));
+      }
+
+      this.currentScrollTop = scrollTop;
+    }
+
+    hide() {
+      if (this.headerIsAlwaysSticky) return;
+      this.header.classList.add('shopify-section-header-hidden', 'shopify-section-header-sticky');
+      this.closeMenuDisclosure();
+      this.closeSearchModal();
+    }
+
+    reveal() {
+      if (this.headerIsAlwaysSticky) return;
+      this.header.classList.add('shopify-section-header-sticky', 'animate');
+      this.header.classList.remove('shopify-section-header-hidden');
+    }
+
+    reset() {
+      if (this.headerIsAlwaysSticky) return;
+      this.header.classList.remove('shopify-section-header-hidden', 'shopify-section-header-sticky', 'animate');
+    }
+
+    closeMenuDisclosure() {
+      this.disclosures = this.disclosures || this.header.querySelectorAll('header-menu');
+      this.disclosures.forEach((disclosure) => disclosure.close());
+    }
+
+    closeSearchModal() {
+      this.searchModal = this.searchModal || this.header.querySelector('details-modal');
+      this.searchModal.close(false);
+    }
+  }
+
+  customElements.define('sticky-header', StickyHeader);
+{% endjavascript %}
+
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "Organization",
+    "name": {{ shop.name | json }},
+    {% if settings.logo %}
+      "logo": {{ settings.logo | image_url: width: 500 | prepend: "https:" | json }},
+    {% endif %}
+    "sameAs": [
+      {{ settings.social_twitter_link | json }},
+      {{ settings.social_facebook_link | json }},
+      {{ settings.social_pinterest_link | json }},
+      {{ settings.social_instagram_link | json }},
+      {{ settings.social_tiktok_link | json }},
+      {{ settings.social_tumblr_link | json }},
+      {{ settings.social_snapchat_link | json }},
+      {{ settings.social_youtube_link | json }},
+      {{ settings.social_vimeo_link | json }}
+    ],
+    "url": {{ request.origin | append: page.url | json }}
+  }
+</script>
+
+{%- if request.page_type == 'index' -%}
+  {% assign potential_action_target = request.origin | append: routes.search_url | append: '?q={search_term_string}' %}
+  <script type="application/ld+json">
+    {
+      "@context": "http://schema.org",
+      "@type": "WebSite",
+      "name": {{ shop.name | json }},
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {{ potential_action_target | json }},
+        "query-input": "required name=search_term_string"
+      },
+      "url": {{ request.origin | append: page.url | json }}
+    }
+  </script>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "t:sections.header.name",
+  "class": "section-header",
+  "max_blocks": 8,
+  "settings": [
+    { "type": "header", "content": "Mega menu banner" },
+    { "type": "paragraph", "content": "Wide banner at the top of every mega menu. A \"Mega menu images\" block can override any of these for one menu." },
+    { "type": "checkbox", "id": "mm_banner_enable", "label": "Show banner card in mega menus", "info": "Shows as the last card in the featured products row.", "default": true },
+    { "type": "image_picker", "id": "mm_banner_image", "label": "Banner image", "info": "Portrait 4:5 (e.g. 800 x 1000). Leave empty and each menu's own collection image is used." },
+    { "type": "text", "id": "mm_banner_heading", "label": "Heading", "default": "Flash sale is live" },
+    { "type": "text", "id": "mm_banner_text", "label": "Text", "default": "Up to 70% off on selected styles. Limited stock." },
+    { "type": "text", "id": "mm_banner_button", "label": "Button label", "default": "Shop the sale" },
+    { "type": "url", "id": "mm_banner_link", "label": "Link", "info": "Leave empty to use each menu item's own link." },
+
+    {
+      "type": "select",
+      "id": "logo_position",
+      "options": [
+        {
+          "value": "top-left",
+          "label": "t:sections.header.settings.logo_position.options__2.label"
+        },
+        {
+          "value": "top-center",
+          "label": "t:sections.header.settings.logo_position.options__3.label"
+        },
+        {
+          "value": "middle-left",
+          "label": "t:sections.header.settings.logo_position.options__1.label"
+        },
+        {
+          "value": "middle-center",
+          "label": "t:sections.header.settings.logo_position.options__4.label"
+        }
+      ],
+      "default": "middle-left",
+      "label": "t:sections.header.settings.logo_position.label",
+      "info": "t:sections.header.settings.logo_help.content"
+    },
+    {
+      "type": "select",
+      "id": "mobile_logo_position",
+      "options": [
+        {
+          "value": "center",
+          "label": "t:sections.header.settings.mobile_logo_position.options__1.label"
+        },
+        {
+          "value": "left",
+          "label": "t:sections.header.settings.mobile_logo_position.options__2.label"
+        }
+      ],
+      "default": "center",
+      "label": "t:sections.header.settings.mobile_logo_position.label"
+    },
+    {
+      "type": "link_list",
+      "id": "menu",
+      "default": "main-menu",
+      "label": "t:sections.header.settings.menu.label"
+    },
+    {
+      "type": "select",
+      "id": "menu_type_desktop",
+      "options": [
+        {
+          "value": "dropdown",
+          "label": "t:sections.header.settings.menu_type_desktop.options__1.label"
+        },
+        {
+          "value": "mega",
+          "label": "t:sections.header.settings.menu_type_desktop.options__2.label"
+        },
+        {
+          "value": "drawer",
+          "label": "t:sections.header.settings.menu_type_desktop.options__3.label"
+        }
+      ],
+      "default": "dropdown",
+      "label": "t:sections.header.settings.menu_type_desktop.label"
+    },
+    {
+      "type": "select",
+      "id": "sticky_header_type",
+      "options": [
+        {
+          "value": "none",
+          "label": "t:sections.header.settings.sticky_header_type.options__1.label"
+        },
+        {
+          "value": "on-scroll-up",
+          "label": "t:sections.header.settings.sticky_header_type.options__2.label"
+        },
+        {
+          "value": "always",
+          "label": "t:sections.header.settings.sticky_header_type.options__3.label"
+        },
+        {
+          "value": "reduce-logo-size",
+          "label": "t:sections.header.settings.sticky_header_type.options__4.label"
+        }
+      ],
+      "default": "on-scroll-up",
+      "label": "t:sections.header.settings.sticky_header_type.label"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_line_separator",
+      "default": true,
+      "label": "t:sections.header.settings.show_line_separator.label"
+    },
+    {
+      "type": "header",
+      "content": "Transparent header (homepage)"
+    },
+    {
+      "type": "checkbox",
+      "id": "transparent_on_home",
+      "default": false,
+      "label": "Transparent over homepage hero",
+      "info": "Header overlays the first homepage section and turns solid on scroll. Use a center logo for best results."
+    },
+    {
+      "type": "image_picker",
+      "id": "transparent_logo",
+      "label": "Transparent-state logo",
+      "info": "Light/white logo shown while transparent. Falls back to the main logo."
+    },
+    {
+      "type": "header",
+      "content": "t:sections.header.settings.header__1.content"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:sections.all.colors.label",
+      "default": "scheme-1"
+    },
+    {
+      "type": "color_scheme",
+      "id": "menu_color_scheme",
+      "label": "t:sections.header.settings.menu_color_scheme.label",
+      "default": "scheme-1"
+    },
+    { "type": "header", "content": "Mega menu" },
+    { "type": "checkbox", "id": "mega_featured", "label": "Show featured products in mega menu", "default": true, "info": "Har mega menu mein us menu ki collection ke products dikhate hain (khali jagah bharne ke liye). Collection khud dhoondi jati hai: pehle menu item khud, warna uska pehla sub-link jo collection ho. Override ke liye 'Mega menu images' block mein collection set karein." },
+    {
+      "type": "header",
+      "content": "t:sections.header.settings.header__utilities.content"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_country_selector",
+      "default": true,
+      "label": "t:sections.header.settings.enable_country_selector.label",
+      "info": "t:sections.header.settings.enable_country_selector.info"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_language_selector",
+      "default": true,
+      "label": "t:sections.header.settings.enable_language_selector.label",
+      "info": "t:sections.header.settings.enable_language_selector.info"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_account_icon",
+      "default": true,
+      "label": "Show account icon"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_customer_avatar",
+      "default": true,
+      "label": "t:sections.header.settings.enable_customer_avatar.label",
+      "info": "t:sections.header.settings.enable_customer_avatar.info"
+    },
+    {
+      "type": "header",
+      "content": "t:sections.all.spacing"
+    },
+    {
+      "type": "range",
+      "id": "container_width",
+      "min": 1000,
+      "max": 1600,
+      "step": 20,
+      "unit": "px",
+      "label": "Container width (align with sections)",
+      "default": 1280
+    },
+    {
+      "type": "range",
+      "id": "margin_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "t:sections.header.settings.margin_bottom.label",
+      "default": 0
+    },
+    {
+      "type": "header",
+      "content": "t:sections.all.padding.section_padding_heading"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 36,
+      "step": 4,
+      "unit": "px",
+      "label": "t:sections.all.padding.padding_top",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 36,
+      "step": 4,
+      "unit": "px",
+      "label": "t:sections.all.padding.padding_bottom",
+      "default": 20
+    }
+  ],
+  "blocks": [
+    {
+      "type": "@app"
+    },
+    {
+      "type": "mega_promo",
+      "name": "Mega menu images",
+      "settings": [
+        { "type": "paragraph", "content": "Shows promo images inside a top-level menu's mega menu. Requires desktop menu type = Mega menu." },
+        { "type": "text", "id": "menu_item", "label": "Attach to menu item", "info": "Exact top-level menu item title (e.g. Apparel). It must have sub-links." },
+        { "type": "collection", "id": "featured_collection", "label": "Featured products collection", "info": "Optional. Is menu ke mega menu mein kaunsi collection ke products dikhein. Khali chhorein to menu link se khud dhoondi jayegi." },
+        { "type": "image_picker", "id": "image_1", "label": "Image 1" },
+        { "type": "text", "id": "image_1_heading", "label": "Image 1 caption" },
+        { "type": "url", "id": "image_1_link", "label": "Image 1 link" },
+        { "type": "image_picker", "id": "image_2", "label": "Image 2" },
+        { "type": "text", "id": "image_2_heading", "label": "Image 2 caption" },
+        { "type": "url", "id": "image_2_link", "label": "Image 2 link" },
+        { "type": "image_picker", "id": "image_3", "label": "Image 3" },
+        { "type": "text", "id": "image_3_heading", "label": "Image 3 caption" },
+        { "type": "url", "id": "image_3_link", "label": "Image 3 link" },
+
+        { "type": "header", "content": "Banner card (last card in the products row)" },
+        { "type": "image_picker", "id": "banner_image", "label": "Banner image", "info": "Last card in the featured products row. Portrait 4:5 (e.g. 800 x 1000). Leave empty to hide." },
+        { "type": "text", "id": "banner_heading", "label": "Banner heading", "default": "Flash sale is live" },
+        { "type": "text", "id": "banner_text", "label": "Banner text", "default": "Up to 70% off on selected styles. Limited stock." },
+        { "type": "text", "id": "banner_button", "label": "Banner button label", "default": "Shop the sale" },
+        { "type": "url", "id": "banner_link", "label": "Banner link", "info": "Leave empty to use the menu item's own link." }
+      ]
+    }
+  ]
+}
+{% endschema %}

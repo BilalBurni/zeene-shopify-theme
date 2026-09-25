@@ -1,0 +1,116 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "about": {
+      "type": "about-zeene-story",
+      "blocks": {
+        "stat-1": {
+          "type": "stat",
+          "settings": {
+            "value": "2025",
+            "suffix": "",
+            "label": "Launched",
+            "text": "A new-generation activewear and lifestyle label for men and women."
+          }
+        },
+        "stat-2": {
+          "type": "stat",
+          "settings": {
+            "value": "14",
+            "suffix": "Day",
+            "label": "Refund & exchange",
+            "text": "No-questions-asked returns and exchanges, subject to our policy terms."
+          }
+        },
+        "stat-3": {
+          "type": "stat",
+          "settings": {
+            "value": "M+W",
+            "suffix": "",
+            "label": "Collections",
+            "text": "A growing range of activewear and everyday fashion for men and women."
+          }
+        },
+        "stat-4": {
+          "type": "stat",
+          "settings": {
+            "value": "Fast",
+            "suffix": "",
+            "label": "Delivery",
+            "text": "Express processing and reliable delivery to your doorstep."
+          }
+        }
+      },
+      "block_order": [
+        "stat-1",
+        "stat-2",
+        "stat-3",
+        "stat-4"
+      ],
+      "settings": {
+        "hero_eyebrow": "About ZEENE Lifestyle · Est. 2025",
+        "hero_heading": "Premium quality.<br>Affordable fashion.<br><em>Customer trust</em> above everything.",
+        "hero_lead": "ZEENE Lifestyle is a modern activewear and lifestyle clothing brand for men and women, launched in 2025 with a clear vision: to make premium-quality fashion affordable and accessible to everyone.",
+        "hero_stat_1": "2025",
+        "hero_stat_2": "Men & Women",
+        "hero_stat_3": "Express",
+        "hero_stat_4": "14 days",
+        "hero_cta_label": "Shop the collection",
+        "hero_cta2_label": "Talk to us",
+        "poster_badge": "The ZEENE promise",
+        "poster_heading": "Where customer <em>trust</em> is our real profit.",
+        "poster_foot": "Premium Quality + Affordable Price + Customer Trust",
+        "poster_foot_strong": "= True Value",
+        "story_eyebrow": "Our story",
+        "story_title": "Built on trust,<br>not just <em>transactions.</em>",
+        "story_body": "<p>ZEENE Lifestyle was founded by <strong>Tayyab Nadeem, Founder & CEO<\/strong>, with the ambition to build a fashion brand that customers can genuinely trust.<\/p><p>From the beginning, our goal has been bigger than simply selling clothing. We want to create one of the best online shopping experiences, where customers can shop confidently, receive quality products, enjoy fast and reliable delivery, and have complete peace of mind before and after their purchase.<\/p><p>With a growing collection of activewear and everyday fashion for men and women, ZEENE combines modern design, comfort, functionality and premium quality at accessible prices.<\/p>",
+        "story_quote": "A sale may happen once. Customer trust can last for years.",
+        "vision_eyebrow": "Our vision",
+        "vision_title": "Affordable fashion for everyone, <em>without compromising<\/em> on quality or customer experience.",
+        "vision_text": "We aim to build ZEENE into a trusted destination for customers looking for stylish, comfortable, premium-quality clothing that delivers genuine value.",
+        "trust_eyebrow": "What we measure",
+        "trust_title": "Customer trust is<br>our <em>real profit.<\/em>",
+        "trust_intro": "Every successful order, positive experience, returning customer and recommendation means more to us than a single sale. We want customers to feel confident when they see the ZEENE name.",
+        "trust_line": "A sale may happen once. <span>Customer trust can last for years.<\/span>",
+        "quality_eyebrow": "Our commitment to quality",
+        "quality_title": "The details<br>that <em>matter.<\/em>",
+        "quality_chips": "Fabric selection, Comfort, Fit, Stitching, Finishing, Durability",
+        "quality_note": "We want every ZEENE product to feel worth the money our customers spend.",
+        "exp_eyebrow": "Shopping with ZEENE",
+        "exp_title": "Fast to arrive.<br><em>Easy<\/em> to return.",
+        "why_eyebrow": "Why ZEENE",
+        "why_title": "Eight reasons<br>customers <em>stay.<\/em>",
+        "founder_eyebrow": "A message from our founder",
+        "founder_quote": "ZEENE Lifestyle was founded with a vision to make premium-quality fashion accessible at affordable prices while creating an online shopping experience people can genuinely trust. <b>For us, the real profit is not just the money we earn. It is the trust we earn from our customers.<\/b> We want every ZEENE customer to feel confident in what they wear and in the brand they choose.",
+        "founder_initials": "TN",
+        "founder_name": "Tayyab Nadeem",
+        "founder_role": "Founder & CEO · ZEENE Lifestyle",
+        "cta_eyebrow": "The ZEENE promise",
+        "cta_heading": "Better collections.<br>Better service. <em>Greater trust.<\/em>",
+        "cta_text": "We are building ZEENE Lifestyle around quality, affordability, honesty, convenience and customer trust. As we grow, that commitment stays the same.",
+        "cta1_label": "Shop new arrivals",
+        "cta2_label": "Contact us",
+        "cta_strip": "ZEENE Lifestyle · Where Customer Trust Is Our Real Profit.",
+        "bg_color": "#FFFFFF",
+        "surface_color": "#F7F6F2",
+        "text_color": "#0a0a0a",
+        "accent_color": "#C6F135",
+        "dark_color": "#0a0a0a",
+        "max_width": 1320,
+        "padding_top": 24,
+        "padding_bottom": 40
+      }
+    }
+  },
+  "order": [
+    "about"
+  ]
+}

@@ -1,0 +1,332 @@
+{%- comment -%} Status per block: auto (live once the collection has products), live, or coming_soon. {%- endcomment -%}
+{%- liquid
+  assign s = section.settings
+  assign sales = section.blocks | where: 'type', 'sale'
+
+  comment
+    Filter chips har card ke tags se bante hain. tag_keys sirf duplicate rokne ke liye hai
+    (lowercase, commas ke darmiyan), tag_names asli spelling rakhta hai jo screen par jati hai.
+  endcomment
+  assign tag_keys = ','
+  assign tag_names = ''
+  for block in sales
+    assign parts = block.settings.tags | split: ','
+    for t in parts
+      assign tt = t | strip
+      if tt != blank
+        assign probe = ',' | append: tt | downcase | append: ','
+        unless tag_keys contains probe
+          assign tag_keys = tag_keys | append: tt | downcase | append: ','
+          assign tag_names = tag_names | append: tt | append: '~|~'
+        endunless
+      endif
+    endfor
+  endfor
+  assign tag_list = tag_names | split: '~|~'
+
+  assign live_count = 0
+  assign soon_count = 0
+  for block in sales
+    assign c = block.settings
+    assign st = c.status | default: 'auto'
+    assign is_live = false
+    if st == 'live'
+      assign is_live = true
+    elsif st == 'auto' and c.collection != blank and c.collection.all_products_count > 0
+      assign is_live = true
+    endif
+    if is_live
+      assign live_count = live_count | plus: 1
+    else
+      assign soon_count = soon_count | plus: 1
+    endif
+  endfor
+-%}
+
+{{ 'flash-sale-card.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'flash-sale.js' | asset_url }}" defer="defer"></script>
+
+<div
+  id="flash-sale-{{ section.id }}"
+  class="fs"
+  style="--fs-bg:{{ s.bg_color }};--fs-text:{{ s.text_color }};--fs-accent:{{ s.accent_color }};--fs-line:{{ s.divider_color }};--fs-cols:{{ s.columns_desktop }};--fs-ratio:{{ s.image_ratio }};--fs-radius:{{ s.corner_radius }}px;--fs-maxw:{{ s.max_width }}px;--fs-pt:{{ s.padding_top }}px;--fs-pb:{{ s.padding_bottom }}px;"
+>
+  {%- if s.show_hero -%}
+    {%- render 'page-hero', breadcrumb: true, uid: section.id, image: s.hero_image, image_mobile: s.hero_image_mobile, eyebrow: s.eyebrow, heading: s.heading, text: s.subheading, height: s.hero_height, height_mobile: s.hero_height_mobile, overlay: s.hero_overlay, align: s.hero_align, full_width: s.hero_full_width, radius: s.hero_radius, max_width: s.max_width, accent: s.accent_color -%}
+  {%- else -%}
+    {%- render 'breadcrumbs', from_section: true -%}
+  {%- endif -%}
+
+  <div class="fs__inner">
+    {%- unless s.show_hero -%}
+      <header class="fs__head">
+        {%- if s.eyebrow != blank -%}<span class="fs__eyebrow">{{ s.eyebrow }}</span>{%- endif -%}
+        {%- if s.heading != blank -%}<h1 class="fs__heading">{{ s.heading }}</h1>{%- endif -%}
+        {%- if s.subheading != blank -%}<p class="fs__sub">{{ s.subheading }}</p>{%- endif -%}
+      </header>
+    {%- endunless -%}
+
+    {%- if s.show_tag_filter and tag_list.size > 1 -%}
+      <div class="fs__filter js-fs-filter" role="group" aria-label="Filter flash sales by tag">
+        <button type="button" class="fs__chip is-active" data-tag="">{{ s.all_label | default: 'All' }}</button>
+        {%- for t in tag_list -%}
+          <button type="button" class="fs__chip" data-tag="{{ t | downcase | escape }}">{{ t }}</button>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+
+    <p class="fs__nomatch js-fs-nomatch" hidden>No flash sales match <span class="js-fs-term"></span>.</p>
+
+    {%- if sales.size == 0 -%}
+      {%- render 'empty-state',
+        icon: 'bag',
+        title: 'No flash sales scheduled yet',
+        text: 'New drops and flash sales land regularly — check back soon.',
+        primary_label: 'Shop all products',
+        primary_url: routes.all_products_collection_url,
+        accent: s.accent_color,
+        text_color: s.text_color -%}
+    {%- endif -%}
+
+    {%- if live_count > 0 -%}
+      <section class="fs__group">
+        <div class="fs__group-head">
+          <span class="fs__pulse" aria-hidden="true"></span>
+          <h2 class="fs__group-title">{{ s.live_label | default: 'Live now' }}</h2>
+          <span class="fs__group-count">{{ live_count }}</span>
+        </div>
+        <div class="fs__grid fs-cards">
+          {%- for block in sales -%}
+            {%- liquid
+              assign c = block.settings
+              assign st = c.status | default: 'auto'
+              assign is_live = false
+              if st == 'live'
+                assign is_live = true
+              elsif st == 'auto' and c.collection != blank and c.collection.all_products_count > 0
+                assign is_live = true
+              endif
+            -%}
+            {%- if is_live -%}
+              {%- render 'flash-sale-card', block: block, is_live: true, s: s, index: forloop.index0 -%}
+            {%- endif -%}
+          {%- endfor -%}
+        </div>
+      </section>
+    {%- endif -%}
+
+    {%- if soon_count > 0 -%}
+      <section class="fs__group">
+        <div class="fs__group-head">
+          <span class="fs__clock" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+          </span>
+          <h2 class="fs__group-title">{{ s.soon_label | default: 'Coming soon' }}</h2>
+          <span class="fs__group-count">{{ soon_count }}</span>
+        </div>
+        <div class="fs__grid fs-cards">
+          {%- for block in sales -%}
+            {%- liquid
+              assign c = block.settings
+              assign st = c.status | default: 'auto'
+              assign is_live = false
+              if st == 'live'
+                assign is_live = true
+              elsif st == 'auto' and c.collection != blank and c.collection.all_products_count > 0
+                assign is_live = true
+              endif
+            -%}
+            {%- unless is_live -%}
+              {%- render 'flash-sale-card', block: block, is_live: false, s: s, index: forloop.index0 -%}
+            {%- endunless -%}
+          {%- endfor -%}
+        </div>
+      </section>
+    {%- endif -%}
+  </div>
+</div>
+
+{%- style -%}
+#flash-sale-{{ section.id }} { background: var(--fs-bg); color: var(--fs-text); padding: var(--fs-pt) 0 var(--fs-pb); }
+#flash-sale-{{ section.id }} *, #flash-sale-{{ section.id }} *::before, #flash-sale-{{ section.id }} *::after { box-sizing: border-box; }
+#flash-sale-{{ section.id }} .fs__inner { max-width: var(--fs-maxw); margin: 0 auto; padding: 0 16px; }
+
+#flash-sale-{{ section.id }} .fs__head { max-width: 720px; margin: 0 0 34px; }
+#flash-sale-{{ section.id }} .fs__eyebrow { display: inline-block; margin: 0 0 10px; font-size: 11px; font-weight: 800; letter-spacing: 0.24em; text-transform: uppercase; opacity: 0.5; }
+#flash-sale-{{ section.id }} .fs__heading { margin: 0; font-family: 'Zen Maru Gothic', sans-serif; font-size: clamp(26px, 4vw, 40px); font-weight: 500; line-height: 1.18; letter-spacing: -0.015em; }
+#flash-sale-{{ section.id }} .fs__sub { margin: 12px 0 0; font-size: 15px; line-height: 1.65; opacity: 0.62; }
+
+#flash-sale-{{ section.id }} .fs__group { margin-bottom: 48px; }
+#flash-sale-{{ section.id }} .fs__group:last-child { margin-bottom: 0; }
+#flash-sale-{{ section.id }} .fs__group-head { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+#flash-sale-{{ section.id }} .fs__group-title { margin: 0; font-family: 'Zen Maru Gothic', sans-serif; font-size: 13px; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; }
+#flash-sale-{{ section.id }} .fs__group-count { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; padding: 0 7px; font-size: 11px; font-weight: 800; background: {{ s.text_color | color_modify: 'alpha', 0.07 }}; border-radius: 6px; }
+#flash-sale-{{ section.id }} .fs__pulse { position: relative; flex: 0 0 auto; width: 8px; height: 8px; border-radius: 50%; background: #d11a2a; }
+#flash-sale-{{ section.id }} .fs__pulse::after { content: ''; position: absolute; inset: -5px; border-radius: 50%; border: 1.5px solid #d11a2a; opacity: 0.5; animation: fspulse-{{ section.id }} 1.8s ease-out infinite; }
+@keyframes fspulse-{{ section.id }} { 0% { transform: scale(0.7); opacity: 0.65; } 100% { transform: scale(1.25); opacity: 0; } }
+#flash-sale-{{ section.id }} .fs__clock { display: inline-flex; opacity: 0.45; }
+#flash-sale-{{ section.id }} .fs__clock svg { width: 16px; height: 16px; }
+
+#flash-sale-{{ section.id }} .fs__filter { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 30px; }
+#flash-sale-{{ section.id }} .fs__chip { display: inline-flex; align-items: center; padding: 9px 16px; font-family: 'Zen Maru Gothic', sans-serif; font-size: 11.5px; font-weight: 800; letter-spacing: 0.09em; text-transform: uppercase; color: var(--fs-text); background: transparent; border: 1.5px solid {{ s.text_color | color_modify: 'alpha', 0.16 }}; border-radius: 9999px; cursor: pointer; transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease; }
+#flash-sale-{{ section.id }} .fs__chip:hover { border-color: var(--fs-text); }
+#flash-sale-{{ section.id }} .fs__chip.is-active { background: var(--fs-accent); border-color: var(--fs-accent); color: #0a0a0a; }
+#flash-sale-{{ section.id }} .fs__chip:focus-visible { outline: 2px solid var(--fs-accent); outline-offset: 2px; }
+#flash-sale-{{ section.id }} .fs__nomatch { padding: 28px 0; font-size: 14px; opacity: 0.65; }
+#flash-sale-{{ section.id }} .fs__nomatch[hidden] { display: none; }
+#flash-sale-{{ section.id }} .fs__nomatch span { font-weight: 700; opacity: 1; }
+#flash-sale-{{ section.id }} .fs-card[hidden], #flash-sale-{{ section.id }} .fs__group[hidden] { display: none; }
+
+#flash-sale-{{ section.id }} .fs__grid { display: grid; grid-template-columns: repeat(var(--fs-cols), minmax(0, 1fr)); gap: 22px; align-items: stretch; }
+
+@media (max-width: 989px) {
+  #flash-sale-{{ section.id }} .fs__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+}
+@media (max-width: 749px) {
+  #flash-sale-{{ section.id }} { padding: {{ s.padding_top | times: 0.6 | round }}px 0 {{ s.padding_bottom | times: 0.6 | round }}px; }
+  #flash-sale-{{ section.id }} .fs__inner { padding: 0 14px; }
+  #flash-sale-{{ section.id }} .fs__head { margin-bottom: 24px; }
+  {%- comment -%} Chips do-teen line le rahi thin — mobile par ab ek swipe-able row. {%- endcomment -%}
+  #flash-sale-{{ section.id }} .fs__filter { flex-wrap: nowrap; gap: 7px; margin-bottom: 20px; padding-bottom: 2px; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  #flash-sale-{{ section.id }} .fs__filter::-webkit-scrollbar { display: none; }
+  #flash-sale-{{ section.id }} .fs__chip { flex: 0 0 auto; padding: 8px 13px; font-size: 10.5px; }
+  #flash-sale-{{ section.id }} .fs__group { margin-bottom: 34px; }
+  #flash-sale-{{ section.id }} .fs__grid { grid-template-columns: 1fr; gap: 14px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #flash-sale-{{ section.id }} .fs__pulse::after { animation: none; }
+}
+{%- endstyle -%}
+
+<script>
+(function () {
+  var root = document.getElementById('flash-sale-{{ section.id }}');
+  if (!root) return;
+  var bar = root.querySelector('.js-fs-filter');
+  if (!bar) return;
+
+  var cards = [].slice.call(root.querySelectorAll('.fs-card'));
+  var groups = [].slice.call(root.querySelectorAll('.fs__group'));
+  var nomatch = root.querySelector('.js-fs-nomatch');
+  var term = root.querySelector('.js-fs-term');
+
+  // Har card ke tags ek dafa parse — har click par DOM nahi padhna parta.
+  var tagsOf = cards.map(function (card) {
+    return (card.getAttribute('data-fs-tags') || '')
+      .split(',').map(function (t) { return t.trim(); }).filter(Boolean);
+  });
+
+  function apply(tag, label) {
+    var hits = 0;
+    cards.forEach(function (card, i) {
+      var show = !tag || tagsOf[i].indexOf(tag) !== -1;
+      card.hidden = !show;
+      if (show) hits++;
+    });
+    groups.forEach(function (g) {
+      g.hidden = g.querySelectorAll('.fs-card:not([hidden])').length === 0;
+    });
+    if (nomatch) {
+      nomatch.hidden = hits > 0;
+      if (term) term.textContent = '\u201c' + (label || '') + '\u201d';
+    }
+  }
+
+  bar.addEventListener('click', function (e) {
+    var btn = e.target.closest ? e.target.closest('.fs__chip') : null;
+    if (!btn) return;
+    bar.querySelectorAll('.fs__chip').forEach(function (b) { b.classList.remove('is-active'); });
+    btn.classList.add('is-active');
+    apply(btn.getAttribute('data-tag') || '', btn.textContent.trim());
+  });
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Flash sale hub",
+  "tag": "section",
+  "class": "section-flash-sale-hub",
+  "settings": [
+    { "type": "header", "content": "Page header" },
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Flash sales" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Flash sales" },
+    { "type": "textarea", "id": "subheading", "label": "Subheading", "default": "Limited-time drops at their lowest prices. Once the timer runs out, prices go back up." },
+
+    { "type": "header", "content": "Hero banner" },
+    { "type": "checkbox", "id": "show_hero", "label": "Show hero banner", "default": true, "info": "Heading sits on top of the image. With no image a dark neon panel is used." },
+    { "type": "image_picker", "id": "hero_image", "label": "Banner image" },
+    { "type": "image_picker", "id": "hero_image_mobile", "label": "Banner image \u2014 mobile", "info": "Optional. Used below 750px." },
+    { "type": "range", "id": "hero_height", "min": 200, "max": 600, "step": 20, "unit": "px", "label": "Banner height \u2014 desktop", "default": 340 },
+    { "type": "range", "id": "hero_height_mobile", "min": 160, "max": 460, "step": 10, "unit": "px", "label": "Banner height \u2014 mobile", "default": 240 },
+    { "type": "range", "id": "hero_overlay", "min": 0, "max": 90, "step": 5, "unit": "%", "label": "Image darkening", "default": 45, "info": "Higher = darker image, easier to read the text." },
+    { "type": "select", "id": "hero_align", "label": "Text position", "default": "center", "options": [ { "value": "center", "label": "Centre" }, { "value": "left", "label": "Left" } ] },
+    { "type": "checkbox", "id": "hero_full_width", "label": "Full-width banner", "default": false },
+    { "type": "range", "id": "hero_radius", "min": 0, "max": 28, "step": 2, "unit": "px", "label": "Banner corner radius", "default": 18 },
+
+    { "type": "header", "content": "Tag filter" },
+    { "type": "checkbox", "id": "show_tag_filter", "label": "Show tag filter", "default": true, "info": "Chips are built from the tag pills on the cards below." },
+    { "type": "text", "id": "all_label", "label": "\"All\" chip label", "default": "All" },
+
+    { "type": "header", "content": "Groups & labels" },
+    { "type": "text", "id": "live_label", "label": "Live group label", "default": "Live now" },
+    { "type": "text", "id": "soon_label", "label": "Upcoming group label", "default": "Coming soon" },
+    { "type": "text", "id": "cta_label", "label": "Live button label", "default": "View collection" },
+    { "type": "text", "id": "soon_cta_label", "label": "Upcoming button label", "default": "Coming soon" },
+    { "type": "text", "id": "ended_label", "label": "Countdown finished label", "default": "Sale ended" },
+
+    { "type": "header", "content": "Layout" },
+    { "type": "range", "id": "columns_desktop", "min": 2, "max": 4, "step": 1, "label": "Desktop columns", "default": 3 },
+    { "type": "select", "id": "image_ratio", "label": "Cover image ratio", "default": "16/9", "options": [ { "value": "16/9", "label": "Wide (16:9)" }, { "value": "3/2", "label": "Landscape (3:2)" }, { "value": "2/1", "label": "Banner (2:1)" }, { "value": "4/3", "label": "Classic (4:3)" } ] },
+    { "type": "range", "id": "corner_radius", "min": 0, "max": 28, "step": 2, "unit": "px", "label": "Card corner radius", "default": 18 },
+    { "type": "range", "id": "max_width", "min": 1000, "max": 1600, "step": 20, "unit": "px", "label": "Max content width", "default": 1280 },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 100, "step": 4, "unit": "px", "label": "Padding top", "default": 40 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 100, "step": 4, "unit": "px", "label": "Padding bottom", "default": 72 },
+
+    { "type": "header", "content": "Colors" },
+    { "type": "color", "id": "bg_color", "label": "Background", "default": "#ffffff" },
+    { "type": "color", "id": "text_color", "label": "Text", "default": "#0a0a0a" },
+    { "type": "color", "id": "accent_color", "label": "Neon accent", "default": "#C6F135" },
+    { "type": "color", "id": "divider_color", "label": "Card border", "default": "#e6e6e6" }
+  ],
+  "blocks": [
+    {
+      "type": "sale",
+      "name": "Flash sale",
+      "settings": [
+        { "type": "collection", "id": "collection", "label": "Collection", "info": "The collection this sale links to." },
+        {
+          "type": "select", "id": "status", "label": "Status", "default": "auto",
+          "options": [
+            { "value": "auto", "label": "Auto — live once the collection has products" },
+            { "value": "live", "label": "Live now" },
+            { "value": "coming_soon", "label": "Coming soon" }
+          ]
+        },
+        { "type": "text", "id": "starts_text", "label": "Small note (coming soon only)", "info": "e.g. Starts 25 Aug — leave empty to hide." },
+
+        { "type": "header", "content": "Countdown" },
+        { "type": "checkbox", "id": "show_countdown", "label": "Show countdown on this card", "default": true },
+        { "type": "text", "id": "countdown_date", "label": "Target date", "info": "Format: YYYY-MM-DD (e.g. 2026-09-25). Leave empty for a daily countdown that resets at the time below." },
+        { "type": "text", "id": "countdown_time", "label": "Target time", "default": "23:59", "info": "24-hour format, e.g. 23:59. Uses the visitor's local time." },
+        { "type": "text", "id": "countdown_label", "label": "Countdown label", "default": "Ends in", "info": "Use \"Starts in\" for upcoming sales." },
+
+        { "type": "header", "content": "Card content" },
+        { "type": "image_picker", "id": "image", "label": "Cover image", "info": "Falls back to the collection image." },
+        { "type": "image_picker", "id": "logo", "label": "Round logo", "info": "Optional — sits on the bottom-left of the cover." },
+        { "type": "text", "id": "badge", "label": "Badge (top-left)", "default": "Flash sale" },
+        { "type": "text", "id": "offer", "label": "Offer pill", "info": "Optional lime pill, e.g. UP TO 70% OFF." },
+        { "type": "text", "id": "title", "label": "Title", "info": "Falls back to the collection title." },
+        { "type": "textarea", "id": "description", "label": "Description", "default": "Limited-time prices on a hand-picked selection." },
+        { "type": "text", "id": "tags", "label": "Tag pills", "info": "Separate with commas." }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Flash sale hub",
+      "blocks": [ { "type": "sale" }, { "type": "sale" }, { "type": "sale" } ]
+    }
+  ]
+}
+{% endschema %}

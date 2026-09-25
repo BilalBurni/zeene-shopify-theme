@@ -1,0 +1,154 @@
+{%- comment -%}
+  Zeene premium mobile menu drawer. Rendered once in theme.liquid.
+  Opens on the header hamburger icon. Menus come from theme settings.
+{%- endcomment -%}
+{%- liquid
+  assign main_menu = linklists[settings.mobile_menu]
+  assign cat_menu = linklists[settings.mobile_categories_menu]
+  assign sec_menu = linklists[settings.mobile_secondary_menu]
+-%}
+
+{%- style -%}
+html.mmd-open { overflow: hidden; }
+#MobileMenu { position: fixed; inset: 0; z-index: 1003; display: flex; visibility: hidden; background-color: rgba(10,10,10,0); -webkit-backdrop-filter: blur(0); backdrop-filter: blur(0); transition: background-color 0.4s ease, -webkit-backdrop-filter 0.4s ease, backdrop-filter 0.4s ease, visibility 0.45s ease; }
+#MobileMenu.active { visibility: visible; background-color: rgba(10,10,10,0.44); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
+#MobileMenu .mmd__panel { position: relative; width: min(420px, 90vw); height: 100%; background: #fff; box-shadow: 18px 0 60px rgba(0,0,0,0.2); transform: translateX(-100%); transition: transform 0.5s cubic-bezier(.16,1,.3,1); will-change: transform; display: flex; flex-direction: column; }
+#MobileMenu.active .mmd__panel { transform: translateX(0); }
+#MobileMenu .mmd__head { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px; border-bottom: 1px solid rgba(0,0,0,0.08); flex-shrink: 0; }
+#MobileMenu .mmd__logo { font-family: 'Zen Maru Gothic', sans-serif; font-size: 17px; font-weight: 800; letter-spacing: 0.02em; color: #0a0a0a; text-decoration: none; }
+#MobileMenu .mmd__logo img { max-height: 30px; width: auto; display: block; }
+#MobileMenu .mmd__close { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border: 0; background: transparent; border-radius: 50%; cursor: pointer; color: #0a0a0a; transition: background-color 0.15s ease; }
+#MobileMenu .mmd__close:hover { background: rgba(0,0,0,0.06); }
+#MobileMenu .mmd__close svg { width: 18px; height: 18px; }
+#MobileMenu .mmd__body { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+#MobileMenu .mmd__banner { display: block; margin: 14px 16px 4px; border-radius: 12px; overflow: hidden; }
+#MobileMenu .mmd__banner img { width: 100%; height: auto; display: block; }
+#MobileMenu .mmd__cats { display: flex; gap: 12px; overflow-x: auto; scrollbar-width: none; padding: 16px 16px 8px; }
+#MobileMenu .mmd__cats::-webkit-scrollbar { display: none; }
+#MobileMenu .mmd__cat { flex: 0 0 auto; width: 72px; text-decoration: none; color: #0a0a0a; text-align: center; }
+#MobileMenu .mmd__cat-img { width: 72px; height: 72px; border-radius: 14px; overflow: hidden; background: #f2f2f2; margin-bottom: 6px; }
+#MobileMenu .mmd__cat-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+#MobileMenu .mmd__cat-label { font-family: 'Zen Maru Gothic', sans-serif; font-size: 11px; font-weight: 600; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+#MobileMenu .mmd__nav { padding: 8px 0; }
+#MobileMenu .mmd__item { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 15px 20px; font-family: 'Zen Maru Gothic', sans-serif; font-size: 15px; font-weight: 600; color: #0a0a0a; text-decoration: none; border-bottom: 1px solid rgba(0,0,0,0.06); cursor: pointer; list-style: none; }
+#MobileMenu .mmd__item::-webkit-details-marker { display: none; }
+#MobileMenu .mmd__item--flash { font-weight: 800; }
+#MobileMenu .mmd__flash-dot { display: inline-block; margin-bottom: 2px; vertical-align: middle; align-self: center; width: 7px; height: 7px; margin-left: 8px; border-radius: 50%; background: #d11a2a; animation: zFlashPingM 1.6s ease-out infinite, zFlashBounceM 1.15s ease-in-out infinite; }
+@keyframes zFlashPingM { 0% { box-shadow: 0 0 0 0 rgba(209,26,42,0.55); } 70%, 100% { box-shadow: 0 0 0 7px rgba(209,26,42,0); } }
+@keyframes zFlashBounceM { 0%, 100% { transform: translateY(1px); } 50% { transform: translateY(-1px); } }
+@media (prefers-reduced-motion: reduce) { #MobileMenu .mmd__flash-dot { animation: none; } }
+#MobileMenu .mmd__acc[open] > .mmd__item { color: #0a0a0a; }
+#MobileMenu .mmd__chev { width: 18px; height: 18px; flex-shrink: 0; transition: transform 0.25s ease; color: #0a0a0a; opacity: 0.6; }
+#MobileMenu .mmd__acc[open] > .mmd__item .mmd__chev { transform: rotate(180deg); }
+#MobileMenu .mmd__sub { background: #fafafa; }
+#MobileMenu .mmd__sublink { display: block; padding: 12px 20px 12px 34px; font-family: 'Zen Maru Gothic', sans-serif; font-size: 14px; font-weight: 500; color: #333; text-decoration: none; border-bottom: 1px solid rgba(0,0,0,0.05); }
+#MobileMenu .mmd__sublink:active { background: rgba(0,0,0,0.04); }
+#MobileMenu .mmd__sec { padding: 22px 20px 6px; }
+#MobileMenu .mmd__sec-label { font-family: 'Zen Maru Gothic', sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: #0a0a0a; opacity: 0.45; margin-bottom: 4px; }
+#MobileMenu .mmd__seclink { display: inline-block; padding: 9px 0; font-family: 'Zen Maru Gothic', sans-serif; font-size: 14px; font-weight: 500; color: #0a0a0a; text-decoration: none; border-bottom: 2px solid transparent; }
+#MobileMenu .mmd__sec .mmd__seclink { display: block; }
+#MobileMenu .mmd__seclink--solo { padding: 15px 20px; font-weight: 700; border-bottom: 1px solid rgba(0,0,0,0.06); }
+#MobileMenu .mmd__social { display: flex; gap: 10px; padding: 20px; }
+#MobileMenu .mmd__social a { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.14); color: #0a0a0a; transition: background-color 0.15s ease, color 0.15s ease; }
+#MobileMenu .mmd__social a:hover { background: #0a0a0a; color: #fff; }
+#MobileMenu .mmd__social svg { width: 18px; height: 18px; }
+@media (prefers-reduced-motion: reduce) { #MobileMenu, #MobileMenu .mmd__panel { transition-duration: 0.01ms !important; } }
+{%- endstyle -%}
+
+<div id="MobileMenu" class="mmd" role="dialog" aria-modal="true" aria-label="Menu">
+  <div class="mmd__panel">
+    <div class="mmd__head">
+      <a href="{{ routes.root_url }}" class="mmd__logo">
+        {%- if settings.logo != blank -%}<img src="{{ settings.logo | image_url: width: 240 }}" alt="{{ shop.name | escape }}" width="120" height="30">{%- else -%}{{ shop.name }}{%- endif -%}
+      </a>
+      <button type="button" class="mmd__close js-mmd-close" aria-label="Close menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div class="mmd__body">
+      {%- if settings.mobile_menu_banner != blank -%}
+        <a class="mmd__banner" href="{{ settings.mobile_menu_banner_link | default: routes.root_url }}"><img src="{{ settings.mobile_menu_banner | image_url: width: 800 }}" alt="" width="800" height="300" loading="lazy"></a>
+      {%- endif -%}
+
+      {%- if cat_menu != blank and cat_menu.links.size > 0 -%}
+        <div class="mmd__cats">
+          {%- for link in cat_menu.links -%}
+            {%- liquid
+              assign cat_img = blank
+              if link.object.image != blank
+                assign cat_img = link.object.image
+              elsif link.object.featured_image != blank
+                assign cat_img = link.object.featured_image
+              elsif link.object.products.first.featured_image != blank
+                assign cat_img = link.object.products.first.featured_image
+              endif
+            -%}
+            <a class="mmd__cat" href="{{ link.url }}">
+              <div class="mmd__cat-img">{%- if cat_img != blank -%}<img src="{{ cat_img | image_url: width: 160 }}" alt="{{ link.title | escape }}" width="72" height="72" loading="lazy">{%- endif -%}</div>
+              <div class="mmd__cat-label">{{ link.title }}</div>
+            </a>
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+
+      {%- if main_menu != blank -%}
+        <nav class="mmd__nav">
+          {%- for link in main_menu.links -%}
+            {%- if link.links.size > 0 -%}
+              <details class="mmd__acc">
+                <summary class="mmd__item{% if link.title contains 'Flash' or link.title contains 'flash' %} mmd__item--flash{% endif %}"><span class="mmd__item-text">{{ link.title }}{% if link.title contains 'Flash' or link.title contains 'flash' %}<i class="mmd__flash-dot" aria-hidden="true"></i>{% endif %}</span><svg class="mmd__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+                <div class="mmd__sub">
+                  {%- for child in link.links -%}
+                    <a class="mmd__sublink" href="{{ child.url }}">{{ child.title }}</a>
+                    {%- for grandchild in child.links -%}
+                      <a class="mmd__sublink" href="{{ grandchild.url }}" style="padding-left:48px;">{{ grandchild.title }}</a>
+                    {%- endfor -%}
+                  {%- endfor -%}
+                </div>
+              </details>
+            {%- else -%}
+              <a class="mmd__item{% if link.title contains 'Flash' or link.title contains 'flash' %} mmd__item--flash{% endif %}" href="{{ link.url }}"><span class="mmd__item-text">{{ link.title }}{% if link.title contains 'Flash' or link.title contains 'flash' %}<i class="mmd__flash-dot" aria-hidden="true"></i>{% endif %}</span></a>
+            {%- endif -%}
+          {%- endfor -%}
+        </nav>
+      {%- endif -%}
+
+      {%- if sec_menu != blank and sec_menu.links.size > 0 -%}
+        {%- for link in sec_menu.links -%}
+          {%- if link.links.size > 0 -%}
+            <div class="mmd__sec">
+              <div class="mmd__sec-label">{{ link.title }}</div>
+              {%- for child in link.links -%}<a class="mmd__seclink" href="{{ child.url }}">{{ child.title }}</a>{%- endfor -%}
+            </div>
+          {%- else -%}
+            <a class="mmd__seclink mmd__seclink--solo" href="{{ link.url }}">{{ link.title }}</a>
+          {%- endif -%}
+        {%- endfor -%}
+      {%- endif -%}
+
+      {%- capture social -%}
+        {%- if settings.social_instagram_link != blank -%}<a href="{{ settings.social_instagram_link }}" aria-label="Instagram" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></a>{%- endif -%}
+        {%- if settings.social_facebook_link != blank -%}<a href="{{ settings.social_facebook_link }}" aria-label="Facebook" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M14 9h3V6h-3c-1.7 0-3 1.3-3 3v2H9v3h2v6h3v-6h3l1-3h-4V9c0-.6.4-1 1-1z"/></svg></a>{%- endif -%}
+        {%- if settings.social_tiktok_link != blank -%}<a href="{{ settings.social_tiktok_link }}" aria-label="TikTok" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16 3c.3 2 1.6 3.4 3.5 3.6v2.5c-1.2 0-2.4-.4-3.5-1.1v6.4a5.4 5.4 0 1 1-5.4-5.4c.3 0 .5 0 .8.1v2.6a2.8 2.8 0 1 0 2 2.7V3z"/></svg></a>{%- endif -%}
+        {%- if settings.social_youtube_link != blank -%}<a href="{{ settings.social_youtube_link }}" aria-label="YouTube" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M22 12s0-3-.4-4.4a2.6 2.6 0 0 0-1.8-1.8C18.4 5.4 12 5.4 12 5.4s-6.4 0-7.8.4A2.6 2.6 0 0 0 2.4 7.6C2 9 2 12 2 12s0 3 .4 4.4a2.6 2.6 0 0 0 1.8 1.8c1.4.4 7.8.4 7.8.4s6.4 0 7.8-.4a2.6 2.6 0 0 0 1.8-1.8C22 15 22 12 22 12zM10 15V9l5 3z"/></svg></a>{%- endif -%}
+      {%- endcapture -%}
+      {%- if social != blank -%}<div class="mmd__social">{{ social }}</div>{%- endif -%}
+    </div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var drawer = document.getElementById('MobileMenu');
+    if (!drawer) return;
+    function open() { drawer.classList.add('active'); document.documentElement.classList.add('mmd-open'); }
+    function close() { drawer.classList.remove('active'); document.documentElement.classList.remove('mmd-open'); }
+    drawer.querySelector('.js-mmd-close').addEventListener('click', close);
+    drawer.addEventListener('click', function (e) { if (e.target === drawer) close(); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && drawer.classList.contains('active')) close(); });
+    document.addEventListener('click', function (e) {
+      var t = e.target.closest ? e.target.closest('.header__icon--menu, .js-mobile-menu-open') : null;
+      if (!t) return;
+      e.preventDefault(); e.stopPropagation();
+      open();
+    }, true);
+  })();
+</script>

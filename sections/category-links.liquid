@@ -1,0 +1,167 @@
+{%- comment -%} Built from a single menu: level 1 = group heading, level 2 = sub-heading, level 3 = links. {%- endcomment -%}
+{%- liquid
+  assign s = section.settings
+  assign menu = s.menu
+  if menu.links.size == 0
+    assign menu = linklists[s.menu]
+  endif
+-%}
+
+{%- if menu.links.size > 0 -%}
+  {%- style -%}
+  #cl-{{ section.id }} { background: {{ s.bg_color }}; padding: {{ s.padding_top }}px 0 {{ s.padding_bottom }}px; }
+  #cl-{{ section.id }} .cl__inner { max-width: {{ s.max_width }}px; margin: 0 auto; padding: 0 16px; }
+  #cl-{{ section.id }} .cl__heading { margin: 0 0 26px; font-family: 'Zen Maru Gothic', sans-serif; font-size: clamp(18px, 2.2vw, 22px); font-weight: 600; letter-spacing: -0.01em; color: {{ s.title_color }}; }
+  #cl-{{ section.id }} .cl__cols { columns: {{ s.columns }}; column-gap: {{ s.column_gap }}px; }
+  #cl-{{ section.id }} .cl__group { break-inside: avoid; -webkit-column-break-inside: avoid; page-break-inside: avoid; margin: 0 0 {{ s.group_gap }}px; }
+  #cl-{{ section.id }} .cl__gtitle { margin: 0; font-family: 'Zen Maru Gothic', sans-serif; font-size: {{ s.title_size }}px; font-weight: 700; line-height: 1.4; color: {{ s.title_color }}; }
+  #cl-{{ section.id }} .cl__gtitle button { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0; background: none; border: 0; text-align: left; font: inherit; color: inherit; cursor: default; }
+  #cl-{{ section.id }} .cl__gtitle a { color: inherit; text-decoration: none; }
+  #cl-{{ section.id }} .cl__gtitle a:hover { text-decoration: underline; text-underline-offset: 3px; }
+  #cl-{{ section.id }} .cl__chev { display: none; flex: 0 0 auto; width: 18px; height: 18px; transition: transform 0.3s cubic-bezier(.16,1,.3,1); }
+  #cl-{{ section.id }} .cl__sub { margin: {{ s.sub_gap }}px 0 0; }
+  #cl-{{ section.id }} .cl__stitle { margin: 0 0 6px; font-family: 'Zen Maru Gothic', sans-serif; font-size: {{ s.sub_size }}px; font-weight: 500; line-height: 1.4; color: {{ s.sub_color }}; }
+  #cl-{{ section.id }} .cl__stitle a { color: inherit; text-decoration: none; }
+  #cl-{{ section.id }} .cl__stitle a:hover { text-decoration: underline; text-underline-offset: 3px; }
+  #cl-{{ section.id }} .cl__list { list-style: none; margin: 0; padding: 0; }
+  #cl-{{ section.id }} .cl__list li { margin: 0 0 {{ s.link_gap }}px; }
+  #cl-{{ section.id }} .cl__link { font-size: {{ s.link_size }}px; font-weight: 400; line-height: 1.5; color: {{ s.link_color }}; text-decoration: none; transition: color 0.15s ease; }
+  #cl-{{ section.id }} .cl__link:hover { color: {{ s.link_hover_color }}; text-decoration: underline; text-underline-offset: 3px; }
+
+  @media (max-width: 989px) { #cl-{{ section.id }} .cl__cols { columns: {% if s.columns > 2 %}2{% else %}{{ s.columns }}{% endif %}; } }
+  @media (max-width: 749px) {
+    #cl-{{ section.id }} { padding-top: {{ s.padding_top | times: 0.7 | round }}px; padding-bottom: {{ s.padding_bottom | times: 0.7 | round }}px; }
+    #cl-{{ section.id }} .cl__inner { padding: 0 14px; }
+    #cl-{{ section.id }} .cl__cols { columns: 1; }
+    {%- if s.collapse_mobile -%}
+    {%- comment -%} Mobile: each group collapses, otherwise these lists run past the footer. {%- endcomment -%}
+    #cl-{{ section.id }} .cl__group { margin-bottom: 0; border-bottom: 1px solid {{ s.divider_color }}; }
+    #cl-{{ section.id }} .cl__gtitle button { padding: 13px 0; cursor: pointer; }
+    #cl-{{ section.id }} .cl__chev { display: block; }
+    #cl-{{ section.id }} .cl__group.is-open .cl__chev { transform: rotate(180deg); }
+    #cl-{{ section.id }} .cl__gwrap { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.32s cubic-bezier(.16,1,.3,1); }
+    #cl-{{ section.id }} .cl__group.is-open .cl__gwrap { grid-template-rows: 1fr; }
+    #cl-{{ section.id }} .cl__gbody { min-height: 0; overflow: hidden; }
+    #cl-{{ section.id }} .cl__group.is-open .cl__gbody { padding-bottom: 14px; }
+    #cl-{{ section.id }} .cl__sub:first-child { margin-top: 0; }
+    {%- endif -%}
+  }
+  @media (prefers-reduced-motion: reduce) { #cl-{{ section.id }} .cl__gwrap, #cl-{{ section.id }} .cl__chev { transition: none; } }
+  {%- endstyle -%}
+
+  <div id="cl-{{ section.id }}" class="cl">
+    <div class="cl__inner">
+      {%- if s.heading != blank -%}<h2 class="cl__heading">{{ s.heading }}</h2>{%- endif -%}
+
+      <div class="cl__cols js-cl-cols" data-collapse="{{ s.collapse_mobile }}">
+        {%- for top in menu.links -%}
+          <div class="cl__group">
+            <h3 class="cl__gtitle">
+              <button type="button" class="js-cl-toggle" aria-expanded="false" aria-controls="cl-{{ section.id }}-{{ forloop.index }}">
+                <span>{{ top.title | escape }}</span>
+                <svg class="cl__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+              </button>
+            </h3>
+
+            <div class="cl__gwrap" id="cl-{{ section.id }}-{{ forloop.index }}">
+              <div class="cl__gbody">
+                {%- liquid
+                  assign flat_count = 0
+                  for child in top.links
+                    if child.links.size == 0
+                      assign flat_count = flat_count | plus: 1
+                    endif
+                  endfor
+                -%}
+                {%- if flat_count > 0 -%}
+                  <div class="cl__sub">
+                    <ul class="cl__list" role="list">
+                      {%- for child in top.links -%}
+                        {%- if child.links.size == 0 -%}
+                          <li><a class="cl__link" href="{{ child.url }}">{{ child.title | escape }}</a></li>
+                        {%- endif -%}
+                      {%- endfor -%}
+                    </ul>
+                  </div>
+                {%- endif -%}
+
+                {%- for child in top.links -%}
+                  {%- if child.links.size > 0 -%}
+                    <div class="cl__sub">
+                      <h4 class="cl__stitle"><a href="{{ child.url }}">{{ child.title | escape }}</a></h4>
+                      <ul class="cl__list" role="list">
+                        {%- for gc in child.links -%}
+                          <li><a class="cl__link" href="{{ gc.url }}">{{ gc.title | escape }}</a></li>
+                        {%- endfor -%}
+                      </ul>
+                    </div>
+                  {%- endif -%}
+                {%- endfor -%}
+              </div>
+            </div>
+          </div>
+        {%- endfor -%}
+      </div>
+    </div>
+  </div>
+
+  <script>
+  (function () {
+    var root = document.getElementById('cl-{{ section.id }}');
+    if (!root) return;
+    var cols = root.querySelector('.js-cl-cols');
+    if (!cols || cols.getAttribute('data-collapse') !== 'true') return;
+    var mq = window.matchMedia('(max-width: 749px)');
+
+    cols.addEventListener('click', function (e) {
+      if (!mq.matches) return; // Desktop par heading sirf heading hai.
+      var btn = e.target.closest ? e.target.closest('.js-cl-toggle') : null;
+      if (!btn) return;
+      var group = btn.closest('.cl__group');
+      var open = !group.classList.contains('is-open');
+      group.classList.toggle('is-open', open);
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+  })();
+  </script>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Category links",
+  "tag": "section",
+  "class": "section-category-links",
+  "settings": [
+    { "type": "paragraph", "content": "Builds itself from one menu. Level 1 = group heading, level 2 = small sub-heading, level 3 = links. A level-2 item with no links under it simply shows as a link." },
+    { "type": "link_list", "id": "menu", "label": "Menu", "default": "main-menu" },
+    { "type": "text", "id": "heading", "label": "Section heading (optional)", "info": "Leave empty to hide." },
+
+    { "type": "header", "content": "Layout" },
+    { "type": "range", "id": "columns", "min": 2, "max": 6, "step": 1, "label": "Columns (desktop)", "default": 4 },
+    { "type": "checkbox", "id": "collapse_mobile", "label": "Collapse groups on mobile", "default": true, "info": "Recommended — these lists get very long on phones." },
+    { "type": "range", "id": "column_gap", "min": 12, "max": 80, "step": 4, "unit": "px", "label": "Gap between columns", "default": 24 },
+    { "type": "range", "id": "group_gap", "min": 12, "max": 60, "step": 2, "unit": "px", "label": "Gap between groups", "default": 24 },
+    { "type": "range", "id": "sub_gap", "min": 6, "max": 30, "step": 1, "unit": "px", "label": "Gap above sub-headings", "default": 14 },
+    { "type": "range", "id": "link_gap", "min": 0, "max": 14, "step": 1, "unit": "px", "label": "Gap between links", "default": 4 },
+    { "type": "range", "id": "max_width", "min": 1000, "max": 1600, "step": 20, "unit": "px", "label": "Max content width", "default": 1280 },
+
+    { "type": "header", "content": "Text sizes" },
+    { "type": "range", "id": "title_size", "min": 12, "max": 22, "step": 1, "unit": "px", "label": "Group heading", "default": 15 },
+    { "type": "range", "id": "sub_size", "min": 11, "max": 18, "step": 1, "unit": "px", "label": "Sub-heading", "default": 13 },
+    { "type": "range", "id": "link_size", "min": 10, "max": 16, "step": 1, "unit": "px", "label": "Links", "default": 12 },
+
+    { "type": "header", "content": "Colors & spacing" },
+    { "type": "color", "id": "bg_color", "label": "Background", "default": "#f4f5f7" },
+    { "type": "color", "id": "title_color", "label": "Group heading", "default": "#0a0a0a" },
+    { "type": "color", "id": "sub_color", "label": "Sub-heading", "default": "#3a3a3a" },
+    { "type": "color", "id": "link_color", "label": "Links", "default": "#7a7f88" },
+    { "type": "color", "id": "link_hover_color", "label": "Link hover", "default": "#0a0a0a" },
+    { "type": "color", "id": "divider_color", "label": "Divider (mobile accordion)", "default": "#e0e2e6" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 100, "step": 4, "unit": "px", "label": "Padding top", "default": 48 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 100, "step": 4, "unit": "px", "label": "Padding bottom", "default": 40 }
+  ],
+  "presets": [
+    { "name": "Category links" }
+  ]
+}
+{% endschema %}

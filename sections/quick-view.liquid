@@ -1,0 +1,209 @@
+{%- comment -%}
+  Quick View content — fetched via /products/{handle}?section_id=quick-view
+  Renders inside #QuickViewDrawer (see snippets/quick-view-drawer.liquid).
+{%- endcomment -%}
+{%- assign p = product -%}
+{%- if p == blank or p == empty -%}
+  <div class="qv-empty">Product not available.</div>
+{%- else -%}
+  {%- assign on_sale = false -%}
+  {%- if p.compare_at_price > p.price -%}{%- assign on_sale = true -%}{%- endif -%}
+  <div class="qv" data-pid="{{ p.id }}" data-url="{{ p.url }}">
+    <div class="qv__media js-qv-media">
+      {%- assign imgs = p.media | where: 'media_type', 'image' -%}
+      {%- if imgs.size > 0 -%}
+        {%- for m in imgs -%}
+          <div class="qv__img" data-media-id="{{ m.id }}"><img src="{{ m | image_url: width: 800 }}" srcset="{{ m | image_url: width: 500 }} 500w, {{ m | image_url: width: 800 }} 800w, {{ m | image_url: width: 1100 }} 1100w" sizes="(max-width: 749px) 100vw, 480px" alt="{{ m.alt | default: p.title | escape }}" width="{{ m.preview_image.width }}" height="{{ m.preview_image.height }}" loading="{% if forloop.first %}eager{% else %}lazy{% endif %}" decoding="async"></div>
+        {%- endfor -%}
+      {%- else -%}
+        <div class="qv__img"><img src="{% render 'demo-image', set: 'product', index: 0, width: 800 %}" alt="{{ p.title | escape }}" width="800" height="800"></div>
+      {%- endif -%}
+    </div>
+    <div class="qv__panel">
+      <div class="qv__panel-inner">
+        {%- capture qv_ctags -%}{%- render 'collection-tags', product: p, tag_class: 'qv__ctag' -%}{%- endcapture -%}
+        {%- liquid
+          assign r_avg = 0
+          assign r_cnt = p.metafields.reviews.rating_count.value | plus: 0
+          if p.metafields.reviews.rating.value != blank and r_cnt > 0
+            assign r_avg = p.metafields.reviews.rating.value.rating | plus: 0.0
+          else
+            assign r_cnt = 0
+            assign jm = p.metafields.judgeme.badge
+            if jm != blank and jm contains 'data-average-rating'
+              assign r_avg = jm | split: 'data-average-rating="' | last | split: '"' | first | plus: 0.0
+              assign r_cnt = jm | split: 'data-number-of-reviews="' | last | split: '"' | first | plus: 0
+            endif
+          endif
+        -%}
+        {%- if qv_ctags != blank or r_cnt > 0 -%}
+          <div class="qv__head">
+            {%- if qv_ctags != blank -%}<div class="qv__ctags">{{ qv_ctags }}</div>{%- endif -%}
+            {%- if r_cnt > 0 -%}
+              <span class="qv__rating" aria-label="Rated {{ r_avg | round: 1 }} out of 5 from {{ r_cnt }} reviews">
+                <span class="qv__stars" style="--r: {{ r_avg | divided_by: 5.0 | times: 100 }}%">★★★★★</span>
+                <span class="qv__rcount">{{ r_avg | round: 1 }} ({{ r_cnt }})</span>
+              </span>
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+        <a class="qv__title" href="{{ p.url }}">{{ p.title }}</a>
+        {%- assign qv_subtitle = p.metafields.custom.subtitle | default: p.vendor -%}
+        {%- if qv_subtitle != blank -%}<p class="qv__subtitle">{{ qv_subtitle }}</p>{%- endif -%}
+        <div class="qv__prices">
+          {%- if on_sale -%}
+            <span class="qv__price-cmp">{{ p.compare_at_price | money }}</span>
+            <span class="qv__price-sale js-qv-price">{{ p.price | money }}</span>
+            {%- assign save_pct = p.compare_at_price | minus: p.price | times: 100 | divided_by: p.compare_at_price -%}
+            <span class="qv__save">SAVE {{ save_pct }}% OFF</span>
+          {%- else -%}
+            <span class="qv__price js-qv-price">{{ p.price | money }}</span>
+          {%- endif -%}
+        </div>
+        {%- if p.metafields.custom.article_no != blank -%}
+          <p class="qv__article"><strong>Article No:</strong> {{ p.metafields.custom.article_no }}</p>
+        {%- endif -%}
+        {%- if p.metafields.custom.key_features != blank -%}
+          {%- assign qv_feats = p.metafields.custom.key_features | newline_to_br | split: '<br />' -%}
+          <ul class="qv__features">
+            {%- for f in qv_feats -%}{%- assign ff = f | strip | strip_newlines -%}{%- if ff != blank -%}<li>{{ ff }}</li>{%- endif -%}{%- endfor -%}
+          </ul>
+        {%- endif -%}
+        {%- comment -%} Description — product page jaisa: "Description:" bold heading + poora text. {%- endcomment -%}
+        {%- if p.description != blank -%}
+          <div class="qv__desc">
+            <p class="qv__desc-head">Description:</p>
+            <div class="qv__desc-body rte">{{ p.description }}</div>
+          </div>
+        {%- endif -%}
+        {%- comment -%} Model line — size/height values RED (product page jaisa). {%- endcomment -%}
+        {%- assign qv_msize = p.metafields.custom.model_size -%}
+        {%- assign qv_mheight = p.metafields.custom.model_height -%}
+        {%- if qv_msize != blank or qv_mheight != blank -%}
+          {%- capture qv_size_html -%}<b class="qv__red">{{ qv_msize }}</b>{%- endcapture -%}
+          {%- capture qv_height_html -%}<b class="qv__red">{{ qv_mheight }}</b>{%- endcapture -%}
+          {%- assign qv_tpl = settings.model_info_template | default: 'The model is wearing size: [size]; Model height: [height]' -%}
+          <p class="qv__modelinfo">{{ qv_tpl | replace: '[size]', qv_size_html | replace: '[height]', qv_height_html }}</p>
+        {%- elsif p.metafields.custom.model_info != blank -%}
+          {%- comment -%} ~...~ wale hisse RED. {%- endcomment -%}
+          {%- assign qv_mi = p.metafields.custom.model_info.value | split: '~' -%}
+          <p class="qv__modelinfo">{%- for part in qv_mi -%}{%- assign qv_rem = forloop.index0 | modulo: 2 -%}{%- if qv_rem == 1 -%}<b class="qv__red">{{ part }}</b>{%- else -%}{{ part }}{%- endif -%}{%- endfor -%}</p>
+        {%- endif -%}
+        {%- unless p.has_only_default_variant -%}
+          {%- for option in p.options_with_values -%}
+            {%- assign onm = option.name | downcase -%}
+            {%- assign is_color = false -%}
+            {%- if onm contains 'color' or onm contains 'colour' -%}{%- assign is_color = true -%}{%- endif -%}
+            <div class="qv__opt" data-opt-index="{{ forloop.index0 }}">
+              <div class="qv__opt-label">{{ option.name }}: <span class="js-qv-optval">{{ option.selected_value }}</span></div>
+              <div class="qv__opt-values{% if is_color %} qv__opt-values--swatch{% endif %}">
+                {%- for value in option.values -%}
+                  {%- if is_color -%}
+                    {%- liquid
+                      assign v_str = value | append: ''
+                      assign color_img = blank
+                      for pv in p.variants
+                        if pv.image and pv.options contains v_str
+                          assign color_img = pv.image
+                          break
+                        endif
+                      endfor
+                      assign sw_style = ''
+                      if value.swatch.image
+                        assign sw_url = value.swatch.image | image_url: width: 80
+                        assign sw_style = 'background-image:url(' | append: sw_url | append: ');'
+                      elsif color_img != blank
+                        assign sw_url = color_img | image_url: width: 80
+                        assign sw_style = 'background-image:url(' | append: sw_url | append: ');'
+                      elsif value.swatch.color
+                        assign sw_style = 'background-color:rgb(' | append: value.swatch.color.rgb | append: ');'
+                      else
+                        assign sw_name = value | downcase | split: ' ' | last
+                        assign sw_style = 'background-color:' | append: sw_name | append: ';'
+                      endif
+                    -%}
+                    <button type="button" class="qv__swatch js-qv-optvalue{% if value.selected %} is-active{% endif %}" data-opt="{{ forloop.parentloop.index0 }}" data-value="{{ value | escape }}" style="{{ sw_style }}" title="{{ value | escape }}" aria-label="{{ value | escape }}"></button>
+                  {%- else -%}
+                    <button type="button" class="qv__size js-qv-optvalue{% if value.selected %} is-active{% endif %}" data-opt="{{ forloop.parentloop.index0 }}" data-value="{{ value | escape }}">{{ value }}</button>
+                  {%- endif -%}
+                {%- endfor -%}
+              </div>
+            </div>
+          {%- endfor -%}
+        {%- endunless -%}
+        <div class="qv__buy">
+          <div class="qv__qty">
+            <button type="button" class="js-qv-qminus" aria-label="Decrease quantity">&minus;</button>
+            <input type="number" class="js-qv-qty" value="1" min="1" inputmode="numeric" aria-label="Quantity">
+            <button type="button" class="js-qv-qplus" aria-label="Increase quantity">+</button>
+          </div>
+          <button type="button" class="qv__add js-qv-add" data-vid="{{ p.selected_or_first_available_variant.id }}"{% unless p.available %} disabled{% endunless %}>
+            <svg class="qv__btn-ic" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2 3 6v13a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+            <span class="js-qv-addtext">{% if p.available %}ADD TO CART{% else %}SOLD OUT{% endif %}</span>
+          </button>
+        </div>
+        {%- comment -%} Items come from the per-product metafield custom.complete_your_set. {%- endcomment -%}
+        {%- assign set_items = p.metafields.custom.complete_your_set.value -%}
+        {%- if set_items != blank and set_items.size > 0 -%}
+          {%- assign set_count = 0 -%}
+          {%- capture set_html -%}
+            {%- for sp in set_items -%}
+              {%- if sp != blank -%}
+                {%- assign set_count = set_count | plus: 1 -%}
+                {%- assign sv = sp.selected_or_first_available_variant -%}
+                {%- assign sp_multi = false -%}
+                {%- if sp.variants.size > 1 -%}{%- assign sp_multi = true -%}{%- endif -%}
+                {%- assign sp_sale = false -%}
+                {%- if sp.compare_at_price > sp.price -%}{%- assign sp_sale = true -%}{%- endif -%}
+                <div class="qv__set-item{% unless sp.available %} is-soldout{% endunless %}">
+                  <label class="qv__set-check">
+                    <input type="checkbox" class="js-qv-set" data-variant="{{ sv.id }}"{% unless sp.available %} disabled{% endunless %}>
+                    <span class="qv__set-box" aria-hidden="true"></span>
+                  </label>
+                  <a class="qv__set-media" href="{{ sp.url }}" aria-label="{{ sp.title | escape }}">
+                    {%- if sp.featured_media -%}
+                      <img src="{{ sp.featured_media | image_url: width: 160 }}" alt="{{ sp.title | escape }}" width="66" height="82" loading="lazy" decoding="async">
+                    {%- endif -%}
+                  </a>
+                  <div class="qv__set-info">
+                    <a class="qv__set-name" href="{{ sp.url }}">{{ sp.title }}</a>
+                    <span class="qv__set-price{% if sp_sale %} qv__set-price--sale{% endif %}">{{ sp.price | money }}{%- if sp_sale -%}<s>{{ sp.compare_at_price | money }}</s>{%- endif -%}</span>
+                    {%- if sp.available and sp_multi -%}
+                      <select class="qv__set-variant js-qv-set-variant" aria-label="Choose option for {{ sp.title | escape }}">
+                        {%- for v in sp.variants -%}
+                          <option value="{{ v.id }}"{% unless v.available %} disabled{% endunless %}>{{ v.title }}{% unless v.available %} — sold out{% endunless %}</option>
+                        {%- endfor -%}
+                      </select>
+                    {%- elsif sp.available == false -%}
+                      <span class="qv__set-oos">Sold out</span>
+                    {%- endif -%}
+                  </div>
+                </div>
+              {%- endif -%}
+            {%- endfor -%}
+          {%- endcapture -%}
+          {%- if set_count > 0 -%}
+            <div class="qv__set">
+              <div class="qv__set-head"><span>{{ section.settings.set_heading | default: 'Complete your set' }}</span></div>
+              <div class="qv__set-list">{{ set_html }}</div>
+            </div>
+          {%- endif -%}
+        {%- endif -%}
+
+        <button type="button" class="qv__buynow js-qv-buynow"{% unless p.available %} disabled{% endunless %}><svg class="qv__btn-ic" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M13 2 3 14h7l-1 8 10-12h-7z"/></svg><span>Buy it now</span></button>
+        <a class="qv__full" href="{{ p.url }}">View full details &rarr;</a>
+      </div>
+    </div>
+  </div>
+  <script type="application/json" class="js-qv-data">{"variants":[{%- for v in p.variants -%}{"id":{{ v.id }},"available":{{ v.available }},"options":{{ v.options | json }},"price":{{ v.price }},"compare_at":{{ v.compare_at_price | default: 0 }},"price_str":{{ v.price | money | json }},"media_id":{% if v.featured_media %}{{ v.featured_media.id }}{% else %}null{% endif %}}{% unless forloop.last %},{% endunless %}{%- endfor -%}]}</script>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Quick View",
+  "settings": [
+    { "type": "paragraph", "content": "\"Complete your set\" har product ke metafield custom.complete_your_set (List of products) se aata hai. Sirf wo products dikhte hain jo stock mein hon aur jinka ek hi variant ho." },
+    { "type": "text", "id": "set_heading", "label": "Complete your set heading", "default": "Complete your set" }
+  ]
+}
+{% endschema %}

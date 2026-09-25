@@ -1,0 +1,108 @@
+{%- comment -%} Two sources: the product's collection ("Related products") or Shopify recommendations, which are fetched client-side from /recommendations/products?section_id=... {%- endcomment -%}
+{%- liquid
+  assign s = section.settings
+  assign cols = s.columns_desktop
+  assign src = s.source | default: 'collection'
+-%}
+{{ 'zeene-card.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'zeene-card.js' | asset_url }}" defer="defer"></script>
+
+{%- if src == 'recommendations' -%}
+  {%- if recommendations.performed -%}
+    {%- comment -%} /recommendations/products se render — cards output. {%- endcomment -%}
+    {%- if recommendations.products_count > 0 -%}
+      <div class="related-zeene-wrap" style="background: {{ s.bg_color }}; padding: {{ s.padding_top }}px 0 {{ s.padding_bottom }}px;">
+        <div class="pg zeene-pg" style="--pg-bg:{{ s.bg_color }};--pg-text:{{ s.text_color }};--pg-accent:{{ s.accent_color }};--pg-star:{{ s.star_color }};--pg-radius:{{ s.corner_radius }}px;--pg-ratio:{{ s.image_ratio }};--pg-cols:{{ cols }};--pg-gap:{{ s.gap }}px;--pg-maxw:{{ s.max_width }}px;--pg-pt:0px;--pg-pb:0px;--pg-pt-m:0px;--pg-pb-m:0px;">
+          <div class="pg__inner">
+            {%- if s.heading != blank -%}<div class="pg__head"><div><h2 class="pg__heading">{{ s.heading }}</h2></div></div>{%- endif -%}
+            <div class="pg__track">
+              {%- for rp in recommendations.products -%}
+                {%- render 'zeene-card', product: rp, cols: cols, show_swatches: s.show_swatches, max_swatches: s.max_swatches, show_quick_add: s.show_quick_add, show_sizes: s.show_sizes, show_sale_badge: s.show_sale_badge, show_vendor: s.show_vendor, show_rating: s.show_rating, show_rating_count: s.show_rating_count, rating_fallback: s.rating_fallback -%}
+              {%- endfor -%}
+            </div>
+          </div>
+        </div>
+      </div>
+    {%- endif -%}
+  {%- else -%}
+    <div id="relrecs-{{ section.id }}" class="related-zeene-recs" data-url="{{ routes.product_recommendations_url }}?section_id={{ section.id }}&product_id={{ product.id }}&intent=related&limit={{ s.products_to_show }}" hidden></div>
+    <script>
+    (function () {
+      var el = document.getElementById('relrecs-{{ section.id }}');
+      if (!el || !el.getAttribute('data-url')) return;
+      fetch(el.getAttribute('data-url')).then(function (r) { return r.text(); }).then(function (html) {
+        var wrap = new DOMParser().parseFromString(html, 'text/html').querySelector('.related-zeene-wrap');
+        if (wrap && wrap.querySelector('.pc')) { el.parentNode.replaceChild(wrap, el); if (window.zeeneInitCards) window.zeeneInitCards(wrap); }
+        else { el.remove(); }
+      }).catch(function () { el.remove(); });
+    })();
+    </script>
+  {%- endif -%}
+
+{%- else -%}
+  {%- assign rel_coll = product.collections.first -%}
+  {%- if s.collection != blank -%}{%- assign rel_coll = s.collection -%}{%- endif -%}
+  {%- if rel_coll != blank and rel_coll.products.size > 1 -%}
+    <div class="related-zeene-wrap" style="background: {{ s.bg_color }}; padding: {{ s.padding_top }}px 0 {{ s.padding_bottom }}px;">
+      <div class="pg zeene-pg" style="--pg-bg:{{ s.bg_color }};--pg-text:{{ s.text_color }};--pg-accent:{{ s.accent_color }};--pg-star:{{ s.star_color }};--pg-radius:{{ s.corner_radius }}px;--pg-ratio:{{ s.image_ratio }};--pg-cols:{{ cols }};--pg-gap:{{ s.gap }}px;--pg-maxw:{{ s.max_width }}px;--pg-pt:0px;--pg-pb:0px;--pg-pt-m:0px;--pg-pb-m:0px;">
+        <div class="pg__inner">
+          {%- if s.heading != blank -%}
+            <div class="pg__head">
+              <div><h2 class="pg__heading">{{ s.heading }}</h2></div>
+              {%- if s.view_all and rel_coll.url != blank -%}<a href="{{ rel_coll.url }}" class="pg__viewall">View all<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>{%- endif -%}
+            </div>
+          {%- endif -%}
+          <div class="pg__track">
+            {%- assign shown = 0 -%}
+            {%- for rp in rel_coll.products -%}
+              {%- if rp.id != product.id and shown < s.products_to_show -%}
+                {%- render 'zeene-card', product: rp, cols: cols, show_swatches: s.show_swatches, max_swatches: s.max_swatches, show_quick_add: s.show_quick_add, show_sizes: s.show_sizes, show_sale_badge: s.show_sale_badge, show_vendor: s.show_vendor, show_rating: s.show_rating, show_rating_count: s.show_rating_count, rating_fallback: s.rating_fallback -%}
+                {%- assign shown = shown | plus: 1 -%}
+              {%- endif -%}
+            {%- endfor -%}
+          </div>
+        </div>
+      </div>
+    </div>
+  {%- endif -%}
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Related products (Zeene)",
+  "tag": "section",
+  "class": "section-related-zeene",
+  "settings": [
+    { "type": "select", "id": "source", "label": "Products from", "options": [ { "value": "collection", "label": "Product's collection (same category)" }, { "value": "recommendations", "label": "Shopify recommendations (you may also like)" } ], "default": "collection", "info": "Collection = same category (e.g. hoodie → hoodies). Recommendations = Shopify's algorithmic cross-sell." },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Related products" },
+    { "type": "checkbox", "id": "view_all", "label": "Show 'View all' link (collection mode)", "default": false },
+    { "type": "collection", "id": "collection", "label": "Source collection (optional, collection mode)", "info": "Leave blank to use the product's own collection." },
+    { "type": "range", "id": "products_to_show", "min": 2, "max": 10, "step": 1, "label": "Products to show", "default": 4 },
+    { "type": "range", "id": "columns_desktop", "min": 2, "max": 5, "step": 1, "label": "Desktop columns", "default": 4 },
+    { "type": "select", "id": "image_ratio", "label": "Image aspect ratio", "options": [ { "value": "1/1", "label": "Square (1:1)" }, { "value": "4/5", "label": "Portrait (4:5)" }, { "value": "3/4", "label": "Portrait (3:4)" }, { "value": "2/3", "label": "Tall portrait (2:3)" } ], "default": "3/4" },
+    { "type": "range", "id": "gap", "min": 4, "max": 28, "step": 2, "unit": "px", "label": "Gap between cards", "default": 16 },
+    { "type": "range", "id": "corner_radius", "min": 0, "max": 32, "step": 2, "unit": "px", "label": "Image corner radius", "default": 14 },
+    { "type": "range", "id": "max_width", "min": 1000, "max": 1600, "step": 20, "unit": "px", "label": "Max content width", "default": 1280 },
+    { "type": "header", "content": "Card content" },
+    { "type": "checkbox", "id": "show_swatches", "label": "Show color swatches", "default": false },
+    { "type": "range", "id": "max_swatches", "min": 3, "max": 8, "step": 1, "label": "Max swatches", "default": 5 },
+    { "type": "checkbox", "id": "show_sizes", "label": "Show size buttons on hover", "default": true },
+    { "type": "checkbox", "id": "show_sale_badge", "label": "Show sale badge", "default": true },
+    { "type": "checkbox", "id": "show_rating", "label": "Show star rating", "default": true },
+    { "type": "checkbox", "id": "show_rating_count", "label": "Show review count", "default": false },
+    { "type": "checkbox", "id": "rating_fallback", "label": "Show 5.0 placeholder", "default": false },
+    { "type": "checkbox", "id": "show_quick_add", "label": "Show quick + button", "default": false },
+    { "type": "checkbox", "id": "show_vendor", "label": "Show vendor", "default": false },
+    { "type": "color", "id": "star_color", "label": "Star color", "default": "#f5a623" },
+    { "type": "header", "content": "Colors & spacing" },
+    { "type": "color", "id": "bg_color", "label": "Background", "default": "#ffffff" },
+    { "type": "color", "id": "text_color", "label": "Text", "default": "#0a0a0a" },
+    { "type": "color", "id": "accent_color", "label": "Neon accent", "default": "#C6F135" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 100, "step": 4, "unit": "px", "label": "Padding top", "default": 40 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 100, "step": 4, "unit": "px", "label": "Padding bottom", "default": 48 }
+  ],
+  "presets": [
+    { "name": "Related products (Zeene)" }
+  ]
+}
+{% endschema %}

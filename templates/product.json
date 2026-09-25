@@ -1,0 +1,189 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "main": {
+      "type": "zeene-product",
+      "settings": {
+        "eyebrow": "",
+        "show_rating": true,
+        "show_vendor": true,
+        "show_timer": true,
+        "timer_label": "Offer ends in",
+        "timer_end": "23:59",
+        "prepaid_show": true,
+        "prepaid_saving": "500",
+        "prepaid_label": "Pay online & save",
+        "prepaid_note": "Choose online payment (card / wallet) at checkout to unlock this discount.",
+        "promo_text": "",
+        "promo_badge": "",
+        "urgency_text": "",
+        "sticky_bar": true,
+        "video_show": true,
+        "del_show": true,
+        "del_processing_days": 1,
+        "del_delivery_days": 3,
+        "del_cutoff": "23:59",
+        "del_before": "Order today within",
+        "del_dispatch": "for dispatch today.",
+        "del_receive": "You'll receive your package between",
+        "del_s1": "Purchased",
+        "del_s2": "Processing",
+        "del_s3": "Delivered",
+        "vm_show": true,
+        "vm_heading": "Buy More, Save More",
+        "vm_tiers": 4,
+        "vm_2_pct": 4,
+        "vm_3_pct": 7,
+        "vm_4_pct": 10,
+        "vm_5_pct": 12,
+        "vm_best": 4,
+        "cys_show": true,
+        "cys_heading": "Complete your set",
+        "cys_button": "Add bundle to cart",
+        "cys_note": "Selected items will be added to cart.",
+        "fbt_show": true,
+        "fbt_heading": "Frequently bought together",
+        "fbt_products": [
+          "payment-test",
+          "zeene-extra-comfort-pocket-crewneck-sweat-shirt-lavender",
+          "zeene-extra-comfort-pocket-crewneck-bright-red"
+        ],
+        "fbt_button": "Add bundle to cart",
+        "fbt_note": "Selected items will be added to cart.",
+        "disclaimer": "Disclaimer: Actual product color and texture may slightly vary from the image.",
+        "info_title": "Product Information",
+        "info1_label": "Deliveries & Exchange",
+        "info1_content": "<h4>Delivery Terms &amp; Conditions</h4><ul>\n<li>Enjoy <strong>FREE DELIVERY</strong> on paid orders.</li>\n<li>Cash on Delivery (COD) available nationwide.</li>\n<li>Orders are typically delivered within 2–5 working days. During grand sales, delivery may take longer.</li>\n</ul><h4>Exchange Eligibility</h4><ul>\n<li>Items can be exchanged within 7 days of delivery.</li>\n<li>The item must be unused, unwashed, and returned with all tags intact.</li>\n<li>Faulty or incorrect items are eligible for a free exchange.</li>\n</ul>",
+        "info2_label": "Product Care",
+        "info2_content": "<p>To keep your garment in the best condition, follow these care instructions:</p><p><strong>Washing</strong>: Machine wash cold with like colors on a gentle cycle with mild detergent.</p><p><strong>Bleaching</strong>: Do not bleach. Avoid harsh chemicals that may damage the fabric.</p><p><strong>Drying</strong>: Tumble dry low or hang to dry. Avoid high heat to prevent shrinkage.</p><p><strong>Ironing</strong>: Iron on low heat if needed. Avoid direct contact with prints or embellishments.</p><p><strong>Storage</strong>: Store in a cool, dry place away from direct sunlight.</p>",
+        "shipping_info": "",
+        "max_width": 1280,
+        "accent_color": "#c6f135"
+      }
+    },
+    "product-tabs": {
+      "type": "product-tabs",
+      "settings": {
+        "label_overview": "Overview",
+        "label_review": "Review",
+        "label_specs": "Specs",
+        "label_faq": "FAQ",
+        "show_review_tab": true,
+        "review_target": ".section-product-reviews",
+        "full_width": true,
+        "max_width": 1280,
+        "bg_color": "#ffffff",
+        "text_color": "#0a0a0a",
+        "accent_color": "#c6f135",
+        "padding_top": 0,
+        "padding_bottom": 24
+      }
+    },
+    "related-products": {
+      "type": "related-zeene",
+      "settings": {
+        "source": "recommendations",
+        "heading": "You may also like",
+        "view_all": false,
+        "collection": "",
+        "products_to_show": 4,
+        "columns_desktop": 4,
+        "image_ratio": "3/4",
+        "gap": 16,
+        "corner_radius": 14,
+        "max_width": 1280,
+        "show_swatches": false,
+        "max_swatches": 5,
+        "show_sizes": true,
+        "show_sale_badge": true,
+        "show_rating": true,
+        "show_rating_count": false,
+        "rating_fallback": false,
+        "show_quick_add": false,
+        "show_vendor": false,
+        "star_color": "#f5a623",
+        "bg_color": "#ffffff",
+        "text_color": "#0a0a0a",
+        "accent_color": "#c6f135",
+        "padding_top": 40,
+        "padding_bottom": 24
+      }
+    },
+    "related-collection": {
+      "type": "related-zeene",
+      "settings": {
+        "source": "collection",
+        "heading": "Related products",
+        "view_all": false,
+        "collection": "",
+        "products_to_show": 4,
+        "columns_desktop": 4,
+        "image_ratio": "3/4",
+        "gap": 16,
+        "corner_radius": 14,
+        "max_width": 1280,
+        "show_swatches": false,
+        "max_swatches": 5,
+        "show_sizes": true,
+        "show_sale_badge": true,
+        "show_rating": true,
+        "show_rating_count": false,
+        "rating_fallback": false,
+        "show_quick_add": false,
+        "show_vendor": false,
+        "star_color": "#f5a623",
+        "bg_color": "#ffffff",
+        "text_color": "#0a0a0a",
+        "accent_color": "#c6f135",
+        "padding_top": 16,
+        "padding_bottom": 24
+      }
+    },
+    "recently-viewed": {
+      "type": "recently-viewed",
+      "settings": {
+        "heading": "Recently viewed products",
+        "products_to_show": 4,
+        "columns_desktop": 4,
+        "image_ratio": "3/4",
+        "gap": 16,
+        "corner_radius": 14,
+        "max_width": 1280,
+        "bg_color": "#ffffff",
+        "text_color": "#0a0a0a",
+        "accent_color": "#c6f135",
+        "star_color": "#f5a623",
+        "padding_top": 40,
+        "padding_bottom": 8
+      }
+    },
+    "product-reviews": {
+      "type": "product-reviews",
+      "settings": {
+        "heading": "Customer Reviews",
+        "heading_align": "left",
+        "max_width": 1280,
+        "bg_color": "#ffffff",
+        "text_color": "#0a0a0a",
+        "padding_top": 40,
+        "padding_bottom": 20
+      }
+    }
+  },
+  "order": [
+    "main",
+    "product-tabs",
+    "related-products",
+    "related-collection",
+    "recently-viewed",
+    "product-reviews"
+  ]
+}

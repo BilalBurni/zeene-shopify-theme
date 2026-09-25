@@ -1,0 +1,131 @@
+{%- comment -%} Shared by flash-sale-hub, used in both the Live and Coming soon groups. {%- endcomment -%}
+{%- liquid
+  assign c = block.settings
+  assign coll = c.collection
+
+# Cover falls back: block image > collection image > first product image > placeholder.
+  assign cover = c.image
+  if cover == blank and coll != blank
+    if coll.image != blank
+      assign cover = coll.image
+    elsif coll.products.first.featured_image != blank
+      assign cover = coll.products.first.featured_image
+    endif
+  endif
+
+  assign card_title = c.title | default: coll.title | default: 'Flash sale'
+  assign tags = c.tags | split: ','
+
+# Countdown always renders when enabled. A target date counts down to it; no date means a daily countdown that resets at the given time.
+  assign has_timer = false
+  assign cd_target = ''
+  assign cd_daily = ''
+  if c.show_countdown
+    assign has_timer = true
+    assign cd_time = c.countdown_time | default: '23:59'
+    if c.countdown_date != blank
+      assign cd_target = c.countdown_date | append: 'T' | append: cd_time
+    else
+      assign cd_daily = cd_time
+    endif
+  endif
+-%}
+
+{%- if is_live and coll != blank -%}
+  <a class="fs-card fs-card--live" href="{{ coll.url }}" aria-label="{{ card_title | escape }} — {{ s.cta_label | default: 'View collection' | escape }}" data-fs-tags="{{ c.tags | downcase | escape }}" {{ block.shopify_attributes }}>
+{%- else -%}
+  <div class="fs-card fs-card--soon" data-fs-tags="{{ c.tags | downcase | escape }}" {{ block.shopify_attributes }}>
+{%- endif -%}
+
+  <span class="fs-card__media">
+    <span class="fs-card__frame">
+    {%- if cover != blank -%}
+      <img
+        class="fs-card__img"
+        src="{{ cover | image_url: width: 800 }}"
+        srcset="{{ cover | image_url: width: 500 }} 500w, {{ cover | image_url: width: 800 }} 800w, {{ cover | image_url: width: 1100 }} 1100w"
+        sizes="(max-width: 749px) 92vw, (max-width: 989px) 46vw, 32vw"
+        alt="{{ card_title | escape }}"
+        width="800"
+        height="450"
+        loading="lazy"
+        decoding="async"
+      >
+    {%- else -%}
+      <img class="fs-card__img" src="{% render 'demo-image', set: 'category', index: index, width: 800 %}" alt="{{ card_title | escape }}" width="800" height="450" loading="lazy" decoding="async">
+    {%- endif -%}
+
+    <span class="fs-card__scrim" aria-hidden="true"></span>
+    </span>
+
+    <span class="fs-card__tl">
+      {%- if c.badge != blank -%}
+        <span class="fs-card__badge">
+          {%- if is_live -%}<i class="fs-card__live-dot" aria-hidden="true"></i>{%- endif -%}
+          {{ c.badge }}
+        </span>
+      {%- endif -%}
+      {%- if c.offer != blank -%}<span class="fs-card__offer">{{ c.offer }}</span>{%- endif -%}
+    </span>
+
+    <span class="fs-card__action" aria-hidden="true">
+      {%- if is_live and coll != blank -%}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
+      {%- else -%}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+      {%- endif -%}
+    </span>
+
+    {%- if has_timer -%}
+      <span class="fs-card__timer js-fs-timer" data-target="{{ cd_target }}" data-daily="{{ cd_daily }}" data-ended="{{ s.ended_label | default: 'Sale ended' | escape }}">
+        <span class="fs-card__timer-label">{{ c.countdown_label | default: 'Ends in' }}</span>
+        <span class="fs-card__timer-units js-fs-units">
+          <b data-u="d">00</b><i>d</i><b data-u="h">00</b><i>h</i><b data-u="m">00</b><i>m</i><b data-u="s">00</b><i>s</i>
+        </span>
+      </span>
+    {%- endif -%}
+
+    {%- if c.logo != blank -%}
+      <span class="fs-card__logo">
+        <img src="{{ c.logo | image_url: width: 160 }}" alt="{{ card_title | escape }}" width="80" height="80" loading="lazy" decoding="async">
+      </span>
+    {%- endif -%}
+  </span>
+
+  <span class="fs-card__body{% if c.logo != blank %} fs-card__body--logo{% endif %}">
+    <span class="fs-card__title">{{ card_title }}</span>
+    {%- if c.description != blank -%}<span class="fs-card__desc">{{ c.description }}</span>{%- endif -%}
+
+    {%- if tags.size > 0 -%}
+      <span class="fs-card__tags">
+        {%- for t in tags -%}
+          {%- assign tt = t | strip -%}
+          {%- if tt != blank -%}<span class="fs-card__tag">{{ tt }}</span>{%- endif -%}
+        {%- endfor -%}
+      </span>
+    {%- endif -%}
+
+    <span class="fs-card__foot">
+      {%- if is_live and coll != blank -%}
+        <span class="fs-card__cta">
+          {{ s.cta_label | default: 'View collection' }}
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </span>
+        {%- if coll.all_products_count > 0 -%}
+          <span class="fs-card__count">{{ coll.all_products_count }} item{% if coll.all_products_count != 1 %}s{% endif %}</span>
+        {%- endif -%}
+      {%- else -%}
+        <span class="fs-card__cta fs-card__cta--soon">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+          {{ s.soon_cta_label | default: 'Coming soon' }}
+        </span>
+        {%- if c.starts_text != blank -%}<span class="fs-card__count">{{ c.starts_text }}</span>{%- endif -%}
+      {%- endif -%}
+    </span>
+  </span>
+
+{%- if is_live and coll != blank -%}
+  </a>
+{%- else -%}
+  </div>
+{%- endif -%}

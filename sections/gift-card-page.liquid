@@ -1,0 +1,208 @@
+{%- comment -%}
+  Gift card landing page.
+
+  Amount buttons are built from the gift card product's own variants, so adding a new
+  denomination in the admin is enough — nothing to edit here. Each button opens the product
+  with that variant preselected, where the recipient fields live.
+{%- endcomment -%}
+{%- liquid
+  assign s = section.settings
+  assign gc = s.product
+  assign steps = section.blocks | where: 'type', 'step'
+-%}
+
+<div
+  id="gcp-{{ section.id }}"
+  class="gcp"
+  style="--gc-bg:{{ s.bg_color }};--gc-text:{{ s.text_color }};--gc-accent:{{ s.accent_color }};--gc-line:{{ s.divider_color }};--gc-pt:{{ s.padding_top }}px;--gc-pb:{{ s.padding_bottom }}px;"
+>
+  {%- if s.show_hero -%}
+    {%- render 'page-hero',
+      breadcrumb: true,
+      uid: section.id,
+      image: s.hero_image,
+      image_mobile: s.hero_image_mobile,
+      eyebrow: s.eyebrow,
+      heading: s.heading,
+      text: s.subheading,
+      height: s.hero_height,
+      height_mobile: s.hero_height_mobile,
+      overlay: s.hero_overlay,
+      align: s.hero_align,
+      full_width: s.hero_full_width,
+      radius: s.hero_radius,
+      accent: s.accent_color -%}
+  {%- else -%}
+    {%- render 'breadcrumbs', from_section: true -%}
+  {%- endif -%}
+
+  <div class="gcp__inner">
+    {%- if gc != blank -%}
+      <section class="gcp__amounts">
+        <div class="gcp__sec-head">
+          <h2 class="gcp__sec-title">{{ s.amounts_heading | default: 'Choose an amount' }}</h2>
+          {%- if s.amounts_text != blank -%}<p class="gcp__sec-text">{{ s.amounts_text }}</p>{%- endif -%}
+        </div>
+
+        <div class="gcp__grid">
+          {%- for v in gc.variants -%}
+            <a class="gcp__card{% unless v.available %} is-out{% endunless %}" href="{{ gc.url }}?variant={{ v.id }}">
+              <span class="gcp__card-top">
+                <span class="gcp__card-brand">{{ s.card_brand | default: shop.name }}</span>
+                <span class="gcp__card-tag">{{ s.card_tag | default: 'Gift card' }}</span>
+              </span>
+              <span class="gcp__card-amount">{{ v.price | money_without_trailing_zeros }}</span>
+              <span class="gcp__card-cta">
+                {%- if v.available -%}{{ s.card_cta | default: 'Buy this card' }}{%- else -%}Unavailable{%- endif -%}
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+              </span>
+            </a>
+          {%- endfor -%}
+        </div>
+      </section>
+    {%- else -%}
+      {%- render 'empty-state',
+        icon: 'bag',
+        title: 'Gift cards are coming soon',
+        text: 'Pick your gift card product in the theme editor to show the amounts here.',
+        primary_label: 'Shop all products',
+        primary_url: routes.all_products_collection_url,
+        accent: s.accent_color,
+        text_color: s.text_color -%}
+    {%- endif -%}
+
+    {%- if steps.size > 0 -%}
+      <section class="gcp__steps">
+        <div class="gcp__sec-head">
+          <h2 class="gcp__sec-title">{{ s.steps_heading | default: 'How it works' }}</h2>
+        </div>
+        <div class="gcp__steps-grid">
+          {%- for block in steps -%}
+            <div class="gcp__step" {{ block.shopify_attributes }}>
+              <span class="gcp__step-num">{{ forloop.index }}</span>
+              <span class="gcp__step-title">{{ block.settings.title }}</span>
+              {%- if block.settings.text != blank -%}<span class="gcp__step-text">{{ block.settings.text }}</span>{%- endif -%}
+            </div>
+          {%- endfor -%}
+        </div>
+      </section>
+    {%- endif -%}
+
+    {%- if s.terms != blank -%}
+      <section class="gcp__terms">
+        <span class="gcp__terms-label">{{ s.terms_heading | default: 'Good to know' }}</span>
+        <div class="gcp__terms-body rte">{{ s.terms }}</div>
+      </section>
+    {%- endif -%}
+  </div>
+</div>
+
+{%- style -%}
+#gcp-{{ section.id }} { background: var(--gc-bg); color: var(--gc-text); padding: var(--gc-pt) 0 var(--gc-pb); }
+#gcp-{{ section.id }} *, #gcp-{{ section.id }} *::before, #gcp-{{ section.id }} *::after { box-sizing: border-box; }
+
+#gcp-{{ section.id }} .gcp__inner { max-width: 1280px; margin: 0 auto; padding: 0 16px; }
+#gcp-{{ section.id }} .gcp__sec-head { margin-bottom: 20px; }
+#gcp-{{ section.id }} .gcp__sec-title { margin: 0; font-family: 'Zen Maru Gothic', sans-serif; font-size: clamp(19px, 2.4vw, 25px); font-weight: 600; line-height: 1.25; }
+#gcp-{{ section.id }} .gcp__sec-text { margin: 8px 0 0; max-width: 560px; font-size: 14px; line-height: 1.6; opacity: 0.62; }
+
+#gcp-{{ section.id }} .gcp__grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+{%- comment -%} Card ka look asli gift card jaisa: dark panel + neon glow + tabular amount. {%- endcomment -%}
+#gcp-{{ section.id }} .gcp__card { position: relative; display: flex; flex-direction: column; justify-content: space-between; gap: 22px; min-height: 178px; padding: 20px; text-decoration: none; color: #fff; background: radial-gradient(130% 130% at 88% 8%, {{ s.accent_color | color_modify: 'alpha', 0.34 }} 0%, transparent 58%), #111114; border-radius: 12px; overflow: hidden; transition: transform 0.24s cubic-bezier(.16,1,.3,1), box-shadow 0.24s ease; }
+#gcp-{{ section.id }} .gcp__card:hover { transform: translateY(-4px); box-shadow: 0 26px 48px -30px rgba(10,10,10,0.75); }
+#gcp-{{ section.id }} .gcp__card.is-out { opacity: 0.45; pointer-events: none; }
+#gcp-{{ section.id }} .gcp__card-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+#gcp-{{ section.id }} .gcp__card-brand { font-family: 'Zen Maru Gothic', sans-serif; font-size: 12px; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; }
+#gcp-{{ section.id }} .gcp__card-tag { padding: 4px 9px; font-size: 9px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: #0a0a0a; background: var(--gc-accent); border-radius: 5px; }
+#gcp-{{ section.id }} .gcp__card-amount { font-family: 'Zen Maru Gothic', sans-serif; font-size: clamp(26px, 3.2vw, 34px); font-weight: 800; line-height: 1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+#gcp-{{ section.id }} .gcp__card-cta { display: inline-flex; align-items: center; gap: 7px; font-size: 10.5px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gc-accent); transition: gap 0.2s ease; }
+#gcp-{{ section.id }} .gcp__card:hover .gcp__card-cta { gap: 11px; }
+
+#gcp-{{ section.id }} .gcp__steps { margin-top: 56px; }
+#gcp-{{ section.id }} .gcp__steps-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+#gcp-{{ section.id }} .gcp__step { display: flex; flex-direction: column; gap: 8px; padding: 22px; border: 1px solid var(--gc-line); border-radius: 12px; }
+#gcp-{{ section.id }} .gcp__step-num { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; font-family: 'Zen Maru Gothic', sans-serif; font-size: 12px; font-weight: 800; color: #0a0a0a; background: var(--gc-accent); border-radius: 8px; }
+#gcp-{{ section.id }} .gcp__step-title { font-family: 'Zen Maru Gothic', sans-serif; font-size: 15.5px; font-weight: 700; line-height: 1.3; }
+#gcp-{{ section.id }} .gcp__step-text { font-size: 13.5px; line-height: 1.6; opacity: 0.62; }
+
+#gcp-{{ section.id }} .gcp__terms { margin-top: 44px; padding-top: 26px; border-top: 1px solid var(--gc-line); }
+#gcp-{{ section.id }} .gcp__terms-label { display: block; margin-bottom: 10px; font-size: 11px; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; opacity: 0.5; }
+#gcp-{{ section.id }} .gcp__terms-body { font-size: 13.5px; line-height: 1.75; opacity: 0.7; max-width: 760px; }
+#gcp-{{ section.id }} .gcp__terms-body p:first-child { margin-top: 0; }
+#gcp-{{ section.id }} .gcp__terms-body ul { margin: 8px 0; padding-left: 18px; }
+#gcp-{{ section.id }} .gcp__terms-body li { margin: 0 0 6px; }
+
+@media (max-width: 989px) {
+  #gcp-{{ section.id }} .gcp__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #gcp-{{ section.id }} .gcp__steps-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 749px) {
+  #gcp-{{ section.id }} { padding: {{ s.padding_top | times: 0.6 | round }}px 0 {{ s.padding_bottom | times: 0.6 | round }}px; }
+  #gcp-{{ section.id }} .gcp__grid { gap: 10px; }
+  #gcp-{{ section.id }} .gcp__card { min-height: 148px; padding: 16px; gap: 16px; }
+  #gcp-{{ section.id }} .gcp__steps { margin-top: 38px; }
+  #gcp-{{ section.id }} .gcp__step { padding: 18px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #gcp-{{ section.id }} .gcp__card, #gcp-{{ section.id }} .gcp__card-cta { transition: none; }
+}
+{%- endstyle -%}
+
+{% schema %}
+{
+  "name": "Gift card page",
+  "tag": "section",
+  "class": "section-gift-card-page",
+  "settings": [
+    { "type": "header", "content": "Hero banner" },
+    { "type": "checkbox", "id": "show_hero", "label": "Show hero banner", "default": true },
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Gift card" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Give them the choice" },
+    { "type": "textarea", "id": "subheading", "label": "Subheading", "default": "A Zeene gift card lands straight in their inbox — they pick what they actually want." },
+    { "type": "image_picker", "id": "hero_image", "label": "Banner image" },
+    { "type": "image_picker", "id": "hero_image_mobile", "label": "Banner image — mobile" },
+    { "type": "range", "id": "hero_height", "min": 200, "max": 600, "step": 20, "unit": "px", "label": "Banner height — desktop", "default": 380 },
+    { "type": "range", "id": "hero_height_mobile", "min": 160, "max": 460, "step": 10, "unit": "px", "label": "Banner height — mobile", "default": 240 },
+    { "type": "range", "id": "hero_overlay", "min": 0, "max": 90, "step": 5, "unit": "%", "label": "Image darkening", "default": 45 },
+    { "type": "select", "id": "hero_align", "label": "Text position", "default": "center", "options": [ { "value": "center", "label": "Centre" }, { "value": "left", "label": "Left" } ] },
+    { "type": "checkbox", "id": "hero_full_width", "label": "Full-width banner", "default": false },
+    { "type": "range", "id": "hero_radius", "min": 0, "max": 28, "step": 2, "unit": "px", "label": "Banner corner radius", "default": 8 },
+
+    { "type": "header", "content": "Amounts" },
+    { "type": "product", "id": "product", "label": "Gift card product", "info": "The product with \"This is a gift card\" ticked. Amounts come from its variants." },
+    { "type": "text", "id": "amounts_heading", "label": "Heading", "default": "Choose an amount" },
+    { "type": "textarea", "id": "amounts_text", "label": "Text", "default": "Pick a value, add who it is for, and we will email it to them." },
+    { "type": "text", "id": "card_brand", "label": "Name on the card", "info": "Leave empty to use the store name." },
+    { "type": "text", "id": "card_tag", "label": "Card tag", "default": "Gift card" },
+    { "type": "text", "id": "card_cta", "label": "Card button text", "default": "Buy this card" },
+
+    { "type": "header", "content": "How it works" },
+    { "type": "text", "id": "steps_heading", "label": "Heading", "default": "How it works" },
+
+    { "type": "header", "content": "Terms" },
+    { "type": "text", "id": "terms_heading", "label": "Heading", "default": "Good to know" },
+    { "type": "richtext", "id": "terms", "label": "Terms", "default": "<p>Gift cards never expire and can be used across as many orders as needed until the balance runs out.</p>" },
+
+    { "type": "header", "content": "Colors & spacing" },
+    { "type": "color", "id": "bg_color", "label": "Background", "default": "#ffffff" },
+    { "type": "color", "id": "text_color", "label": "Text", "default": "#0a0a0a" },
+    { "type": "color", "id": "accent_color", "label": "Neon accent", "default": "#C6F135" },
+    { "type": "color", "id": "divider_color", "label": "Lines & borders", "default": "#e6e6e6" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 100, "step": 4, "unit": "px", "label": "Padding top", "default": 0 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 100, "step": 4, "unit": "px", "label": "Padding bottom", "default": 72 }
+  ],
+  "blocks": [
+    {
+      "type": "step",
+      "name": "Step",
+      "settings": [
+        { "type": "text", "id": "title", "label": "Title", "default": "Pick an amount" },
+        { "type": "textarea", "id": "text", "label": "Text", "default": "Choose the value you want to gift." }
+      ]
+    }
+  ],
+  "presets": [
+    { "name": "Gift card page", "blocks": [ { "type": "step" }, { "type": "step" }, { "type": "step" } ] }
+  ]
+}
+{% endschema %}

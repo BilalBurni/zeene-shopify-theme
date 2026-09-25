@@ -1,0 +1,13 @@
+{%- comment -%} Single-card endpoint for JS fetches: /products/{handle}?section_id=zeene-card-render. {%- endcomment -%}
+{%- if product != blank -%}
+  {%- render 'zeene-card', product: product, cols: section.settings.cols, show_swatches: false, show_quick_add: false, show_sizes: true, show_sale_badge: true, show_vendor: false, show_rating: true, show_rating_count: false, rating_fallback: false -%}
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Zeene card render",
+  "settings": [
+    { "type": "range", "id": "cols", "min": 2, "max": 6, "step": 1, "label": "Columns (for image sizes)", "default": 4 }
+  ]
+}
+{% endschema %}

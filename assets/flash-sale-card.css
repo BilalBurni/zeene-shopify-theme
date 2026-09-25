@@ -1,0 +1,68 @@
+/* Flash sale card — shared by the flash sale page and the homepage slider.
+   Per-section values come via CSS vars on the .fs-cards wrapper:
+   --fs-accent, --fs-line, --fs-text, --fs-radius, --fs-ratio */
+.fs-cards *, .fs-cards *::before, .fs-cards *::after { box-sizing: border-box; }
+
+.fs-cards .fs-card { position: relative; display: flex; flex-direction: column; height: 100%; text-decoration: none; color: var(--fs-text, #0a0a0a); background: #fff; border: 1px solid var(--fs-line, #e6e6e6); border-radius: var(--fs-radius, 18px); transition: border-color 0.22s ease, transform 0.28s cubic-bezier(.16,1,.3,1), box-shadow 0.28s ease; }
+.fs-cards a.fs-card:hover { border-color: rgba(10,10,10,0.5); transform: translateY(-4px); box-shadow: 0 26px 50px -30px rgba(10,10,10,0.6); }
+.fs-cards a.fs-card:focus-visible { outline: 2px solid var(--fs-accent, #C6F135); outline-offset: 3px; }
+
+/* aspect-ratio must sit on the img, not the parent. On the parent it can fail to resolve and card heights drift apart. */
+.fs-cards .fs-card__media { position: relative; display: block; }
+.fs-cards .fs-card__frame { position: relative; display: block; overflow: hidden; border-radius: var(--fs-radius, 18px) var(--fs-radius, 18px) 0 0; }
+.fs-cards .fs-card__img { display: block; width: 100%; height: auto; aspect-ratio: var(--fs-ratio, 16 / 9); object-fit: cover; object-position: center; transition: transform 0.5s cubic-bezier(.16,1,.3,1), filter 0.35s ease; }
+.fs-cards a.fs-card:hover .fs-card__img { transform: scale(1.05); }
+.fs-cards .fs-card--soon .fs-card__img { filter: grayscale(0.4) brightness(0.96); }
+.fs-cards .fs-card__scrim { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(to bottom, rgba(0,0,0,0.28) 0%, rgba(0,0,0,0) 34%, rgba(0,0,0,0) 52%, rgba(0,0,0,0.55) 100%); }
+
+.fs-cards .fs-card__tl { position: absolute; top: 13px; left: 13px; z-index: 2; display: flex; flex-wrap: wrap; gap: 6px; max-width: calc(100% - 62px); }
+.fs-cards .fs-card__badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 11px; font-family: 'Zen Maru Gothic', sans-serif; font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: #fff; background: rgba(10,10,10,0.72); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,0.16); border-radius: 7px; }
+.fs-cards .fs-card__live-dot { width: 6px; height: 6px; border-radius: 50%; background: #ff4d4d; box-shadow: 0 0 0 0 rgba(255,77,77,0.6); animation: fsCardDot 1.6s ease-out infinite; }
+@keyframes fsCardDot { 0% { box-shadow: 0 0 0 0 rgba(255,77,77,0.55); } 100% { box-shadow: 0 0 0 7px rgba(255,77,77,0); } }
+.fs-cards .fs-card__offer { display: inline-flex; align-items: center; padding: 6px 11px; font-family: 'Zen Maru Gothic', sans-serif; font-size: 10px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: #0a0a0a; background: var(--fs-accent, #C6F135); border-radius: 7px; }
+
+.fs-cards .fs-card__action { position: absolute; top: 12px; right: 12px; z-index: 2; display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; color: #0a0a0a; background: rgba(255,255,255,0.94); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); border-radius: 50%; box-shadow: 0 4px 14px rgba(0,0,0,0.18); transition: background-color 0.22s ease, transform 0.28s cubic-bezier(.16,1,.3,1); }
+.fs-cards .fs-card__action svg { width: 16px; height: 16px; }
+.fs-cards a.fs-card:hover .fs-card__action { background: var(--fs-accent, #C6F135); transform: translateY(-2px) rotate(45deg); }
+.fs-cards .fs-card--soon .fs-card__action { color: rgba(10,10,10,0.55); }
+
+.fs-cards .fs-card__timer { position: absolute; left: 12px; right: 12px; bottom: 12px; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 12px; background: rgba(10,10,10,0.62); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.14); border-radius: 10px; }
+.fs-cards .fs-card__timer-label { font-family: 'Zen Maru Gothic', sans-serif; font-size: 9px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: var(--fs-accent, #C6F135); white-space: nowrap; }
+.fs-cards .fs-card__timer-units { display: inline-flex; align-items: baseline; gap: 2px; color: #fff; font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+.fs-cards .fs-card__timer-units b { font-family: 'Zen Maru Gothic', sans-serif; font-size: 14px; font-weight: 800; line-height: 1; }
+.fs-cards .fs-card__timer-units i { margin-right: 7px; font-size: 9.5px; font-style: normal; font-weight: 700; opacity: 0.55; }
+.fs-cards .fs-card__timer-units i:last-child { margin-right: 0; }
+.fs-cards .fs-card__timer.is-ended { justify-content: center; }
+.fs-cards .fs-card__timer.is-ended .fs-card__timer-units { display: none; }
+.fs-cards .fs-card__timer.is-ended .fs-card__timer-label { color: #fff; opacity: 0.75; }
+
+.fs-cards .fs-card__logo { position: absolute; left: 18px; bottom: -26px; z-index: 3; display: inline-flex; align-items: center; justify-content: center; width: 54px; height: 54px; padding: 5px; background: #fff; border-radius: 50%; box-shadow: 0 6px 18px -8px rgba(10,10,10,0.35); }
+.fs-cards .fs-card__logo img { width: 100%; height: 100%; object-fit: contain; border-radius: 50%; }
+
+.fs-cards .fs-card__body { display: flex; flex-direction: column; gap: 8px; flex: 1; padding: 18px 20px 20px; }
+.fs-cards .fs-card__body--logo { padding-top: 36px; }
+.fs-cards .fs-card__title { font-family: 'Zen Maru Gothic', sans-serif; font-size: 18px; font-weight: 700; line-height: 1.3; }
+.fs-cards .fs-card__desc { font-size: 13.5px; line-height: 1.6; opacity: 0.6; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.fs-cards .fs-card__tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
+.fs-cards .fs-card__tag { display: inline-flex; align-items: center; padding: 5px 10px; font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.75; border: 1px solid var(--fs-line, #e6e6e6); border-radius: 7px; }
+
+.fs-cards .fs-card__foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: auto; padding-top: 16px; }
+.fs-cards .fs-card__cta { display: inline-flex; align-items: center; gap: 7px; padding: 11px 18px; font-family: 'Zen Maru Gothic', sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: #0a0a0a; background: var(--fs-accent, #C6F135); border-radius: 9px; transition: filter 0.18s ease, gap 0.22s ease; }
+.fs-cards a.fs-card:hover .fs-card__cta { gap: 11px; filter: brightness(0.95); }
+.fs-cards .fs-card__cta--soon { color: rgba(10,10,10,0.6); background: transparent; border: 1.5px solid rgba(10,10,10,0.18); cursor: default; }
+.fs-cards .fs-card__count { font-size: 11.5px; font-weight: 600; opacity: 0.5; text-align: right; }
+
+@media (max-width: 749px) {
+  .fs-cards .fs-card__body { padding: 16px; }
+  .fs-cards .fs-card__body--logo { padding-top: 32px; }
+  .fs-cards .fs-card__title { font-size: 17px; }
+  .fs-cards .fs-card__logo { width: 48px; height: 48px; bottom: -22px; left: 14px; }
+  .fs-cards .fs-card__timer-units b { font-size: 13px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fs-cards .fs-card,
+  .fs-cards .fs-card__img,
+  .fs-cards .fs-card__action,
+  .fs-cards .fs-card__cta { transition: none; }
+  .fs-cards .fs-card__live-dot { animation: none; }
+}

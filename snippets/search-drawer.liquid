@@ -1,0 +1,154 @@
+{%- comment -%}
+  Zeene premium search drawer. Rendered once in theme.liquid.
+  Opens on the header search icon. Uses /search/suggest (section_id=search-suggest).
+{%- endcomment -%}
+{%- liquid
+  assign popular = settings.search_popular | newline_to_br | split: '<br />'
+  assign bs = settings.search_bestseller_collection
+  if bs == blank or bs.products.size == 0
+    assign bs = collections.all
+  endif
+-%}
+
+{%- style -%}
+html.sd-open { overflow: hidden; }
+#SearchDrawer { position: fixed; inset: 0; z-index: 1002; display: flex; justify-content: flex-end; visibility: hidden; background-color: rgba(10,10,10,0); -webkit-backdrop-filter: blur(0); backdrop-filter: blur(0); transition: background-color 0.4s ease, -webkit-backdrop-filter 0.4s ease, backdrop-filter 0.4s ease, visibility 0.45s ease; }
+#SearchDrawer.active { visibility: visible; background-color: rgba(10,10,10,0.44); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
+#SearchDrawer .sd__panel { position: relative; width: min(460px, 100vw); height: 100%; background: #fff; box-shadow: -18px 0 60px rgba(0,0,0,0.2); transform: translateX(100%); transition: transform 0.5s cubic-bezier(.16,1,.3,1); will-change: transform; display: flex; flex-direction: column; }
+#SearchDrawer.active .sd__panel { transform: translateX(0); }
+#SearchDrawer .sd__bar { display: flex; align-items: center; gap: 10px; padding: 16px 18px; border-bottom: 1px solid rgba(0,0,0,0.09); flex-shrink: 0; }
+#SearchDrawer .sd__bar-icon { display: inline-flex; color: #0a0a0a; opacity: 0.6; }
+#SearchDrawer .sd__bar-icon svg { width: 20px; height: 20px; }
+#SearchDrawer .sd__input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font-family: 'Zen Maru Gothic', sans-serif; font-size: 15px; font-weight: 500; color: #0a0a0a; }
+#SearchDrawer .sd__input::placeholder { color: #9a9a9a; }
+#SearchDrawer .sd__close { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border: 0; background: transparent; border-radius: 50%; cursor: pointer; color: #0a0a0a; transition: background-color 0.15s ease; }
+#SearchDrawer .sd__close:hover { background: rgba(0,0,0,0.06); }
+#SearchDrawer .sd__close svg { width: 18px; height: 18px; }
+#SearchDrawer .sd__body { flex: 1; overflow-y: auto; padding: 18px; scrollbar-width: thin; }
+#SearchDrawer .sd__section { margin-bottom: 24px; }
+#SearchDrawer .sd__label { font-family: 'Zen Maru Gothic', sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: #0a0a0a; opacity: 0.55; margin-bottom: 12px; }
+#SearchDrawer .sd__pills { display: flex; flex-wrap: wrap; gap: 9px; }
+#SearchDrawer .sd__pill { display: inline-flex; align-items: center; padding: 8px 15px; font-family: 'Zen Maru Gothic', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; color: #0a0a0a; text-decoration: none; background: rgba(198,241,53,0.18); border: 1px solid rgba(198,241,53,0.65); border-radius: 9999px; transition: background-color 0.15s ease, border-color 0.15s ease; }
+#SearchDrawer .sd__pill:hover { background: #C6F135; border-color: #C6F135; }
+#SearchDrawer .sd__list { display: flex; flex-direction: column; gap: 4px; }
+#SearchDrawer .sd__viewall { display: inline-flex; align-items: center; gap: 5px; margin-top: 6px; font-family: 'Zen Maru Gothic', sans-serif; font-size: 12.5px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: #0a0a0a; text-decoration: underline; text-underline-offset: 3px; }
+#SearchDrawer .sd__empty { padding: 40px 10px; text-align: center; }
+#SearchDrawer .sd__empty-title { font-family: 'Zen Maru Gothic', sans-serif; font-size: 15px; font-weight: 700; color: #0a0a0a; margin: 0 0 4px; }
+#SearchDrawer .sd__empty-sub { font-size: 13px; color: #0a0a0a; opacity: 0.55; margin: 0; }
+#SearchDrawer .sd__spinner { display: block; width: 30px; height: 30px; margin: 40px auto; border: 3px solid rgba(0,0,0,0.12); border-top-color: #0a0a0a; border-radius: 50%; animation: sdspin 0.7s linear infinite; }
+@keyframes sdspin { to { transform: rotate(360deg); } }
+#SearchDrawer .src { display: flex; gap: 12px; padding: 9px 8px; border-radius: 12px; text-decoration: none; color: inherit; transition: background-color 0.15s ease; }
+#SearchDrawer .src:hover { background: rgba(0,0,0,0.04); }
+#SearchDrawer .src__media { flex: 0 0 76px; width: 76px; height: 100px; border-radius: 0; overflow: hidden; background: #f4f4f4; }
+#SearchDrawer .src__media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+#SearchDrawer .src__info { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 6px; }
+#SearchDrawer .src__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+#SearchDrawer .src__title { font-family: 'Zen Maru Gothic', sans-serif; font-size: 13px; font-weight: 500; line-height: 1.4; color: #0a0a0a; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+#SearchDrawer .src__rating { flex-shrink: 0; display: inline-flex; align-items: center; gap: 3px; font-size: 13px; font-weight: 500; color: #0a0a0a; }
+#SearchDrawer .src__rating svg { color: #f5a623; }
+#SearchDrawer .src__swatches { display: flex; align-items: center; gap: 5px; }
+#SearchDrawer .src__sw { width: 13px; height: 13px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.15); background-size: cover; background-position: center; }
+#SearchDrawer .src__sw-more { font-size: 11px; font-weight: 600; color: #0a0a0a; opacity: 0.55; }
+#SearchDrawer .src__price { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; }
+#SearchDrawer .src__now { font-family: 'Zen Maru Gothic', sans-serif; font-size: 11px; font-weight: 500; color: #0a0a0a; }
+#SearchDrawer .src__now--sale { color: #d11a2a; }
+#SearchDrawer .src__was { font-size: 11px; font-weight: 500; opacity: 0.45; text-decoration: line-through; }
+#SearchDrawer .src__off { font-size: 9px; font-weight: 600; color: #0a0a0a; background: #C6F135; padding: 3px 6px; border-radius: 4px; }
+#SearchDrawer [hidden] { display: none !important; }
+@media (prefers-reduced-motion: reduce) { #SearchDrawer, #SearchDrawer .sd__panel { transition-duration: 0.01ms !important; } }
+@media (max-width: 749px) { #SearchDrawer .sd__panel { width: 100vw; } }
+{%- endstyle -%}
+
+<div id="SearchDrawer" class="sd" role="dialog" aria-modal="true" aria-label="Search">
+  <div class="sd__panel">
+    <div class="sd__bar">
+      <span class="sd__bar-icon">{{ 'icon-search.svg' | inline_asset_content }}</span>
+      <input type="search" class="sd__input js-sd-input" placeholder="What are you looking for?" autocomplete="off" autocorrect="off" spellcheck="false" aria-label="Search">
+      <button type="button" class="sd__close js-sd-close" aria-label="Close search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div class="sd__body">
+      <div class="sd__default js-sd-default">
+        {%- if settings.search_popular != blank -%}
+          <div class="sd__section">
+            <div class="sd__label">Popular searches</div>
+            <div class="sd__pills">
+              {%- for term in popular -%}
+                {%- assign t = term | strip | strip_newlines -%}
+                {%- if t != blank -%}<a class="sd__pill" href="{{ routes.search_url }}?q={{ t | url_encode }}">{{ t }}</a>{%- endif -%}
+              {%- endfor -%}
+            </div>
+          </div>
+        {%- endif -%}
+        {%- if bs != blank and bs.products.size > 0 -%}
+          <div class="sd__section">
+            <div class="sd__label">{{ settings.search_bestseller_heading | default: 'Bestseller for you' }} &#128293;</div>
+            <div class="sd__list">
+              {%- for product in bs.products limit: 6 -%}
+                {%- render 'search-result-card', product: product -%}
+              {%- endfor -%}
+            </div>
+          </div>
+        {%- endif -%}
+      </div>
+      <div class="sd__loading js-sd-loading" hidden><span class="sd__spinner"></span></div>
+      <div class="sd__results js-sd-results" hidden></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var drawer = document.getElementById('SearchDrawer');
+    if (!drawer) return;
+    var input = drawer.querySelector('.js-sd-input');
+    var defaultEl = drawer.querySelector('.js-sd-default');
+    var resultsEl = drawer.querySelector('.js-sd-results');
+    var loadingEl = drawer.querySelector('.js-sd-loading');
+    var timer = null;
+    var lastQuery = '';
+
+    function openDrawer() { drawer.classList.add('active'); document.documentElement.classList.add('sd-open'); setTimeout(function () { if (input) input.focus(); }, 120); }
+    function closeDrawer() { drawer.classList.remove('active'); document.documentElement.classList.remove('sd-open'); }
+
+    function showDefault() { resultsEl.hidden = true; resultsEl.innerHTML = ''; loadingEl.hidden = true; defaultEl.hidden = false; }
+
+    function runSearch(q) {
+      defaultEl.hidden = true;
+      resultsEl.hidden = true;
+      loadingEl.hidden = false;
+      var url = '/search/suggest?q=' + encodeURIComponent(q) + '&section_id=search-suggest&resources[type]=product,query&resources[limit]=8';
+      fetch(url).then(function (r) { return r.text(); }).then(function (html) {
+        if (input.value.trim() !== q) return;
+        var inner = new DOMParser().parseFromString(html, 'text/html').querySelector('.sd-results-inner');
+        loadingEl.hidden = true;
+        resultsEl.innerHTML = inner ? inner.innerHTML : '<div class="sd__empty"><p class="sd__empty-title">No results</p></div>';
+        resultsEl.hidden = false;
+      }).catch(function () { loadingEl.hidden = true; showDefault(); });
+    }
+
+    if (input) {
+      input.addEventListener('input', function () {
+        var q = input.value.trim();
+        if (q === lastQuery) return;
+        lastQuery = q;
+        clearTimeout(timer);
+        if (q.length < 2) { showDefault(); return; }
+        timer = setTimeout(function () { runSearch(q); }, 250);
+      });
+      input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { var q = input.value.trim(); if (q) window.location = '{{ routes.search_url }}?q=' + encodeURIComponent(q) + '&options[prefix]=last'; } });
+    }
+
+    drawer.querySelector('.js-sd-close').addEventListener('click', closeDrawer);
+    drawer.addEventListener('click', function (e) { if (e.target === drawer) closeDrawer(); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && drawer.classList.contains('active')) closeDrawer(); });
+
+    // Hijack the header search icon(s) — open this drawer instead of Dawn's modal.
+    document.addEventListener('click', function (e) {
+      var trigger = e.target.closest ? e.target.closest('.header__icon--search, .js-search-open') : null;
+      if (!trigger) return;
+      e.preventDefault();
+      e.stopPropagation();
+      openDrawer();
+    }, true);
+  })();
+</script>

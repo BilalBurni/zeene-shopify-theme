@@ -1,0 +1,178 @@
+{%- comment -%}
+  Zeene product card. Params:
+    product (required), cols, show_swatches, max_swatches, show_quick_add,
+    show_sizes, show_sale_badge, show_vendor, show_rating, show_rating_count, rating_fallback
+{%- endcomment -%}
+{%- assign cols = cols | default: 4 -%}
+{%- assign on_sale = false -%}
+{%- if product.compare_at_price > product.price and product.available -%}{%- assign on_sale = true -%}{%- endif -%}
+{%- assign save_pct = 0 -%}
+{%- if on_sale -%}{%- assign save_pct = product.compare_at_price | minus: product.price | times: 100 | divided_by: product.compare_at_price -%}{%- endif -%}
+{%- liquid
+# One badge at a time, in priority order: Sold out > Sale (percentage is derived from compare_at_price) > New arrival > Limited edition.
+  assign badge_label = 'Limited Edition'
+  assign badge_mod = 'limited'
+  assign has_sale_tag = false
+  for t in product.tags
+    assign tl = t | downcase | strip
+    if tl == 'sale'
+      assign has_sale_tag = true
+      break
+    endif
+  endfor
+  if has_sale_tag and on_sale
+    assign badge_label = 'Save ' | append: save_pct | append: '%'
+    assign badge_mod = 'sale'
+  else
+    assign is_new = false
+    for c in product.collections
+      assign c_title = c.title | downcase
+      if c.handle contains 'new-arrival' or c_title contains 'new arrival'
+        assign is_new = true
+        break
+      endif
+    endfor
+    if is_new
+      assign badge_label = 'New Arrival'
+      assign badge_mod = 'new'
+    endif
+  endif
+-%}
+{%- capture ctags -%}{%- render 'collection-tags', product: product, tag_class: 'pc__ctag' -%}{%- endcapture -%}
+<div class="pc js-pc">
+  <div class="pc__media">
+    {%- assign img_media = product.media | where: 'media_type', 'image' -%}
+    {%- if img_media.size > 0 -%}
+      <div class="pc__gallery js-pc-gallery">
+        {%- for m in img_media -%}
+          <a class="pc__slide" href="{{ product.url }}" data-src="{{ m | image_url: width: 600 }}" aria-label="{{ product.title | escape }}"><img src="{{ m | image_url: width: 600 }}" srcset="{{ m | image_url: width: 400 }} 400w, {{ m | image_url: width: 600 }} 600w, {{ m | image_url: width: 900 }} 900w" sizes="(max-width: 749px) 70vw, {{ 100 | divided_by: cols }}vw" alt="{{ m.alt | default: product.title | escape }}" width="{{ m.preview_image.width }}" height="{{ m.preview_image.height }}" loading="lazy" decoding="async"></a>
+        {%- endfor -%}
+      </div>
+    {%- else -%}
+      <a class="pc__slide pc__slide--single" href="{{ product.url }}" aria-label="{{ product.title | escape }}"><img src="{% render 'demo-image', set: 'product', index: 0, width: 600 %}" alt="{{ product.title | escape }}" width="600" height="600" loading="lazy" decoding="async"></a>
+    {%- endif -%}
+    <div class="pc__badges">
+      {%- unless product.available -%}
+        <span class="pc__badge pc__badge--soldout">Sold out</span>
+      {%- else -%}
+        {%- if show_sale_badge -%}<span class="pc__badge pc__badge--{{ badge_mod }}">{{ badge_label }}</span>{%- endif -%}
+      {%- endunless -%}
+    </div>
+    <button type="button" class="pc__quickview js-quickview" data-url="{{ product.url }}" aria-label="Quick view — {{ product.title | escape }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg></button>
+    {%- if show_quick_add -%}
+      <a class="pc__add" href="{{ product.url }}" aria-label="{{ 'products.product.choose_options' | t: default: 'Choose options' }} — {{ product.title | escape }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></a>
+    {%- endif -%}
+    {%- liquid
+      assign size_option = null
+      for opt in product.options_with_values
+        assign onm = opt.name | downcase
+        if onm contains 'size'
+          assign size_option = opt
+        endif
+      endfor
+    -%}
+    {%- if size_option and show_sizes and product.available -%}
+      <div class="pc__sizes js-pc-sizes" data-url="{{ product.url }}">
+        {%- for sv in size_option.values -%}
+          {%- liquid
+            assign sv_str = sv | append: ''
+            assign sv_ok = false
+            for v in product.variants
+              if v.available and v.options contains sv_str
+                assign sv_ok = true
+                break
+              endif
+            endfor
+          -%}
+          <button type="button" class="pc__size js-pc-size{% unless sv_ok %} is-unavailable{% endunless %}" data-size="{{ sv | escape }}"{% unless sv_ok %} disabled aria-disabled="true"{% endunless %}>{{ sv }}</button>
+        {%- endfor -%}
+      </div>
+      <script type="application/json" class="js-pc-variants">[{%- for v in product.variants -%}{"id":{{ v.id }},"available":{{ v.available }},"options":{{ v.options | json }}}{% unless forloop.last %},{% endunless %}{%- endfor -%}]</script>
+    {%- endif -%}
+  </div>
+  <div class="pc__info">
+    {%- if show_vendor and product.vendor != blank -%}<span class="pc__vendor">{{ product.vendor }}</span>{%- endif -%}
+    <div class="pc__title-row">
+      {%- comment -%} Tags sit inside the h3 so the title wraps around them on desktop; the wrapper span only matters on mobile. {%- endcomment -%}
+      <h3 class="pc__title">{%- if ctags != blank -%}<span class="pc__ctags">{{ ctags }}</span>{%- endif -%}<a href="{{ product.url }}">{{ product.title }}</a></h3>
+      {%- if show_rating -%}
+        {%- liquid
+          assign r_avg = 0
+          assign r_cnt = product.metafields.reviews.rating_count.value | plus: 0
+          if product.metafields.reviews.rating.value != blank and r_cnt > 0
+            assign r_avg = product.metafields.reviews.rating.value.rating | plus: 0.0
+          else
+            assign r_cnt = 0
+            assign jm = product.metafields.judgeme.badge
+            if jm != blank and jm contains 'data-average-rating'
+              assign r_avg = jm | split: 'data-average-rating="' | last | split: '"' | first | plus: 0.0
+              assign r_cnt = jm | split: 'data-number-of-reviews="' | last | split: '"' | first | plus: 0
+            endif
+          endif
+        -%}
+        {%- if r_cnt > 0 -%}
+          <div class="pc__rating" aria-label="Rated {{ r_avg }} out of 5 from {{ r_cnt }} reviews">
+            <svg class="pc__star" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.9 6.3 6.9.6-5.2 4.5 1.6 6.8L12 17.3 5.8 20.8l1.6-6.8L2.2 8.9l6.9-.6z"/></svg>
+            <span class="pc__rating-val">{{ r_avg | round: 1 }}</span>
+            {%- if show_rating_count -%}<span class="pc__rating-count">({{ r_cnt }})</span>{%- endif -%}
+          </div>
+        {%- endif -%}
+      {%- endif -%}
+    </div>
+    <div class="pc__price{% if on_sale %} pc__price--sale{% endif %}">
+      <span>{{ product.price | money }}</span>
+      {%- if on_sale -%}<s>{{ product.compare_at_price | money }}</s>{%- endif -%}
+    </div>
+    {%- if show_swatches -%}
+      {%- liquid
+        assign color_option = null
+        for opt in product.options_with_values
+          assign nm = opt.name | downcase
+          if nm contains 'color' or nm contains 'colour'
+            assign color_option = opt
+          endif
+        endfor
+      -%}
+      {%- if color_option -%}
+        <div class="pc__swatches js-pc-swatches">
+          {%- assign max_sw = 2 -%}
+          {%- for value in color_option.values -%}
+            {%- liquid
+              assign v_str = value | append: ''
+              assign color_img = blank
+              for v in product.variants
+                if v.image and v.options contains v_str
+                  assign color_img = v.image
+                  break
+                endif
+              endfor
+              assign sw_img = ''
+              if color_img != blank
+                assign sw_img = color_img | image_url: width: 600
+              endif
+              assign sw_style = ''
+              if value.swatch.image
+                assign sw_url = value.swatch.image | image_url: width: 60
+                assign sw_style = 'background-image:url(' | append: sw_url | append: ');'
+              elsif color_img != blank
+                assign sw_url = color_img | image_url: width: 60
+                assign sw_style = 'background-image:url(' | append: sw_url | append: ');'
+              elsif value.swatch.color
+                assign sw_rgb = 'rgb(' | append: value.swatch.color.rgb | append: ')'
+                assign sw_style = 'background-color:' | append: sw_rgb | append: ';--sw:' | append: sw_rgb | append: ';'
+              else
+                assign sw_name = value | downcase | split: ' ' | last
+                assign sw_style = 'background-color:' | append: sw_name | append: ';--sw:' | append: sw_name | append: ';'
+              endif
+            -%}
+            <button type="button" class="pc__swatch{% if forloop.first %} is-active{% endif %}{% if forloop.index > max_sw %} pc__swatch--extra{% endif %}" style="{{ sw_style }}" data-img="{{ sw_img }}" title="{{ value | escape }}" aria-label="{{ value | escape }}"></button>
+          {%- endfor -%}
+          {%- if color_option.values.size > max_sw -%}
+            {%- assign sw_extra = color_option.values.size | minus: max_sw -%}
+            <button type="button" class="pc__swatch-more js-pc-swatch-more" data-count="{{ sw_extra }}" aria-expanded="false" aria-label="Show {{ sw_extra }} more colours">+{{ sw_extra }}</button>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+    {%- endif -%}
+  </div>
+</div>

@@ -1,0 +1,448 @@
+{%- liquid
+  assign coll = collections[section.settings.collection]
+  assign size = section.settings.bundle_size
+  assign cols = section.settings.columns_desktop
+  assign radius = section.settings.corner_radius
+  assign bundle_price_cents = section.settings.bundle_price | times: 100
+-%}
+
+{%- style -%}
+#bundle-{{ section.id }} { background: {{ section.settings.bg_color }}; color: {{ section.settings.text_color }}; padding: {{ section.settings.padding_top }}px 0 calc({{ section.settings.padding_bottom }}px + 90px); }
+#bundle-{{ section.id }} .bb__inner { max-width: {{ section.settings.max_width }}px; margin: 0 auto; padding: 0 16px; }
+#bundle-{{ section.id }} .bb__head { text-align: center; max-width: 640px; margin: 0 auto 14px; }
+#bundle-{{ section.id }} .bb__heading { margin: 0; font-size: clamp(26px, 4.5vw, 42px); font-weight: 800; line-height: 1.04; letter-spacing: -0.015em; }
+#bundle-{{ section.id }} .bb__sub { margin: 10px 0 0; font-size: 15px; line-height: 1.5; opacity: 0.65; }
+#bundle-{{ section.id }} .bb__steps { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 22px 0 34px; }
+#bundle-{{ section.id }} .bb__step { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; padding: 8px 16px; border-radius: 9999px; background: #f4f4f4; }
+#bundle-{{ section.id }} .bb__step b { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 9999px; background: {{ section.settings.accent_color }}; color: #0a0a0a; font-size: 12px; }
+#bundle-{{ section.id }} .bb__grid { display: grid; grid-template-columns: repeat({{ cols }}, minmax(0, 1fr)); gap: 32px 6px; }
+#bundle-{{ section.id }} .bb-card { position: relative; display: flex; flex-direction: column; padding: 0 6px; background: none; border: 0; }
+#bundle-{{ section.id }} .bb-card.is-selected .bb-card__media { box-shadow: inset 0 0 0 2.5px {{ section.settings.accent_color }}; }
+#bundle-{{ section.id }} .bb-card.is-disabled { opacity: 0.45; pointer-events: none; }
+#bundle-{{ section.id }} .bb-card__media { position: relative; aspect-ratio: 4 / 5; background: #f0f0f0; overflow: hidden; border-radius: {{ radius }}px; isolation: isolate; transition: box-shadow 0.28s ease; }
+#bundle-{{ section.id }} .bb-card:hover .bb-card__media { box-shadow: 0 16px 34px -16px rgba(20,16,40,0.22); }
+#bundle-{{ section.id }} .bb-card__media img { width: 100%; height: 100%; object-fit: cover; }
+#bundle-{{ section.id }} .bb-card__tick { position: absolute; top: 10px; right: 10px; z-index: 4; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; border-radius: 9999px; background: {{ section.settings.accent_color }}; color: #0a0a0a; opacity: 0; transform: scale(0.6); transition: opacity 0.2s ease, transform 0.2s ease; }
+#bundle-{{ section.id }} .bb-card__tick svg { width: 16px; height: 16px; }
+#bundle-{{ section.id }} .bb-card.is-selected .bb-card__tick { opacity: 1; transform: scale(1); }
+#bundle-{{ section.id }} .bb-card__info { display: flex; flex-direction: column; gap: 7px; padding: 14px 2px 0; flex: 1; }
+#bundle-{{ section.id }} .bb-card__title { margin: 0; font-family: 'Zen Maru Gothic', sans-serif; font-size: 13px; font-weight: 500; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+#bundle-{{ section.id }} .bb-card__title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+#bundle-{{ section.id }} .bb-card__title-row .bb-card__title { flex: 1; min-width: 0; }
+#bundle-{{ section.id }} .bb-card__rating { flex-shrink: 0; display: flex; align-items: center; gap: 4px; font-family: 'Zen Maru Gothic', sans-serif; font-size: 13px; font-weight: 500; margin-top: 1px; }
+#bundle-{{ section.id }} .bb-star { width: 15px; height: 15px; flex-shrink: 0; color: #f5a623; }
+#bundle-{{ section.id }} .bb-card__variant { width: 100%; padding: 7px 10px; font-size: 13px; border: 1px solid #e0e0e0; border-radius: 8px; background: #fff; color: inherit; }
+#bundle-{{ section.id }} .bb-card__opts { display: flex; flex-direction: column; gap: 9px; }
+#bundle-{{ section.id }} .bb-opt-label { font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; opacity: 0.55; margin-bottom: 5px; }
+#bundle-{{ section.id }} .bb-swatches { display: flex; flex-wrap: wrap; gap: 6px; }
+#bundle-{{ section.id }} .bb-sw { box-sizing: border-box; width: 26px; height: 26px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.15); background-size: cover; background-position: center; cursor: pointer; padding: 0; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+#bundle-{{ section.id }} .bb-sw:hover { transform: scale(1.1); }
+#bundle-{{ section.id }} .bb-sw.is-active { box-shadow: 0 0 0 2px #fff, 0 0 0 3px rgba(0,0,0,0.45); }
+#bundle-{{ section.id }} .bb-sw.is-unavailable { position: relative; overflow: hidden; opacity: 0.45; cursor: not-allowed; border-color: rgba(0,0,0,0.12); }
+#bundle-{{ section.id }} .bb-sw.is-unavailable:hover { transform: none; }
+#bundle-{{ section.id }} .bb-sw.is-unavailable::after { content: ''; position: absolute; inset: 0; border-radius: 50%; background: linear-gradient(to top right, transparent calc(50% - 0.8px), #d11a2a calc(50% - 0.8px), #d11a2a calc(50% + 0.8px), transparent calc(50% + 0.8px)); }
+#bundle-{{ section.id }} .bb-card__sizes { position: absolute; left: 0; right: 0; bottom: 0; z-index: 3; display: flex; flex-wrap: nowrap; justify-content: center; gap: 5px; padding: 9px 8px; background: rgba(255,255,255,0.94); -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px); opacity: 0; transform: translateY(100%); transition: opacity 0.25s ease, transform 0.32s cubic-bezier(.16,1,.3,1); pointer-events: none; }
+#bundle-{{ section.id }} .bb-card:hover .bb-card__sizes { opacity: 1; transform: none; pointer-events: auto; }
+#bundle-{{ section.id }} .bb-size { min-width: 28px; height: 28px; padding: 0 6px; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; color: #0a0a0a; background: transparent; border: 1px solid rgba(0,0,0,0.22); border-radius: 0; cursor: pointer; transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease; }
+#bundle-{{ section.id }} .bb-size:hover { background: #0a0a0a; color: #fff; border-color: #0a0a0a; }
+#bundle-{{ section.id }} .bb-size.is-active { background: #0a0a0a; color: #fff; border-color: #0a0a0a; }
+#bundle-{{ section.id }} .bb-size.is-unavailable { cursor: not-allowed; position: relative; overflow: hidden; color: #a5a5a5; background: rgba(0,0,0,0.03); border-color: rgba(0,0,0,0.08); }
+#bundle-{{ section.id }} .bb-size.is-unavailable:hover { background: rgba(0,0,0,0.03); color: #a5a5a5; border-color: rgba(0,0,0,0.08); }
+#bundle-{{ section.id }} .bb-size.is-unavailable::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top right, transparent calc(50% - 0.8px), #d11a2a calc(50% - 0.8px), #d11a2a calc(50% + 0.8px), transparent calc(50% + 0.8px)); }
+#bundle-{{ section.id }} .bb-card__price { font-family: 'Zen Maru Gothic', sans-serif; font-size: 11px; font-weight: 500; }
+#bundle-{{ section.id }} .bb-card__btn { margin-top: auto; padding: 11px 10px; font-family: 'Zen Maru Gothic', sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: #0a0a0a; background: transparent; border: 1.5px solid #0a0a0a; border-radius: 8px; cursor: pointer; transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease; }
+#bundle-{{ section.id }} .bb-card__btn:hover { background: #0a0a0a; color: #fff; }
+#bundle-{{ section.id }} .bb-card__btn:disabled { opacity: 0.35; cursor: not-allowed; background: transparent; color: #0a0a0a; }
+#bundle-{{ section.id }} .bb-card.is-selected .bb-card__btn { background: {{ section.settings.accent_color }}; color: #0a0a0a; border-color: {{ section.settings.accent_color }}; }
+#bundle-{{ section.id }} .bb__bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; background: #0a0a0a; color: #fff; transform: translateY(100%); transition: transform 0.35s cubic-bezier(.22,.61,.36,1); }
+#bundle-{{ section.id }} .bb__bar.is-visible { transform: translateY(0); }
+#bundle-{{ section.id }} .bb__bar-inner { max-width: {{ section.settings.max_width }}px; margin: 0 auto; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+#bundle-{{ section.id }} .bb__bar-info { display: flex; align-items: center; gap: 20px; min-width: 0; flex-wrap: wrap; }
+#bundle-{{ section.id }} .bb__count { font-size: 15px; font-weight: 700; }
+#bundle-{{ section.id }} .bb__count b { color: {{ section.settings.accent_color }}; }
+#bundle-{{ section.id }} .bb__prices { display: flex; align-items: baseline; gap: 10px; font-size: 14px; }
+#bundle-{{ section.id }} .bb__regular { text-decoration: line-through; opacity: 0.55; }
+#bundle-{{ section.id }} .bb__final { font-size: 18px; font-weight: 800; color: {{ section.settings.accent_color }}; }
+#bundle-{{ section.id }} .bb__save { font-size: 12px; font-weight: 700; color: #0a0a0a; background: {{ section.settings.accent_color }}; padding: 3px 9px; border-radius: 9999px; }
+#bundle-{{ section.id }} .bb__submit { flex-shrink: 0; padding: 13px 26px; font-size: 14px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: #0a0a0a; background: {{ section.settings.accent_color }}; border: none; border-radius: 9999px; cursor: pointer; transition: filter 0.2s ease, opacity 0.2s ease; }
+#bundle-{{ section.id }} .bb__submit:disabled { opacity: 0.4; cursor: not-allowed; }
+#bundle-{{ section.id }} .bb__empty { text-align: center; padding: 40px; opacity: 0.6; }
+@media (max-width: 989px) { #bundle-{{ section.id }} .bb__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px 6px; } }
+@media (max-width: 749px) { #bundle-{{ section.id }} .bb-card__sizes { opacity: 1; transform: none; pointer-events: auto; padding: 7px 6px; gap: 4px; } #bundle-{{ section.id }} .bb__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px 4px; } #bundle-{{ section.id }} .bb-card { padding: 0 2px; } #bundle-{{ section.id }} .bb-card__info { padding-top: 10px; } #bundle-{{ section.id }} .bb__bar-inner { flex-direction: column; align-items: stretch; gap: 10px; padding: 12px 16px; } #bundle-{{ section.id }} .bb__bar-info { justify-content: space-between; gap: 10px; } #bundle-{{ section.id }} .bb__submit { width: 100%; } }
+{%- endstyle -%}
+
+<div id="bundle-{{ section.id }}" class="bb" data-bundle data-size="{{ size }}" data-bundle-price="{{ bundle_price_cents }}" data-discount="{{ section.settings.discount_code | escape }}" data-money-format="{{ shop.money_format | escape }}">
+
+  {%- if section.settings.show_hero -%}
+    {%- render 'page-hero', breadcrumb: true, uid: section.id, image: section.settings.hero_image, image_mobile: section.settings.hero_image_mobile, eyebrow: section.settings.eyebrow, heading: section.settings.heading, text: section.settings.subheading, height: section.settings.hero_height, height_mobile: section.settings.hero_height_mobile, overlay: section.settings.hero_overlay, align: section.settings.hero_align, full_width: section.settings.hero_full_width, radius: section.settings.hero_radius, max_width: section.settings.max_width, accent: section.settings.accent_color -%}
+  {%- else -%}
+    {%- render 'breadcrumbs', from_section: true -%}
+  {%- endif -%}
+  <div class="bb__inner">
+    {%- unless section.settings.show_hero -%}
+      <div class="bb__head">
+        {%- if section.settings.heading != blank -%}<h2 class="bb__heading">{{ section.settings.heading }}</h2>{%- endif -%}
+        {%- if section.settings.subheading != blank -%}<p class="bb__sub">{{ section.settings.subheading }}</p>{%- endif -%}
+      </div>
+    {%- endunless -%}
+
+    <div class="bb__steps">
+      <span class="bb__step"><b>1</b> {{ 'Pick any ' | append: size | append: ' items' }}</span>
+      <span class="bb__step"><b>2</b> Build your bundle</span>
+      <span class="bb__step"><b>3</b> Save {% if bundle_price_cents > 0 %}with bundle price{% else %}instantly{% endif %}</span>
+    </div>
+
+    {%- if coll != blank and coll.products.size > 0 -%}
+      <div class="bb__grid">
+        {%- for product in coll.products -%}
+          {%- liquid
+            assign first_v = product.selected_or_first_available_variant
+            assign img = product.featured_media
+          -%}
+          <div class="bb-card js-bb-card" data-card data-product-id="{{ product.id }}">
+            <div class="bb-card__media">
+              {%- if img != blank -%}
+                <img src="{{ img | image_url: width: 500 }}" alt="{{ product.title | escape }}" width="500" height="500" loading="lazy" decoding="async">
+              {%- else -%}
+                <img src="{% render 'demo-image', set: 'product', index: forloop.index0, width: 500 %}" alt="{{ product.title | escape }}" width="500" height="500" loading="lazy" decoding="async">
+              {%- endif -%}
+              <span class="bb-card__tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg></span>
+
+              {%- comment -%}
+                Size buttons sit over the image and appear on hover, same as the collection
+                cards. data-opt keeps them wired to the variant picker wherever they sit.
+              {%- endcomment -%}
+              {%- unless product.has_only_default_variant -%}
+                {%- for option in product.options_with_values -%}
+                  {%- liquid
+                    assign onm = option.name | downcase
+                    assign is_color = false
+                    if onm contains 'color' or onm contains 'colour'
+                      assign is_color = true
+                    endif
+                  -%}
+                  {%- unless is_color -%}
+                    <div class="bb-card__sizes" data-opt-index="{{ forloop.index0 }}">
+                      {%- for value in option.values -%}
+                        <button type="button" class="bb-size js-bb-optvalue{% if value.selected %} is-active{% endif %}" data-opt="{{ forloop.parentloop.index0 }}" data-value="{{ value | escape }}">{{ value }}</button>
+                      {%- endfor -%}
+                    </div>
+                  {%- endunless -%}
+                {%- endfor -%}
+              {%- endunless -%}
+            </div>
+            <div class="bb-card__info">
+              {%- liquid
+                assign r_avg = 0
+                assign r_cnt = product.metafields.reviews.rating_count.value | plus: 0
+                if product.metafields.reviews.rating.value != blank and r_cnt > 0
+                  assign r_avg = product.metafields.reviews.rating.value.rating | plus: 0.0
+                endif
+              -%}
+              <div class="bb-card__title-row">
+                <h3 class="bb-card__title">{{ product.title }}</h3>
+                {%- if r_avg > 0 -%}<div class="bb-card__rating"><svg class="bb-star" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.9 6.3 6.9.6-5.2 4.5 1.6 6.8L12 17.3 5.8 20.8l1.6-6.8L2.2 8.9l6.9-.6z"/></svg><span>{{ r_avg | round: 1 }}</span></div>{%- endif -%}
+              </div>
+              {%- unless product.has_only_default_variant -%}
+                <div class="bb-card__opts">
+                  {%- for option in product.options_with_values -%}
+                    {%- assign onm = option.name | downcase -%}
+                    {%- assign is_color = false -%}
+                    {%- if onm contains 'color' or onm contains 'colour' -%}{%- assign is_color = true -%}{%- endif -%}
+                    {%- if is_color -%}
+                    <div class="bb-opt" data-opt-index="{{ forloop.index0 }}">
+                        <div class="bb-swatches">
+                          {%- for value in option.values -%}
+                            {%- liquid
+                              assign v_str = value | append: ''
+                              assign color_img = blank
+                              for pv in product.variants
+                                if pv.image and pv.options contains v_str
+                                  assign color_img = pv.image
+                                  break
+                                endif
+                              endfor
+                              assign sw_style = ''
+                              if value.swatch.image
+                                assign sw_url = value.swatch.image | image_url: width: 60
+                                assign sw_style = 'background-image:url(' | append: sw_url | append: ');'
+                              elsif color_img != blank
+                                assign sw_url = color_img | image_url: width: 60
+                                assign sw_style = 'background-image:url(' | append: sw_url | append: ');'
+                              elsif value.swatch.color
+                                assign sw_style = 'background-color:rgb(' | append: value.swatch.color.rgb | append: ');'
+                              else
+                                assign sw_name = value | downcase | split: ' ' | last
+                                assign sw_style = 'background-color:' | append: sw_name | append: ';'
+                              endif
+                            -%}
+                            <button type="button" class="bb-sw js-bb-optvalue{% if value.selected %} is-active{% endif %}" data-opt="{{ forloop.parentloop.index0 }}" data-value="{{ value | escape }}" style="{{ sw_style }}" title="{{ value | escape }}" aria-label="{{ value | escape }}"></button>
+                          {%- endfor -%}
+                        </div>
+                    </div>
+                    {%- endif -%}
+                  {%- endfor -%}
+                </div>
+                <input type="hidden" class="js-bb-variant" value="{{ first_v.id }}" data-price="{{ first_v.price }}">
+                <script type="application/json" class="js-bb-variants">[{%- for v in product.variants -%}{"id":{{ v.id }},"available":{{ v.available }},"options":{{ v.options | json }},"price":{{ v.price }}}{% unless forloop.last %},{% endunless %}{%- endfor -%}]</script>
+              {%- else -%}
+                <input type="hidden" class="js-bb-variant" value="{{ first_v.id }}" data-price="{{ first_v.price }}">
+              {%- endunless -%}
+              <div class="bb-card__price js-bb-price" data-price="{{ first_v.price }}">{{ first_v.price | money }}</div>
+              <button type="button" class="bb-card__btn js-bb-add"{% unless product.available %} disabled{% endunless %}>{% if product.available %}Add to bundle{% else %}Sold out{% endif %}</button>
+            </div>
+          </div>
+        {%- endfor -%}
+      </div>
+    {%- else -%}
+      <p class="bb__empty">Select a collection in the theme editor to show bundle products.</p>
+    {%- endif -%}
+  </div>
+
+  <div class="bb__bar js-bb-bar" role="region" aria-label="Bundle summary">
+    <div class="bb__bar-inner">
+      <div class="bb__bar-info">
+        <span class="bb__count"><b class="js-bb-count">0</b>/{{ size }} selected</span>
+        <span class="bb__prices">
+          {%- if bundle_price_cents > 0 -%}
+            <span class="bb__regular js-bb-regular"></span>
+            <span class="bb__final js-bb-final"></span>
+            <span class="bb__save js-bb-save" hidden></span>
+          {%- else -%}
+            <span class="bb__final js-bb-final"></span>
+          {%- endif -%}
+        </span>
+      </div>
+      <button type="button" class="bb__submit js-bb-submit" disabled>Add bundle to cart</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var bbRootId = "bundle-{{ section.id }}";
+{%- raw -%}
+(function () {
+  var root = document.getElementById(bbRootId);
+  if (!root) return;
+  var size = parseInt(root.getAttribute('data-size'), 10) || 3;
+  var bundlePrice = parseInt(root.getAttribute('data-bundle-price'), 10) || 0;
+  var discount = root.getAttribute('data-discount') || '';
+  var moneyFormat = root.getAttribute('data-money-format') || '${{amount}}';
+  var cards = Array.prototype.slice.call(root.querySelectorAll('[data-card]'));
+  var bar = root.querySelector('.js-bb-bar');
+  var countEl = root.querySelector('.js-bb-count');
+  var regularEl = root.querySelector('.js-bb-regular');
+  var finalEl = root.querySelector('.js-bb-final');
+  var saveEl = root.querySelector('.js-bb-save');
+  var submitBtn = root.querySelector('.js-bb-submit');
+  var selected = [];
+
+  function formatMoney(cents) {
+    var amount = (cents / 100).toFixed(moneyFormat.indexOf('no_decimals') > -1 ? 0 : 2);
+    var withCommas = amount.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    if (moneyFormat.indexOf('{{') > -1) return moneyFormat.replace(/\{\{\s*amount[^}]*\}\}/, withCommas);
+    return 'Rs ' + withCommas;
+  }
+  function cardPrice(card) {
+    var v = card.querySelector('.js-bb-variant');
+    if (v && v.tagName === 'SELECT') {
+      var opt = v.options[v.selectedIndex];
+      return parseInt(opt.getAttribute('data-price'), 10) || 0;
+    }
+    return parseInt(v.getAttribute('data-price'), 10) || 0;
+  }
+  function variantId(card) {
+    var v = card.querySelector('.js-bb-variant');
+    return v ? v.value : null;
+  }
+  function resolveVariant(card) {
+    var input = card.querySelector('.js-bb-variant');
+    var priceEl = card.querySelector('.js-bb-price');
+    var addBtn = card.querySelector('.js-bb-add');
+    var variants = cardVariants(card);
+    if (!variants || !input) return;
+    var opts = [];
+    card.querySelectorAll('[data-opt-index]').forEach(function (o) {
+      var i = parseInt(o.getAttribute('data-opt-index'), 10);
+      var a = o.querySelector('.js-bb-optvalue.is-active');
+      opts[i] = a ? a.getAttribute('data-value') : null;
+    });
+    var found = null;
+    for (var k = 0; k < variants.length; k++) {
+      var ok = true;
+      for (var j = 0; j < opts.length; j++) { if (opts[j] != null && variants[k].options[j] !== opts[j]) { ok = false; break; } }
+      if (ok) { found = variants[k]; break; }
+    }
+    if (found) {
+      input.value = found.id;
+      input.setAttribute('data-price', found.price);
+      if (priceEl) priceEl.textContent = formatMoney(found.price);
+      if (addBtn && !card.classList.contains('is-selected')) { addBtn.disabled = !found.available; addBtn.textContent = found.available ? 'Add to bundle' : 'Sold out'; }
+    }
+  }
+  function cardVariants(card) {
+    var dataEl = card.querySelector('.js-bb-variants');
+    if (!dataEl) return null;
+    try { return JSON.parse(dataEl.textContent); } catch (e) { return null; }
+  }
+  function setAvailability(btn, ok) {
+    btn.classList.toggle('is-unavailable', !ok);
+    btn.disabled = !ok;
+    if (ok) btn.removeAttribute('aria-disabled'); else btn.setAttribute('aria-disabled', 'true');
+  }
+  // Cross (is-unavailable) do tarah se lagta hai:
+  //   size  -> active color ke sath us size ka koi available variant na ho
+  //   color -> us color me kisi bhi size ka available variant na ho (poora sold out)
+  // Color ko size se na jodne ki wajah: warna user aisa color chun leta jiska koi size hi
+  // na bache aur wahin atak jata.
+  function updateBundleSizes(card) {
+    var variants = cardVariants(card);
+    if (!variants) return;
+    var colorGrp = card.querySelector('.bb-opt[data-opt-index]');
+    var colorIdx = colorGrp ? parseInt(colorGrp.getAttribute('data-opt-index'), 10) : -1;
+    var activeSw = colorGrp ? colorGrp.querySelector('.js-bb-optvalue.is-active') : null;
+    var activeColor = activeSw ? activeSw.getAttribute('data-value') : null;
+
+    card.querySelectorAll('.bb-card__sizes').forEach(function (grp) {
+      var gi = parseInt(grp.getAttribute('data-opt-index'), 10);
+      grp.querySelectorAll('.bb-size').forEach(function (btn) {
+        var sz = btn.getAttribute('data-value');
+        var ok = false;
+        for (var i = 0; i < variants.length; i++) {
+          var o = variants[i].options;
+          if (variants[i].available && o[gi] === sz && (colorIdx < 0 || !activeColor || o[colorIdx] === activeColor)) { ok = true; break; }
+        }
+        setAvailability(btn, ok);
+      });
+    });
+
+    if (colorIdx < 0) return;
+    colorGrp.querySelectorAll('.bb-sw').forEach(function (sw) {
+      var cv = sw.getAttribute('data-value');
+      var ok = false;
+      for (var i = 0; i < variants.length; i++) {
+        if (variants[i].available && variants[i].options[colorIdx] === cv) { ok = true; break; }
+      }
+      setAvailability(sw, ok);
+    });
+  }
+  function update() {
+    countEl.textContent = selected.length;
+    var regular = 0;
+    selected.forEach(function (c) { regular += cardPrice(c); });
+    var full = selected.length >= size;
+    cards.forEach(function (c) {
+      var isSel = selected.indexOf(c) > -1;
+      c.classList.toggle('is-disabled', full && !isSel);
+    });
+    if (regularEl) regularEl.textContent = formatMoney(regular);
+    if (bundlePrice > 0) {
+      if (finalEl) finalEl.textContent = formatMoney(bundlePrice);
+      if (saveEl) {
+        var save = regular - bundlePrice;
+        if (full && save > 0) { saveEl.textContent = 'Save ' + formatMoney(save); saveEl.hidden = false; }
+        else { saveEl.hidden = true; }
+      }
+    } else if (finalEl) {
+      finalEl.textContent = formatMoney(regular);
+    }
+    submitBtn.disabled = selected.length !== size;
+    bar.classList.toggle('is-visible', selected.length > 0);
+  }
+  cards.forEach(function (card) {
+    var btn = card.querySelector('.js-bb-add');
+    var priceEl = card.querySelector('.js-bb-price');
+    card.querySelectorAll('.js-bb-optvalue').forEach(function (b) {
+      b.addEventListener('click', function () {
+        if (b.disabled) return;
+        // Size buttons image ke upar (.bb-card__sizes) hote hain, colors info me (.bb-opt) —
+        // dono group [data-opt-index] rakhte hain, is liye wahi group scope banata hai.
+        var opt = b.closest('[data-opt-index]');
+        if (!opt) return;
+        opt.querySelectorAll('.js-bb-optvalue').forEach(function (x) { x.classList.remove('is-active'); });
+        b.classList.add('is-active');
+        updateBundleSizes(card);
+        resolveVariant(card);
+        if (selected.indexOf(card) > -1) update();
+      });
+    });
+    updateBundleSizes(card);
+    resolveVariant(card);
+    if (btn) btn.addEventListener('click', function () {
+      var i = selected.indexOf(card);
+      if (i > -1) { selected.splice(i, 1); card.classList.remove('is-selected'); btn.textContent = 'Add to bundle'; }
+      else {
+        if (selected.length >= size) return;
+        selected.push(card); card.classList.add('is-selected'); btn.textContent = 'Remove';
+      }
+      update();
+    });
+  });
+  submitBtn.addEventListener('click', function () {
+    if (selected.length !== size) return;
+    var items = selected.map(function (c) { return { id: variantId(c), quantity: 1 }; });
+    submitBtn.disabled = true; submitBtn.textContent = 'Adding...';
+    fetch('/cart/add.js', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items: items })
+    }).then(function (r) { return r.json(); }).then(function (res) {
+      if (res && res.status) { submitBtn.disabled = false; submitBtn.textContent = 'Add bundle to cart'; alert('Could not add — some items may be unavailable.'); return; }
+      if (discount) { window.location.href = '/discount/' + encodeURIComponent(discount) + '?redirect=/cart'; return; }
+      var cart = document.querySelector('cart-drawer');
+      if (!cart) { window.location.href = '/cart'; return; }
+      fetch('/?section_id=cart-drawer').then(function (r) { return r.text(); }).then(function (html) {
+        var fresh = new DOMParser().parseFromString(html, 'text/html').querySelector('#CartDrawer');
+        var cur = document.querySelector('#CartDrawer');
+        if (fresh && cur) cur.innerHTML = fresh.innerHTML;
+        cart.classList.remove('is-empty'); if (typeof cart.open === 'function') cart.open();
+        fetch('/?section_id=cart-icon-bubble').then(function (r) { return r.text(); }).then(function (h) { var d = new DOMParser().parseFromString(h, 'text/html'); var nb = d.querySelector('#shopify-section-cart-icon-bubble') || d.querySelector('.shopify-section'); var cb = document.querySelector('#cart-icon-bubble'); if (nb && cb) cb.innerHTML = nb.innerHTML; }).catch(function () {});
+        submitBtn.disabled = false; submitBtn.textContent = 'Add bundle to cart';
+      }).catch(function () { window.location.href = '/cart'; });
+    }).catch(function () { submitBtn.disabled = false; submitBtn.textContent = 'Add bundle to cart'; alert('Something went wrong. Please try again.'); });
+  });
+})();
+{%- endraw -%}
+</script>
+
+{% schema %}
+{
+  "name": "Bundle Builder",
+  "tag": "section",
+  "class": "section-bundle-builder",
+  "settings": [
+    { "type": "header", "content": "Content" },
+    { "type": "header", "content": "Hero banner" },
+    { "type": "checkbox", "id": "show_hero", "label": "Show hero banner", "default": true, "info": "Heading sits on top of the image. With no image a dark neon panel is used." },
+    { "type": "image_picker", "id": "hero_image", "label": "Banner image" },
+    { "type": "image_picker", "id": "hero_image_mobile", "label": "Banner image \u2014 mobile", "info": "Optional. Used below 750px." },
+    { "type": "range", "id": "hero_height", "min": 200, "max": 600, "step": 20, "unit": "px", "label": "Banner height \u2014 desktop", "default": 340 },
+    { "type": "range", "id": "hero_height_mobile", "min": 160, "max": 460, "step": 10, "unit": "px", "label": "Banner height \u2014 mobile", "default": 240 },
+    { "type": "range", "id": "hero_overlay", "min": 0, "max": 90, "step": 5, "unit": "%", "label": "Image darkening", "default": 45, "info": "Higher = darker image, easier to read the text." },
+    { "type": "select", "id": "hero_align", "label": "Text position", "default": "center", "options": [ { "value": "center", "label": "Centre" }, { "value": "left", "label": "Left" } ] },
+    { "type": "checkbox", "id": "hero_full_width", "label": "Full-width banner", "default": false },
+    { "type": "range", "id": "hero_radius", "min": 0, "max": 28, "step": 2, "unit": "px", "label": "Banner corner radius", "default": 18 },
+
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Bundle" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Build Your Bundle" },
+    { "type": "textarea", "id": "subheading", "label": "Subheading", "default": "Pick any 3 and unlock your bundle price." },
+    { "type": "header", "content": "Bundle" },
+    { "type": "collection", "id": "collection", "label": "Bundle collection" },
+    { "type": "range", "id": "bundle_size", "min": 2, "max": 6, "step": 1, "label": "Items required", "default": 3 },
+    { "type": "text", "id": "bundle_price", "label": "Bundle price (whole number)", "info": "Fixed total shown for the bundle, e.g. 2999. Set the matching discount in Shopify Admin (see below)." },
+    { "type": "text", "id": "discount_code", "label": "Auto-apply discount code", "info": "Optional. Code created in Admin → Discounts. Applied automatically when the bundle is added." },
+    { "type": "header", "content": "Layout" },
+    { "type": "range", "id": "columns_desktop", "min": 3, "max": 6, "step": 1, "label": "Desktop columns", "default": 4 },
+    { "type": "range", "id": "corner_radius", "min": 0, "max": 28, "step": 2, "unit": "px", "label": "Image corner radius", "default": 0, "info": "0 matches the product cards used elsewhere on the store." },
+    { "type": "range", "id": "max_width", "min": 1000, "max": 1600, "step": 20, "unit": "px", "label": "Max content width", "default": 1280 },
+    { "type": "header", "content": "Colors" },
+    { "type": "color", "id": "bg_color", "label": "Background", "default": "#ffffff" },
+    { "type": "color", "id": "text_color", "label": "Text", "default": "#0a0a0a" },
+    { "type": "color", "id": "accent_color", "label": "Neon accent", "default": "#C6F135" },
+    { "type": "header", "content": "Spacing" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 100, "step": 4, "unit": "px", "label": "Padding top", "default": 48 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 100, "step": 4, "unit": "px", "label": "Padding bottom", "default": 40 }
+  ],
+  "presets": [
+    { "name": "Bundle Builder" }
+  ]
+}
+{% endschema %}

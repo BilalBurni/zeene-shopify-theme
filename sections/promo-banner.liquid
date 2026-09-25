@@ -1,0 +1,97 @@
+{%- liquid
+  assign count = section.blocks.size
+  assign radius = section.settings.corner_radius
+-%}
+
+{%- style -%}
+#promo-banner-{{ section.id }} { background: {{ section.settings.bg_color }}; padding: {{ section.settings.padding_top }}px 0 {{ section.settings.padding_bottom }}px; }
+#promo-banner-{{ section.id }} .pb__inner { max-width: {{ section.settings.max_width }}px; margin: 0 auto; padding: 0 16px; display: grid; grid-template-columns: repeat({{ count }}, minmax(0, 1fr)); gap: {{ section.settings.gap }}px; }
+#promo-banner-{{ section.id }} .pb__card { position: relative; display: block; border-radius: {{ radius }}px; overflow: hidden; aspect-ratio: {{ section.settings.ratio }}; background: #f0f0f0; text-decoration: none; isolation: isolate; }
+#promo-banner-{{ section.id }} .pb__media { position: absolute; inset: 0; width: 100%; height: 100%; }
+#promo-banner-{{ section.id }} .pb__media img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.9s cubic-bezier(.22,.61,.36,1); will-change: transform; }
+#promo-banner-{{ section.id }} .pb__card:hover .pb__media img { transform: scale(1.06); }
+#promo-banner-{{ section.id }} .pb__overlay { position: absolute; inset: 0; z-index: 1; background: linear-gradient(to top, rgba(8,8,8,0.78) 0%, rgba(8,8,8,0.25) 48%, rgba(8,8,8,0) 78%); }
+#promo-banner-{{ section.id }} .pb__ph { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: #f4f4f4; }
+#promo-banner-{{ section.id }} .pb__ph svg { width: 30%; height: 30%; opacity: 0.4; fill: #b8b8b8; }
+#promo-banner-{{ section.id }} .pb__content { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; justify-content: flex-end; padding: clamp(20px, 3vw, 40px); }
+#promo-banner-{{ section.id }} .pb__eyebrow { display: inline-block; align-self: flex-start; margin: 0 0 10px; padding: 5px 12px; font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #0a0a0a; background: {{ section.settings.accent_color }}; border-radius: 9999px; }
+#promo-banner-{{ section.id }} .pb__title { margin: 0; font-size: clamp(24px, 3.2vw, 40px); font-weight: 800; line-height: 1.02; letter-spacing: -0.015em; color: #fff; max-width: 16ch; }
+#promo-banner-{{ section.id }} .pb__text { margin: 10px 0 0; font-size: 14px; line-height: 1.5; color: #fff; opacity: 0.8; max-width: 32ch; }
+#promo-banner-{{ section.id }} .pb__btn { display: inline-flex; align-items: center; gap: 9px; align-self: flex-start; margin-top: 18px; padding: 12px 22px; font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #0a0a0a; background: #fff; border-radius: 9999px; transition: gap 0.25s ease, background-color 0.25s ease; }
+#promo-banner-{{ section.id }} .pb__card:hover .pb__btn { gap: 14px; background: {{ section.settings.accent_color }}; }
+#promo-banner-{{ section.id }} .pb__btn svg { width: 15px; height: 15px; }
+@media (max-width: 749px) { #promo-banner-{{ section.id }} { padding-top: {{ section.settings.padding_top | times: 0.5 | round }}px; padding-bottom: {{ section.settings.padding_bottom | times: 0.5 | round }}px; } #promo-banner-{{ section.id }} .pb__inner { grid-template-columns: 1fr; gap: 12px; } #promo-banner-{{ section.id }} .pb__card { aspect-ratio: {{ section.settings.mobile_ratio }}; } }
+@media (prefers-reduced-motion: reduce) { #promo-banner-{{ section.id }} .pb__media img, #promo-banner-{{ section.id }} .pb__btn { transition: none !important; } #promo-banner-{{ section.id }} .pb__card:hover .pb__media img { transform: none; } }
+{%- endstyle -%}
+
+<div id="promo-banner-{{ section.id }}" class="pb">
+  <div class="pb__inner">
+    {%- for block in section.blocks -%}
+      {%- assign img = block.settings.image -%}
+      <a href="{{ block.settings.link | default: '#' }}" class="pb__card" {{ block.shopify_attributes }} aria-label="{{ block.settings.title | default: 'Promotion' | escape }}">
+        <span class="pb__media">
+          {%- if img != blank -%}
+            <img src="{{ img | image_url: width: 1200 }}" srcset="{{ img | image_url: width: 600 }} 600w, {{ img | image_url: width: 1200 }} 1200w, {{ img | image_url: width: 1600 }} 1600w" sizes="(max-width: 749px) 100vw, {{ 100 | divided_by: count }}vw" alt="{{ img.alt | default: block.settings.title | escape }}" width="{{ img.width }}" height="{{ img.height }}" loading="lazy" decoding="async">
+          {%- else -%}
+            <img src="{% render 'demo-image', set: 'lifestyle', index: forloop.index0, width: 1200 %}" alt="{{ block.settings.title | escape }}" width="1200" height="1500" loading="lazy" decoding="async">
+          {%- endif -%}
+        </span>
+        <span class="pb__overlay"></span>
+        <span class="pb__content">
+          {%- if block.settings.eyebrow != blank -%}<span class="pb__eyebrow">{{ block.settings.eyebrow }}</span>{%- endif -%}
+          {%- if block.settings.title != blank -%}<span class="pb__title">{{ block.settings.title }}</span>{%- endif -%}
+          {%- if block.settings.text != blank -%}<span class="pb__text">{{ block.settings.text }}</span>{%- endif -%}
+          {%- if block.settings.button_label != blank -%}<span class="pb__btn">{{ block.settings.button_label }}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>{%- endif -%}
+        </span>
+      </a>
+    {%- else -%}
+      <a href="#" class="pb__card"><span class="pb__ph">{{ 'lifestyle-1' | placeholder_svg_tag }}</span><span class="pb__overlay"></span><span class="pb__content"><span class="pb__title">Add a promo banner</span></span></a>
+    {%- endfor -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Promo Banner",
+  "tag": "section",
+  "class": "section-promo-banner",
+  "settings": [
+    { "type": "header", "content": "Layout" },
+    { "type": "select", "id": "ratio", "label": "Desktop aspect ratio (per card)", "options": [ { "value": "16/9", "label": "Wide (16:9)" }, { "value": "4/3", "label": "Standard (4:3)" }, { "value": "1/1", "label": "Square (1:1)" }, { "value": "4/5", "label": "Tall (4:5)" } ], "default": "4/5" },
+    { "type": "select", "id": "mobile_ratio", "label": "Mobile aspect ratio", "options": [ { "value": "4/5", "label": "Tall (4:5)" }, { "value": "1/1", "label": "Square (1:1)" }, { "value": "16/9", "label": "Wide (16:9)" } ], "default": "4/5" },
+    { "type": "range", "id": "gap", "min": 4, "max": 28, "step": 2, "unit": "px", "label": "Gap", "default": 14 },
+    { "type": "range", "id": "corner_radius", "min": 0, "max": 32, "step": 2, "unit": "px", "label": "Corner radius", "default": 18 },
+    { "type": "range", "id": "max_width", "min": 1000, "max": 1600, "step": 20, "unit": "px", "label": "Max content width", "default": 1280 },
+    { "type": "header", "content": "Colors" },
+    { "type": "color", "id": "bg_color", "label": "Background", "default": "#ffffff" },
+    { "type": "color", "id": "accent_color", "label": "Neon accent", "default": "#C6F135" },
+    { "type": "header", "content": "Spacing" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 100, "step": 4, "unit": "px", "label": "Padding top", "default": 16 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 100, "step": 4, "unit": "px", "label": "Padding bottom", "default": 40 }
+  ],
+  "blocks": [
+    {
+      "type": "promo",
+      "name": "Promo",
+      "settings": [
+        { "type": "image_picker", "id": "image", "label": "Image" },
+        { "type": "text", "id": "eyebrow", "label": "Eyebrow (pill label)" },
+        { "type": "text", "id": "title", "label": "Title", "default": "Up to 50% Off" },
+        { "type": "text", "id": "text", "label": "Short text" },
+        { "type": "text", "id": "button_label", "label": "Button label", "default": "Shop now" },
+        { "type": "url", "id": "link", "label": "Link" }
+      ]
+    }
+  ],
+  "max_blocks": 3,
+  "presets": [
+    {
+      "name": "Promo Banner",
+      "blocks": [
+        { "type": "promo", "settings": { "title": "New Season Drop", "eyebrow": "Just in", "button_label": "Shop now" } },
+        { "type": "promo", "settings": { "title": "Signature Fragrances", "eyebrow": "Perfumes", "button_label": "Explore" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,73 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "collection-timer": {
+      "type": "collection-timer",
+      "settings": {
+        "full_width_banner": true,
+        "banner_height": 480,
+        "banner_height_mobile": 0,
+        "breadcrumb_on_banner": true,
+        "show_timer": true,
+        "show_days": false,
+        "heading": "Sale might end in",
+        "note": "",
+        "end_time": "23:59",
+        "show_progress": false,
+        "bg_color": "#ffffff",
+        "strip_color": "#ffffff",
+        "heading_color": "#0a0a0a",
+        "number_color": "#0a0a0a",
+        "label_color": "#8a8f7a",
+        "accent_color": "#C6F135",
+        "padding_top": 0,
+        "padding_bottom": 0,
+        "band_color": "#F5FBE4",
+        "accent_color_2": "#D5DCC4"
+      }
+    },
+    "product-grid": {
+      "type": "collection-grid",
+      "settings": {
+        "show_heading": false,
+        "show_count": true,
+        "products_per_page": 20,
+        "columns_desktop": 5,
+        "image_ratio": "3/4",
+        "gap": 16,
+        "corner_radius": 14,
+        "max_width": 1280,
+        "show_swatches": true,
+        "show_sizes": true,
+        "show_sale_badge": true,
+        "show_rating": true,
+        "padding_top": 24,
+        "padding_bottom": 56
+      }
+    },
+    "seo-content": {
+      "type": "seo-content",
+      "settings": {
+        "collapsed_height": 180,
+        "more_label": "Read More",
+        "less_label": "Read Less",
+        "max_width": 1280,
+        "padding_top": 8,
+        "padding_bottom": 48
+      }
+    }
+  },
+  "order": [
+    "collection-timer",
+    "product-grid",
+    "seo-content"
+  ]
+}

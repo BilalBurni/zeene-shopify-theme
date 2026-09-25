@@ -1,0 +1,284 @@
+{%- comment -%}
+  Quick View drawer — global shell + styles + logic.
+  Rendered once in theme.liquid. Opens on click of any .js-quickview[data-url].
+  Fetches /products/{handle}?section_id=quick-view into .qv-body.
+{%- endcomment -%}
+
+{%- style -%}
+html.qv-open { overflow: hidden; }
+#QuickView { position: fixed; inset: 0; z-index: 1001; display: flex; justify-content: flex-end; visibility: hidden; background-color: rgba(10,10,10,0); -webkit-backdrop-filter: blur(0); backdrop-filter: blur(0); transition: background-color 0.45s ease, -webkit-backdrop-filter 0.45s ease, backdrop-filter 0.45s ease, visibility 0.5s ease; }
+#QuickView.active { visibility: visible; background-color: rgba(10,10,10,0.46); -webkit-backdrop-filter: blur(3.5px); backdrop-filter: blur(3.5px); }
+#QuickView .qv-stage { position: relative; width: min(960px, 96vw); max-width: 96vw; height: 100%; background: #fff; box-shadow: -18px 0 60px rgba(0,0,0,0.22); transform: translateX(100%); transition: transform 0.55s cubic-bezier(.16,1,.3,1); will-change: transform; display: flex; flex-direction: column; }
+#QuickView.active .qv-stage { transform: translateX(0); }
+#QuickView .qv-stage__close { position: absolute; top: 14px; right: 16px; z-index: 6; width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.92); border: 1px solid rgba(0,0,0,0.08); border-radius: 50%; cursor: pointer; color: #0a0a0a; transition: background-color 0.15s ease; }
+#QuickView .qv-stage__close:hover { background: #0a0a0a; color: #fff; }
+#QuickView .qv-stage__close svg { width: 17px; height: 17px; }
+#QuickView .qv-body { flex: 1; overflow: hidden; min-height: 0; }
+#QuickView .qv-loading { display: flex; align-items: center; justify-content: center; height: 100%; }
+#QuickView .qv-spinner { width: 34px; height: 34px; border: 3px solid rgba(0,0,0,0.12); border-top-color: #0a0a0a; border-radius: 50%; animation: qvspin 0.7s linear infinite; }
+@keyframes qvspin { to { transform: rotate(360deg); } }
+#QuickView .qv { display: flex; height: 100%; }
+#QuickView .qv__media { flex: 1; min-width: 0; overflow-y: auto; background: #f4f4f4; scrollbar-width: thin; }
+#QuickView .qv__img { width: 100%; }
+#QuickView .qv__img img { width: 100%; height: auto; display: block; }
+#QuickView .qv__panel { flex: 0 0 420px; max-width: 46%; overflow-y: auto; border-left: 1px solid rgba(0,0,0,0.08); scrollbar-width: thin; }
+#QuickView .qv__panel-inner { padding: 56px 30px 44px; }
+{%- comment -%} Head row — title ke upar: tags bayein, rating dayein (product page jaisa). {%- endcomment -%}
+#QuickView .qv__head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; margin: 0 0 8px; }
+#QuickView .qv__ctags { display: flex; flex-wrap: wrap; gap: 5px; min-width: 0; }
+#QuickView .qv__rating { display: inline-flex; align-items: center; gap: 7px; margin-left: auto; }
+#QuickView .qv__stars { position: relative; font-size: 13px; letter-spacing: 2px; color: rgba(0,0,0,0.16); }
+#QuickView .qv__stars::before { content: '★★★★★'; position: absolute; left: 0; top: 0; width: var(--r, 0%); overflow: hidden; color: #f5a623; white-space: nowrap; }
+#QuickView .qv__rcount { font-size: 11.5px; font-weight: 400; color: #0a0a0a; opacity: 0.55; }
+#QuickView .qv__ctag { display: inline-flex; align-items: center; justify-content: center; padding: 0 8px 2px; height: 20px; line-height: 1; border-radius: 3px; background: var(--ct-bg, #FFD400); color: var(--ct-fg, #0a0a0a); font-family: 'Zen Maru Gothic', sans-serif; font-size: 11px; font-weight: 700; white-space: nowrap; }
+#QuickView .qv__title { display: block; font-family: 'Zen Maru Gothic', sans-serif; font-size: 15px; font-weight: 600; color: #0a0a0a; text-decoration: none; line-height: 1.4; }
+#QuickView .qv__prices { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; margin-top: 9px; }
+#QuickView .qv__price { font-family: 'Zen Maru Gothic', sans-serif; font-size: 14px; font-weight: 600; color: #0a0a0a; }
+#QuickView .qv__price-sale { font-family: 'Zen Maru Gothic', sans-serif; font-size: 14px; font-weight: 600; color: #d11a2a; }
+#QuickView .qv__price-cmp { font-size: 12.5px; font-weight: 400; color: #8a8a8a; text-decoration: line-through; }
+#QuickView .qv__save { font-size: 10px; font-weight: 700; letter-spacing: 0.04em; color: #fff; background: #0a0a0a; padding: 3px 8px; border-radius: 4px; }
+#QuickView .qv__desc { margin-top: 16px; }
+#QuickView .qv__desc-head { margin: 0 0 4px; font-family: 'Zen Maru Gothic', sans-serif; font-size: 12px; font-weight: 600; color: #0a0a0a; }
+#QuickView .qv__desc-body { font-family: 'Zen Maru Gothic', sans-serif; font-size: 12px; font-weight: 400; line-height: 1.7; color: #4a4a4a; }
+#QuickView .qv__desc-body p { margin: 0 0 8px; }
+#QuickView .qv__desc-body p:last-child { margin-bottom: 0; }
+#QuickView .qv__desc-body ul, #QuickView .qv__desc-body ol { list-style-position: outside; margin: 6px 0; padding-left: 17px; }
+#QuickView .qv__desc-body li { margin: 0 0 5px; }
+#QuickView .qv__desc-body li:last-child { margin-bottom: 0; }
+#QuickView .qv__desc-body li > p { margin: 0; }
+#QuickView .qv__desc-body li > p + p { margin-top: 4px; }
+#QuickView .qv__desc-body li > ul, #QuickView .qv__desc-body li > ol { margin: 5px 0 0; }
+#QuickView .qv__red { color: #d11a2a; font-weight: 600; }
+#QuickView .qv__subtitle { margin: 5px 0 0; font-size: 11.5px; font-weight: 400; color: #8a8a8a; }
+#QuickView .qv__article { margin: 13px 0 0; font-size: 12px; font-weight: 400; color: #4a4a4a; }
+#QuickView .qv__article strong { color: #0a0a0a; font-weight: 600; }
+#QuickView .qv__features { margin: 11px 0 0; padding-left: 17px; list-style: disc; }
+#QuickView .qv__features li { font-size: 12px; font-weight: 400; line-height: 1.55; color: #3a3a3a; margin-bottom: 3px; }
+#QuickView .qv__modelinfo { margin: 11px 0 0; font-size: 11.5px; font-weight: 400; color: #6a6a6a; }
+#QuickView .qv__opt { margin-top: 19px; }
+#QuickView .qv__opt-label { font-family: 'Zen Maru Gothic', sans-serif; font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #0a0a0a; margin-bottom: 8px; }
+#QuickView .qv__opt-label span { font-weight: 400; text-transform: none; letter-spacing: 0; opacity: 0.6; }
+#QuickView .qv__opt-values { display: flex; flex-wrap: wrap; gap: 8px; }
+#QuickView .qv__size { min-width: 34px; height: 32px; padding: 0 9px; display: inline-flex; align-items: center; justify-content: center; font-family: 'Zen Maru Gothic', sans-serif; font-size: 11.5px; font-weight: 500; color: #0a0a0a; background: #fff; border: 1px solid rgba(0,0,0,0.2); border-radius: 0; cursor: pointer; transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease; }
+#QuickView .qv__size:hover { border-color: #0a0a0a; }
+#QuickView .qv__size.is-active { background: #0a0a0a; color: #fff; border-color: #0a0a0a; }
+#QuickView .qv__size.is-unavailable { opacity: 0.4; text-decoration: line-through; pointer-events: none; }
+#QuickView .qv__swatch { width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.15); background-size: cover; background-position: center; cursor: pointer; box-shadow: 0 0 0 2px #fff; transition: box-shadow 0.15s ease; }
+#QuickView .qv__swatch.is-active { box-shadow: 0 0 0 2px #fff, 0 0 0 4px #0a0a0a; }
+#QuickView .qv__buy { display: flex; gap: 12px; margin-top: 27px; }
+#QuickView .qv__qty { display: inline-flex; align-items: center; border: 1px solid rgba(0,0,0,0.2); border-radius: 9px; overflow: hidden; flex: 0 0 auto; }
+#QuickView .qv__qty button { width: 38px; height: 48px; border: 0; background: #fff; font-size: 18px; line-height: 1; cursor: pointer; color: #0a0a0a; }
+#QuickView .qv__qty input { width: 38px; height: 48px; border: 0; text-align: center; font-family: 'Zen Maru Gothic', sans-serif; font-size: 14px; font-weight: 600; color: #0a0a0a; -moz-appearance: textfield; }
+#QuickView .qv__qty input::-webkit-outer-spin-button, #QuickView .qv__qty input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+#QuickView .qv__add { flex: 1; min-height: 48px; display: inline-flex; align-items: center; justify-content: center; gap: 9px; border: 0; border-radius: 10px; background: #0a0a0a; color: #fff; font-family: 'Zen Maru Gothic', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; transition: background-color 0.2s ease, transform 0.15s ease; }
+#QuickView .qv__btn-ic { flex: 0 0 auto; }
+#QuickView .qv__add:hover:not(:disabled) { background: #1f1f1f; transform: translateY(-1px); }
+#QuickView .qv__add:disabled { opacity: 0.4; cursor: not-allowed; }
+#QuickView .qv__add.is-loading { opacity: 0.7; pointer-events: none; }
+#QuickView .qv__buynow { width: 100%; margin-top: 10px; min-height: 48px; display: inline-flex; align-items: center; justify-content: center; gap: 9px; border: 0; border-radius: 10px; background: #C6F135; color: #0a0a0a; font-family: 'Zen Maru Gothic', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; transition: filter 0.2s ease, transform 0.15s ease; }
+#QuickView .qv__buynow:hover:not(:disabled) { filter: brightness(0.94); transform: translateY(-1px); }
+#QuickView .qv__buynow:disabled { opacity: 0.4; cursor: not-allowed; }
+#QuickView .qv__buynow.is-loading { opacity: 0.7; pointer-events: none; }
+#QuickView .qv__set { margin-top: 22px; border: 1px solid rgba(0,0,0,0.12); border-radius: 10px; padding: 0 12px 12px; }
+#QuickView .qv__set-head { display: flex; align-items: center; gap: 10px; margin: -7px 0 12px; }
+#QuickView .qv__set-head::before, #QuickView .qv__set-head::after { content: ''; flex: 1; height: 1px; background: rgba(0,0,0,0.12); }
+#QuickView .qv__set-head span { flex: 0 0 auto; padding: 0 4px; background: #fff; font-family: 'Zen Maru Gothic', sans-serif; font-size: 10.5px; font-weight: 600; text-transform: uppercase; color: #0a0a0a; opacity: 0.62; }
+#QuickView .qv__set-list { display: flex; flex-direction: column; gap: 12px; }
+#QuickView .qv__set-item { display: flex; align-items: center; gap: 11px; }
+#QuickView .qv__set-item.is-soldout { opacity: 0.5; }
+#QuickView .qv__set-check { flex: 0 0 auto; display: inline-flex; cursor: pointer; }
+#QuickView .qv__set-check input { position: absolute; opacity: 0; width: 0; height: 0; }
+#QuickView .qv__set-box { position: relative; width: 17px; height: 17px; border: 1.5px solid rgba(0,0,0,0.3); border-radius: 4px; transition: background-color 0.15s ease, border-color 0.15s ease; }
+#QuickView .qv__set-check input:checked + .qv__set-box { background: #0a0a0a; border-color: #0a0a0a; }
+#QuickView .qv__set-check input:checked + .qv__set-box::after { content: ''; position: absolute; left: 5px; top: 1.5px; width: 4px; height: 8px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+#QuickView .qv__set-check input:focus-visible + .qv__set-box { box-shadow: 0 0 0 3px rgba(198,241,53,0.7); }
+#QuickView .qv__set-check input:disabled + .qv__set-box { cursor: not-allowed; }
+#QuickView .qv__set-media { flex: 0 0 66px; width: 66px; height: 82px; border-radius: 7px; overflow: hidden; background: #f4f4f4; display: block; }
+#QuickView .qv__set-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+#QuickView .qv__set-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+#QuickView .qv__set-name { font-family: 'Zen Maru Gothic', sans-serif; font-size: 12.5px; font-weight: 600; line-height: 1.35; color: #0a0a0a; text-decoration: none; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+#QuickView .qv__set-name:hover { text-decoration: underline; text-underline-offset: 2px; }
+#QuickView .qv__set-price { display: flex; flex-wrap: wrap; align-items: baseline; gap: 5px; font-family: 'Zen Maru Gothic', sans-serif; font-size: 12px; font-weight: 500; color: #0a0a0a; }
+#QuickView .qv__set-price--sale { color: #d11a2a; }
+#QuickView .qv__set-price s { font-size: 11px; font-weight: 500; color: #0a0a0a; opacity: 0.45; }
+#QuickView .qv__set-variant { margin-top: 1px; max-width: 160px; padding: 6px 26px 6px 9px; font-family: 'Zen Maru Gothic', sans-serif; font-size: 11.5px; font-weight: 500; color: #0a0a0a; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%230a0a0a' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 9px center; border: 1px solid rgba(0,0,0,0.2); border-radius: 7px; cursor: pointer; -webkit-appearance: none; appearance: none; }
+#QuickView .qv__set-oos { font-family: 'Zen Maru Gothic', sans-serif; font-size: 11px; font-weight: 600; text-transform: uppercase; color: #d11a2a; }
+#QuickView .qv__full { display: inline-block; margin-top: 18px; font-size: 11.5px; font-weight: 500; color: #0a0a0a; text-decoration: underline; text-underline-offset: 3px; }
+#QuickView .qv-empty { padding: 70px 30px; text-align: center; font-family: 'Zen Maru Gothic', sans-serif; font-size: 14px; }
+@media (prefers-reduced-motion: reduce) { #QuickView, #QuickView .qv-stage { transition-duration: 0.01ms !important; } }
+@media (max-width: 749px) { #QuickView .qv-stage { width: 100vw; max-width: 100vw; } #QuickView .qv-body { overflow-y: auto; } #QuickView .qv { flex-direction: column; height: auto; min-height: 100%; } #QuickView .qv__media { flex: none; overflow-x: auto; overflow-y: hidden; display: flex; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; } #QuickView .qv__img { flex: 0 0 100%; scroll-snap-align: center; } #QuickView .qv__panel { flex: none; max-width: 100%; overflow: visible; border-left: 0; } #QuickView .qv__panel-inner { padding: 22px 18px 44px; } }
+{%- endstyle -%}
+
+<div id="QuickView" class="qv-drawer" role="dialog" aria-modal="true" aria-label="Product quick view">
+  <div class="qv-stage">
+    <button type="button" class="qv-stage__close js-qv-close" aria-label="Close quick view">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+    <div class="qv-body"></div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var drawer = document.getElementById('QuickView');
+    if (!drawer) return;
+    var body = drawer.querySelector('.qv-body');
+    var variants = [];
+
+    function openDrawer() { drawer.classList.add('active'); document.documentElement.classList.add('qv-open'); }
+    function closeDrawer() { drawer.classList.remove('active'); document.documentElement.classList.remove('qv-open'); }
+
+    function fetchQV(url) {
+      body.innerHTML = '<div class="qv-loading"><div class="qv-spinner"></div></div>';
+      openDrawer();
+      var u = url.split('?')[0] + '?section_id=quick-view';
+      fetch(u).then(function (r) { return r.text(); }).then(function (html) {
+        var doc = new DOMParser().parseFromString(html, 'text/html');
+        var qv = doc.querySelector('.qv') || doc.querySelector('.qv-empty');
+        var data = doc.querySelector('.js-qv-data');
+        body.innerHTML = '';
+        if (qv) body.appendChild(qv); else body.innerHTML = '<div class="qv-empty">Could not load product.</div>';
+        if (data) body.appendChild(data);
+        initQV();
+      }).catch(function () { body.innerHTML = '<div class="qv-empty">Could not load. <a href="' + url + '">Open product page</a></div>'; });
+    }
+
+    function initQV() {
+      var dataEl = body.querySelector('.js-qv-data');
+      variants = [];
+      if (dataEl) { try { variants = (JSON.parse(dataEl.textContent) || {}).variants || []; } catch (e) {} }
+      updateSelection();
+    }
+
+    function selectedOptions() {
+      var opts = [];
+      body.querySelectorAll('.qv__opt').forEach(function (optEl) {
+        var idx = parseInt(optEl.getAttribute('data-opt-index'), 10);
+        var active = optEl.querySelector('.js-qv-optvalue.is-active');
+        opts[idx] = active ? active.getAttribute('data-value') : null;
+      });
+      return opts;
+    }
+
+    function matchVariant(opts) {
+      for (var i = 0; i < variants.length; i++) {
+        var v = variants[i], ok = true;
+        for (var j = 0; j < opts.length; j++) { if (opts[j] != null && v.options[j] !== opts[j]) { ok = false; break; } }
+        if (ok) return v;
+      }
+      return null;
+    }
+
+    function updateSelection() {
+      var opts = selectedOptions();
+      var v = matchVariant(opts);
+      var addBtn = body.querySelector('.js-qv-add');
+      var addText = body.querySelector('.js-qv-addtext');
+      var priceEl = body.querySelector('.js-qv-price');
+      body.querySelectorAll('.qv__opt').forEach(function (optEl) {
+        var active = optEl.querySelector('.js-qv-optvalue.is-active');
+        var label = optEl.querySelector('.js-qv-optval');
+        if (label && active) label.textContent = active.getAttribute('data-value');
+      });
+      var buyBtn = body.querySelector('.js-qv-buynow');
+      if (v) {
+        if (addBtn) { addBtn.setAttribute('data-vid', v.id); addBtn.disabled = !v.available; }
+        if (buyBtn) buyBtn.disabled = !v.available;
+        if (addText) addText.textContent = v.available ? 'ADD TO CART' : 'SOLD OUT';
+        if (priceEl && v.price_str) priceEl.textContent = v.price_str;
+        if (v.media_id) {
+          var img = body.querySelector('.qv__img[data-media-id="' + v.media_id + '"]');
+          var media = body.querySelector('.qv__media');
+          if (img && media) {
+            if (window.innerWidth > 749) { media.scrollTo({ top: img.offsetTop - media.offsetTop, behavior: 'smooth' }); }
+            else { media.scrollTo({ left: img.offsetLeft - media.offsetLeft, behavior: 'smooth' }); }
+          }
+        }
+      } else {
+        if (addBtn) addBtn.disabled = true;
+        if (buyBtn) buyBtn.disabled = true;
+        if (addText) addText.textContent = 'UNAVAILABLE';
+      }
+    }
+
+function setItems() {
+      var items = [];
+      body.querySelectorAll('.js-qv-set:checked').forEach(function (cb) {
+        // Use the variant chosen in the size dropdown on multi-variant items, otherwise the checkbox default.
+        var item = cb.closest('.qv__set-item');
+        var sel = item ? item.querySelector('.js-qv-set-variant') : null;
+        var id = parseInt((sel && sel.value) || cb.getAttribute('data-variant'), 10);
+        if (id) items.push({ id: id, quantity: 1 });
+      });
+      return items;
+    }
+
+    function qvAdd(btn) {
+      var vid = btn.getAttribute('data-vid');
+      if (!vid || btn.disabled) return;
+      var qtyEl = body.querySelector('.js-qv-qty');
+      var qty = qtyEl ? Math.max(1, parseInt(qtyEl.value, 10) || 1) : 1;
+      btn.classList.add('is-loading');
+      var payload = [{ id: parseInt(vid, 10), quantity: qty }].concat(setItems());
+      fetch('/cart/add.js', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items: payload }) })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          btn.classList.remove('is-loading');
+          if (res && res.status) { return; }
+          closeDrawer();
+          refreshCartAndOpen();
+        })
+        .catch(function () { btn.classList.remove('is-loading'); window.location = '/cart'; });
+    }
+
+    function qvBuyNow(btn) {
+      var addBtn = body.querySelector('.js-qv-add');
+      var vid = addBtn ? addBtn.getAttribute('data-vid') : null;
+      if (!vid || btn.disabled || (addBtn && addBtn.disabled)) return;
+      var qtyEl = body.querySelector('.js-qv-qty');
+      var qty = qtyEl ? Math.max(1, parseInt(qtyEl.value, 10) || 1) : 1;
+      btn.classList.add('is-loading');
+var payload = [{ id: parseInt(vid, 10), quantity: qty }].concat(setItems());
+      fetch('/cart/add.js', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items: payload }) })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          if (res && res.status) { btn.classList.remove('is-loading'); return; }
+          window.location = '/checkout';
+        })
+        .catch(function () { btn.classList.remove('is-loading'); window.location = '/cart'; });
+    }
+
+    function refreshCartAndOpen() {
+      var cart = document.querySelector('cart-drawer');
+      fetch('/?section_id=cart-drawer').then(function (r) { return r.text(); }).then(function (html) {
+        var fresh = new DOMParser().parseFromString(html, 'text/html').querySelector('#CartDrawer');
+        var cur = document.querySelector('#CartDrawer');
+        if (fresh && cur) cur.innerHTML = fresh.innerHTML;
+        if (cart) { cart.classList.remove('is-empty'); if (typeof cart.open === 'function') cart.open(); }
+fetch('/?section_id=cart-icon-bubble').then(function (r) { return r.text(); }).then(function (h) { var d = new DOMParser().parseFromString(h, 'text/html'); var fb = d.querySelector('#shopify-section-cart-icon-bubble') || d.querySelector('.shopify-section'); var cb = document.querySelector('#cart-icon-bubble'); if (fb && cb) cb.innerHTML = fb.innerHTML; }).catch(function () {});
+      }).catch(function () { window.location = '/cart'; });
+    }
+
+    drawer.addEventListener('click', function (e) {
+      var val = e.target.closest ? e.target.closest('.js-qv-optvalue') : null;
+      if (val) { var optEl = val.closest('.qv__opt'); optEl.querySelectorAll('.js-qv-optvalue').forEach(function (b) { b.classList.remove('is-active'); }); val.classList.add('is-active'); updateSelection(); return; }
+      if (e.target.closest('.js-qv-qminus')) { var im = body.querySelector('.js-qv-qty'); if (im) im.value = Math.max(1, (parseInt(im.value, 10) || 1) - 1); return; }
+      if (e.target.closest('.js-qv-qplus')) { var ip = body.querySelector('.js-qv-qty'); if (ip) ip.value = (parseInt(ip.value, 10) || 1) + 1; return; }
+      var add = e.target.closest('.js-qv-add');
+      if (add) { qvAdd(add); return; }
+      var buynow = e.target.closest('.js-qv-buynow');
+      if (buynow) { qvBuyNow(buynow); return; }
+      if (e.target.closest('.js-qv-close') || e.target === drawer) { closeDrawer(); return; }
+    });
+
+    document.addEventListener('click', function (e) {
+      var trigger = e.target.closest ? e.target.closest('.js-quickview') : null;
+      if (!trigger) return;
+      e.preventDefault();
+      var url = trigger.getAttribute('data-url');
+      if (url) fetchQV(url);
+    });
+
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && drawer.classList.contains('active')) closeDrawer(); });
+  })();
+</script>

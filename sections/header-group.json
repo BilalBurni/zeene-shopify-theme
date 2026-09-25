@@ -1,0 +1,101 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "name": "t:sections.header.name",
+  "type": "header",
+  "sections": {
+    "top-ticker": {
+      "type": "top-ticker",
+      "blocks": {
+        "msg-1": {
+          "type": "message",
+          "settings": {
+            "text": "FREE DELIVERY ON ALL ORDERS — SHOP NOW",
+            "link": "shopify://collections/above-pkr-5-000"
+          }
+        },
+        "msg-2": {
+          "type": "message",
+          "settings": {
+            "text": "NEW ARRIVALS JUST DROPPED — EXPLORE NOW",
+            "link": ""
+          }
+        }
+      },
+      "block_order": [
+        "msg-1",
+        "msg-2"
+      ],
+      "settings": {
+        "separator": "•",
+        "repeat_count": 3,
+        "speed": 30,
+        "bg_color": "#c6f135",
+        "text_color": "#0a0a0a",
+        "font_size": 14,
+        "font_weight": 600,
+        "padding_y": 8,
+        "show_timer": true,
+        "timer_label": "OFFER ENDS IN",
+        "end_time": "23:59",
+        "timer_text_color": "#0a0a0a",
+        "box_bg_color": "#0a0a0a",
+        "box_text_color": "#c6f135",
+        "box_radius": 4,
+        "box_gap": 3,
+        "mobile_font_size": 12,
+        "mobile_padding_y": 7
+      }
+    },
+    "header": {
+      "type": "header",
+      "settings": {
+        "logo_position": "middle-left",
+        "mobile_logo_position": "center",
+        "menu": "main-menu-1",
+        "menu_type_desktop": "mega",
+        "sticky_header_type": "on-scroll-up",
+        "show_line_separator": false,
+        "transparent_on_home": true,
+        "transparent_logo": "shopify://shop_images/logo_e286bce5-64f6-4ff1-a15e-2d303821999b.png",
+        "color_scheme": "scheme-1",
+        "menu_color_scheme": "scheme-1",
+        "mega_featured": true,
+        "enable_country_selector": true,
+        "enable_language_selector": true,
+        "show_account_icon": false,
+        "enable_customer_avatar": true,
+        "container_width": 1280,
+        "margin_bottom": 0,
+        "padding_top": 20,
+        "padding_bottom": 20
+      },
+      "blocks": {
+        "mega-sale": {
+          "type": "mega_promo",
+          "settings": {
+            "menu_item": "Sale",
+            "banner_heading": "Flash sale is live",
+            "banner_text": "Up to 70% off on selected styles. Limited stock.",
+            "banner_button": "Shop the sale",
+            "banner_link": "/pages/flash-sale"
+          }
+        }
+      },
+      "block_order": [
+        "mega-sale"
+      ]
+    }
+  },
+  "order": [
+    "top-ticker",
+    "header"
+  ]
+}

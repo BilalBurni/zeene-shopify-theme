@@ -1,0 +1,230 @@
+{%- comment -%}
+  Flash sale slider for the homepage — same cards as the flash sale page, in a scroll-snap row.
+
+  The card markup, CSS and countdown all come from the shared snippet / assets, so the two
+  places can never drift apart visually.
+
+  Blocks are entered here as well: a section cannot read another template's blocks. Keep the
+  homepage list short (the 2-3 sales worth promoting) and let "View all" carry the rest.
+{%- endcomment -%}
+{%- liquid
+  assign s = section.settings
+  assign sales = section.blocks | where: 'type', 'sale'
+-%}
+
+{{ 'flash-sale-card.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'flash-sale.js' | asset_url }}" defer="defer"></script>
+
+{%- if sales.size > 0 -%}
+  <div
+    id="fs-slider-{{ section.id }}"
+    class="fss"
+    style="--fs-accent:{{ s.accent_color }};--fs-line:{{ s.divider_color }};--fs-text:{{ s.text_color }};--fs-radius:{{ s.corner_radius }}px;--fs-ratio:{{ s.image_ratio }};--fss-bg:{{ s.bg_color }};--fss-cols:{{ s.columns_desktop }};--fss-maxw:{{ s.max_width }}px;--fss-pt:{{ s.padding_top }}px;--fss-pb:{{ s.padding_bottom }}px;"
+  >
+    <div class="fss__inner">
+      <div class="fss__head">
+        <div class="fss__title-wrap">
+          {%- if s.eyebrow != blank -%}
+            <span class="fss__eyebrow"><i class="fss__dot" aria-hidden="true"></i>{{ s.eyebrow }}</span>
+          {%- endif -%}
+          {%- if s.heading != blank -%}<h2 class="fss__heading">{{ s.heading }}</h2>{%- endif -%}
+          {%- if s.subheading != blank -%}<p class="fss__sub">{{ s.subheading }}</p>{%- endif -%}
+        </div>
+
+        <div class="fss__controls">
+          {%- if s.link != blank and s.link_label != blank -%}
+            <a class="fss__viewall" href="{{ s.link }}">{{ s.link_label }}
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </a>
+          {%- endif -%}
+          <div class="fss__arrows">
+            <button type="button" class="fss__arrow js-fss-prev" aria-label="Previous">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg>
+            </button>
+            <button type="button" class="fss__arrow js-fss-next" aria-label="Next">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="fss__track fs-cards js-fss-track">
+        {%- for block in sales -%}
+          {%- liquid
+            assign c = block.settings
+            assign st = c.status | default: 'auto'
+            assign is_live = false
+            if st == 'live'
+              assign is_live = true
+            elsif st == 'auto' and c.collection != blank and c.collection.all_products_count > 0
+              assign is_live = true
+            endif
+          -%}
+          <div class="fss__slide">
+            {%- render 'flash-sale-card', block: block, is_live: is_live, s: s, index: forloop.index0 -%}
+          </div>
+        {%- endfor -%}
+      </div>
+
+      {%- if s.link != blank and s.link_label != blank -%}
+        <a class="fss__viewall fss__viewall--mobile" href="{{ s.link }}">{{ s.link_label }}
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </a>
+      {%- endif -%}
+    </div>
+  </div>
+{%- endif -%}
+
+{%- style -%}
+#fs-slider-{{ section.id }} { background: var(--fss-bg); color: var(--fs-text); padding: var(--fss-pt) 0 var(--fss-pb); }
+#fs-slider-{{ section.id }} *, #fs-slider-{{ section.id }} *::before, #fs-slider-{{ section.id }} *::after { box-sizing: border-box; }
+#fs-slider-{{ section.id }} .fss__inner { max-width: var(--fss-maxw); margin: 0 auto; padding: 0 16px; }
+
+#fs-slider-{{ section.id }} .fss__head { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; margin-bottom: 22px; }
+#fs-slider-{{ section.id }} .fss__eyebrow { display: inline-flex; align-items: center; gap: 8px; margin: 0 0 10px; font-size: 11px; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; opacity: 0.6; }
+#fs-slider-{{ section.id }} .fss__dot { position: relative; width: 8px; height: 8px; border-radius: 50%; background: #d11a2a; }
+#fs-slider-{{ section.id }} .fss__dot::after { content: ''; position: absolute; inset: -5px; border-radius: 50%; border: 1.5px solid #d11a2a; opacity: 0.5; animation: fssPulse-{{ section.id }} 1.8s ease-out infinite; }
+@keyframes fssPulse-{{ section.id }} { 0% { transform: scale(0.7); opacity: 0.65; } 100% { transform: scale(1.25); opacity: 0; } }
+#fs-slider-{{ section.id }} .fss__heading { margin: 0; font-family: 'Zen Maru Gothic', sans-serif; font-size: clamp(20px, 2.6vw, 28px); font-weight: 500; line-height: 1.25; letter-spacing: -0.01em; }
+#fs-slider-{{ section.id }} .fss__sub { margin: 8px 0 0; max-width: 560px; font-size: 14px; line-height: 1.55; opacity: 0.6; }
+
+#fs-slider-{{ section.id }} .fss__controls { display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
+#fs-slider-{{ section.id }} .fss__viewall { display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 800; letter-spacing: 0.09em; text-transform: uppercase; color: var(--fs-text); text-decoration: none; padding-bottom: 4px; border-bottom: 2px solid var(--fs-accent); transition: gap 0.22s ease, opacity 0.22s ease; }
+#fs-slider-{{ section.id }} .fss__viewall:hover { gap: 13px; opacity: 0.85; }
+#fs-slider-{{ section.id }} .fss__viewall--mobile { display: none; }
+#fs-slider-{{ section.id }} .fss__arrows { display: flex; gap: 8px; }
+#fs-slider-{{ section.id }} .fss__arrow { display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; padding: 0; color: var(--fs-text); background: transparent; border: 1.5px solid {{ s.text_color | color_modify: 'alpha', 0.18 }}; border-radius: 50%; cursor: pointer; transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease, opacity 0.18s ease; }
+#fs-slider-{{ section.id }} .fss__arrow svg { width: 17px; height: 17px; }
+#fs-slider-{{ section.id }} .fss__arrow:hover { background: var(--fs-text); border-color: var(--fs-text); color: #fff; }
+#fs-slider-{{ section.id }} .fss__arrow[disabled] { opacity: 0.28; pointer-events: none; }
+
+{%- comment -%} Scroll-snap slider: mobile par native swipe, desktop par arrows — koi library nahi. {%- endcomment -%}
+#fs-slider-{{ section.id }} .fss__track { display: flex; gap: 22px; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none; scroll-behavior: smooth; padding: 4px 0 6px; }
+#fs-slider-{{ section.id }} .fss__track::-webkit-scrollbar { display: none; }
+#fs-slider-{{ section.id }} .fss__slide { flex: 0 0 calc((100% - (var(--fss-cols) - 1) * 22px) / var(--fss-cols)); scroll-snap-align: start; }
+
+@media (max-width: 989px) {
+  #fs-slider-{{ section.id }} .fss__track { gap: 14px; }
+  #fs-slider-{{ section.id }} .fss__slide { flex-basis: calc((100% - 14px) / 2); }
+}
+@media (max-width: 749px) {
+  #fs-slider-{{ section.id }} { padding: {{ s.padding_top | times: 0.6 | round }}px 0 {{ s.padding_bottom | times: 0.6 | round }}px; }
+  #fs-slider-{{ section.id }} .fss__inner { padding: 0 14px; }
+  #fs-slider-{{ section.id }} .fss__head { margin-bottom: 16px; }
+  #fs-slider-{{ section.id }} .fss__controls .fss__viewall { display: none; }
+  #fs-slider-{{ section.id }} .fss__viewall--mobile { display: inline-flex; margin-top: 18px; }
+  #fs-slider-{{ section.id }} .fss__arrow { width: 34px; height: 34px; }
+  {%- comment -%} Phone par card thoda peek kare taake pata chale ke aur bhi hain. {%- endcomment -%}
+  #fs-slider-{{ section.id }} .fss__slide { flex-basis: 84%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #fs-slider-{{ section.id }} .fss__track { scroll-behavior: auto; }
+  #fs-slider-{{ section.id }} .fss__dot::after { animation: none; }
+}
+{%- endstyle -%}
+
+<script>
+(function () {
+  var root = document.getElementById('fs-slider-{{ section.id }}');
+  if (!root) return;
+  var track = root.querySelector('.js-fss-track');
+  var prev = root.querySelector('.js-fss-prev');
+  var next = root.querySelector('.js-fss-next');
+  if (!track || !prev || !next) return;
+
+  function step() {
+    var slide = track.querySelector('.fss__slide');
+    return slide ? slide.getBoundingClientRect().width + 22 : track.clientWidth;
+  }
+
+  function sync() {
+    var max = track.scrollWidth - track.clientWidth - 2;
+    prev.disabled = track.scrollLeft <= 2;
+    next.disabled = track.scrollLeft >= max;
+    // Sab cards fit ho jayein to arrows ka koi kaam nahi.
+    var idle = max <= 2;
+    prev.hidden = idle;
+    next.hidden = idle;
+  }
+
+  prev.addEventListener('click', function () { track.scrollBy({ left: -step(), behavior: 'smooth' }); });
+  next.addEventListener('click', function () { track.scrollBy({ left: step(), behavior: 'smooth' }); });
+  track.addEventListener('scroll', function () { window.requestAnimationFrame(sync); }, { passive: true });
+  window.addEventListener('resize', sync);
+  sync();
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Flash sale slider",
+  "tag": "section",
+  "class": "section-flash-sale-slider",
+  "settings": [
+    { "type": "header", "content": "Heading" },
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Live now" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Flash sales" },
+    { "type": "textarea", "id": "subheading", "label": "Subheading", "default": "Limited-time drops at their lowest prices." },
+    { "type": "text", "id": "link_label", "label": "Link label", "default": "View all" },
+    { "type": "url", "id": "link", "label": "Link", "info": "Point this at your flash sale page." },
+
+    { "type": "header", "content": "Labels on the cards" },
+    { "type": "text", "id": "cta_label", "label": "Live button label", "default": "View collection" },
+    { "type": "text", "id": "soon_cta_label", "label": "Upcoming button label", "default": "Coming soon" },
+    { "type": "text", "id": "ended_label", "label": "Countdown finished label", "default": "Sale ended" },
+
+    { "type": "header", "content": "Layout" },
+    { "type": "range", "id": "columns_desktop", "min": 2, "max": 4, "step": 1, "label": "Cards visible on desktop", "default": 3 },
+    { "type": "select", "id": "image_ratio", "label": "Cover image ratio", "default": "16/9", "options": [ { "value": "16/9", "label": "Wide (16:9)" }, { "value": "3/2", "label": "Landscape (3:2)" }, { "value": "2/1", "label": "Banner (2:1)" }, { "value": "4/3", "label": "Classic (4:3)" } ] },
+    { "type": "range", "id": "corner_radius", "min": 0, "max": 28, "step": 2, "unit": "px", "label": "Card corner radius", "default": 18 },
+    { "type": "range", "id": "max_width", "min": 1000, "max": 1600, "step": 20, "unit": "px", "label": "Max content width", "default": 1280 },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 100, "step": 4, "unit": "px", "label": "Padding top", "default": 56 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 100, "step": 4, "unit": "px", "label": "Padding bottom", "default": 56 },
+
+    { "type": "header", "content": "Colors" },
+    { "type": "color", "id": "bg_color", "label": "Background", "default": "#ffffff" },
+    { "type": "color", "id": "text_color", "label": "Text", "default": "#0a0a0a" },
+    { "type": "color", "id": "accent_color", "label": "Neon accent", "default": "#C6F135" },
+    { "type": "color", "id": "divider_color", "label": "Card border", "default": "#e6e6e6" }
+  ],
+  "blocks": [
+    {
+      "type": "sale",
+      "name": "Flash sale",
+      "settings": [
+        { "type": "collection", "id": "collection", "label": "Collection", "info": "The collection this sale links to." },
+        {
+          "type": "select", "id": "status", "label": "Status", "default": "auto",
+          "options": [
+            { "value": "auto", "label": "Auto — live once the collection has products" },
+            { "value": "live", "label": "Live now" },
+            { "value": "coming_soon", "label": "Coming soon" }
+          ]
+        },
+        { "type": "text", "id": "starts_text", "label": "Small note (coming soon only)", "info": "e.g. Starts 25 Aug — leave empty to hide." },
+
+        { "type": "header", "content": "Countdown" },
+        { "type": "checkbox", "id": "show_countdown", "label": "Show countdown on this card", "default": true },
+        { "type": "text", "id": "countdown_date", "label": "Target date", "info": "Format: YYYY-MM-DD. Leave empty for a daily countdown that resets at the time below." },
+        { "type": "text", "id": "countdown_time", "label": "Target time", "default": "23:59", "info": "24-hour format. Uses the visitor's local time." },
+        { "type": "text", "id": "countdown_label", "label": "Countdown label", "default": "Ends in" },
+
+        { "type": "header", "content": "Card content" },
+        { "type": "image_picker", "id": "image", "label": "Cover image", "info": "Falls back to the collection image." },
+        { "type": "image_picker", "id": "logo", "label": "Round logo" },
+        { "type": "text", "id": "badge", "label": "Badge (top-left)", "default": "Flash sale" },
+        { "type": "text", "id": "offer", "label": "Offer pill", "info": "Optional lime pill, e.g. UP TO 70% OFF." },
+        { "type": "text", "id": "title", "label": "Title", "info": "Falls back to the collection title." },
+        { "type": "textarea", "id": "description", "label": "Description", "default": "Limited-time prices on a hand-picked selection." },
+        { "type": "text", "id": "tags", "label": "Tag pills", "info": "Separate with commas." }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Flash sale slider",
+      "blocks": [ { "type": "sale" }, { "type": "sale" }, { "type": "sale" } ]
+    }
+  ]
+}
+{% endschema %}

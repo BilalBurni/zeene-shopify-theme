@@ -1,0 +1,43 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "bundle": {
+      "type": "bundle-builder",
+      "settings": {
+        "heading": "Build Your Bundle",
+        "subheading": "Pick any 3 and unlock your bundle price.",
+        "collection": "under-pkr-1-000",
+        "bundle_size": 3,
+        "bundle_price": "",
+        "discount_code": "",
+        "columns_desktop": 4,
+        "corner_radius": 0,
+        "max_width": 1280,
+        "bg_color": "#ffffff",
+        "text_color": "#0a0a0a",
+        "accent_color": "#c6f135",
+        "padding_top": 0,
+        "padding_bottom": 40,
+        "show_hero": true,
+        "hero_height": 340,
+        "hero_height_mobile": 240,
+        "hero_overlay": 45,
+        "hero_align": "center",
+        "hero_full_width": false,
+        "hero_radius": 18,
+        "eyebrow": "Bundle"
+      }
+    }
+  },
+  "order": [
+    "bundle"
+  ]
+}

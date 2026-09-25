@@ -1,0 +1,334 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "faq-hub": {
+      "type": "faq-hub",
+      "blocks": {
+        "cat-orders": {
+          "type": "category",
+          "settings": {
+            "title": "Orders",
+            "description": "Placing, confirming, changing or cancelling an order."
+          }
+        },
+        "q-place": {
+          "type": "question",
+          "settings": {
+            "question": "How do I place an order?",
+            "answer": "<p>Pick your product, choose your size and colour, and tap <strong>Add to cart</strong>. Open the cart and tap <strong>Checkout</strong>, then enter your name, complete address, city and mobile number and confirm. You don't need an account to order.<\/p>"
+          }
+        },
+        "q-confirm": {
+          "type": "question",
+          "settings": {
+            "question": "How do I know my order is confirmed?",
+            "answer": "<p>As soon as the order is placed you'll get a confirmation on SMS and email with your order number. Our team also calls or messages on WhatsApp to confirm cash-on-delivery orders before dispatch.<\/p>"
+          }
+        },
+        "q-change": {
+          "type": "question",
+          "settings": {
+            "question": "Can I change the size, colour or address after ordering?",
+            "answer": "<p>Yes — as long as the order hasn't been dispatched. Message us on WhatsApp with your order number and the change you need, and we'll update it before it leaves our warehouse.<\/p>"
+          }
+        },
+        "q-cancel": {
+          "type": "question",
+          "settings": {
+            "question": "How do I cancel my order?",
+            "answer": "<p>Send us your order number on WhatsApp or through the contact page and we'll cancel it right away if it hasn't shipped yet. Once the parcel is with the courier it can no longer be cancelled — you can refuse it at delivery or request an exchange instead.<\/p>"
+          }
+        },
+        "q-track": {
+          "type": "question",
+          "settings": {
+            "question": "How can I track my order?",
+            "answer": "<p>Once your order is dispatched, you'll receive a tracking number by SMS and email. You can also message us on WhatsApp with your order number and we'll share the latest update.<\/p>"
+          }
+        },
+        "cat-payment": {
+          "type": "category",
+          "settings": {
+            "title": "Payment",
+            "description": "Payment methods, cash on delivery and extra charges."
+          }
+        },
+        "q-cod": {
+          "type": "question",
+          "settings": {
+            "question": "Do you offer cash on delivery?",
+            "answer": "<p>Yes. Cash on delivery is available on all orders across Pakistan — you pay when your order reaches you. You can also pay online and save extra on your order.<\/p>"
+          }
+        },
+        "q-methods": {
+          "type": "question",
+          "settings": {
+            "question": "What payment methods can I use?",
+            "answer": "<p>You can pay cash on delivery, or pay online at checkout with the options shown on the payment step (card and bank transfer where available).<\/p>"
+          }
+        },
+        "q-charges": {
+          "type": "question",
+          "settings": {
+            "question": "Are there any hidden or extra charges?",
+            "answer": "<p>No. The amount you see at checkout is the final amount — no delivery fee, no service charges, no surprises at the door.<\/p>"
+          }
+        },
+        "q-payfail": {
+          "type": "question",
+          "settings": {
+            "question": "My payment failed but the amount was deducted. What now?",
+            "answer": "<p>Failed transactions are reversed by your bank automatically, usually within 5–7 working days. Send us the transaction receipt on WhatsApp and we'll follow up with you until it's settled.<\/p>"
+          }
+        },
+        "cat-shipping": {
+          "type": "category",
+          "settings": {
+            "title": "Shipping & Delivery",
+            "description": "Timelines, charges and delivery issues."
+          }
+        },
+        "q-time": {
+          "type": "question",
+          "settings": {
+            "question": "How long does delivery take?",
+            "answer": "<p>Orders are dispatched within 24 hours and usually delivered in <strong>3–5 working days<\/strong> across Pakistan — Karachi, Lahore, Islamabad, Rawalpindi, Faisalabad, Multan, Peshawar and beyond.<\/p>"
+          }
+        },
+        "q-free": {
+          "type": "question",
+          "settings": {
+            "question": "Is delivery free?",
+            "answer": "<p>Yes — delivery is free on all orders, with no minimum order value.<\/p>"
+          }
+        },
+        "q-areas": {
+          "type": "question",
+          "settings": {
+            "question": "Do you deliver to my city?",
+            "answer": "<p>We deliver nationwide through our courier partners, including small towns and cantonment areas. If your area is remote, delivery can take a couple of days longer than the usual 3–5 working days.<\/p>"
+          }
+        },
+        "q-late": {
+          "type": "question",
+          "settings": {
+            "question": "My order is late or the tracking hasn't updated. What should I do?",
+            "answer": "<p>Tracking can take up to 24 hours to show movement after dispatch. If your parcel hasn't moved for more than two days, message us your order number and we'll chase the courier and get back to you the same day.<\/p>"
+          }
+        },
+        "cat-returns": {
+          "type": "category",
+          "settings": {
+            "title": "Returns & Exchange",
+            "description": "Wrong size, wrong item or a change of mind."
+          }
+        },
+        "q-exchange": {
+          "type": "question",
+          "settings": {
+            "question": "Can I exchange or return my order?",
+            "answer": "<p>Yes. If the size or the piece isn't right, you can request an exchange or return within <strong>7 days<\/strong> of delivery, as long as the item is unused and in its original packaging with tags attached.<\/p>"
+          }
+        },
+        "q-howreturn": {
+          "type": "question",
+          "settings": {
+            "question": "How do I request an exchange?",
+            "answer": "<p>Message us on WhatsApp within 7 days of delivery with your order number, a photo of the item and the size or colour you'd like instead. We'll confirm the request and arrange the pickup or share the return address with you.<\/p>"
+          }
+        },
+        "q-wrongitem": {
+          "type": "question",
+          "settings": {
+            "question": "I received a wrong or damaged item.",
+            "answer": "<p>We're sorry — that shouldn't happen. Send us a photo or a short unboxing video within 48 hours of delivery and we'll replace the item at our own cost, on priority.<\/p>"
+          }
+        },
+        "q-refund": {
+          "type": "question",
+          "settings": {
+            "question": "How long does a refund take?",
+            "answer": "<p>Once your returned parcel reaches us and passes a quick quality check, refunds are processed within 5–7 working days to your original payment method, or by bank transfer for cash-on-delivery orders.<\/p>"
+          }
+        },
+        "cat-products": {
+          "type": "category",
+          "settings": {
+            "title": "Products & Sizing",
+            "description": "Fit, fabric, care and restocks."
+          }
+        },
+        "q-size": {
+          "type": "question",
+          "settings": {
+            "question": "How do I choose the right size?",
+            "answer": "<p>Every product page has a size chart under the product details — measure a piece you already own and match it to the chart. Our hoodies and tees are relaxed fit, so if you're between sizes we recommend going with your usual size.<\/p>"
+          }
+        },
+        "q-fabric": {
+          "type": "question",
+          "settings": {
+            "question": "What fabric do you use?",
+            "answer": "<p>Each product page lists the exact fabric and weight under the product details. We use premium cotton and cotton-blend fabrics chosen for everyday comfort and long-term durability.<\/p>"
+          }
+        },
+        "q-care": {
+          "type": "question",
+          "settings": {
+            "question": "How should I wash and care for my Zeene pieces?",
+            "answer": "<ul><li>Machine wash cold, inside out, with similar colours.<\/li><li>Do not bleach; use a mild detergent.<\/li><li>Do not iron directly over prints.<\/li><li>Dry in shade to keep the colour and shape intact.<\/li><\/ul>"
+          }
+        },
+        "q-restock": {
+          "type": "question",
+          "settings": {
+            "question": "My size is sold out — will it come back?",
+            "answer": "<p>Most bestsellers are restocked. Message us the product name and size on WhatsApp and we'll let you know as soon as it's back in stock.<\/p>"
+          }
+        },
+        "cat-support": {
+          "type": "category",
+          "settings": {
+            "title": "Support & Policies",
+            "description": "Getting in touch and where to find our policies."
+          }
+        },
+        "q-contact": {
+          "type": "question",
+          "settings": {
+            "question": "How can I contact customer support?",
+            "answer": "<p>WhatsApp is the fastest — message us any time and our team replies within a few hours during working hours. You can also reach us through the <a href=\"/pages/contact\">contact page<\/a> or on Instagram.<\/p>"
+          }
+        },
+        "q-complaint": {
+          "type": "question",
+          "settings": {
+            "question": "How do I register a complaint?",
+            "answer": "<p>Send us your order number and the details of the issue on WhatsApp or through the contact page. Complaints are acknowledged the same day and resolved within 3–5 working days.<\/p>"
+          }
+        },
+        "q-safe": {
+          "type": "question",
+          "settings": {
+            "question": "Is it safe to shop on Zeene Lifestyle?",
+            "answer": "<p>Yes. Checkout runs on Shopify's secure, encrypted payment system, and we never store your card details. Your address and phone number are used only to deliver your order.<\/p>"
+          }
+        },
+        "card-whatsapp": {
+          "type": "help_card",
+          "settings": {
+            "icon": "whatsapp",
+            "title": "Chat on WhatsApp",
+            "text": "Fastest way to reach us — order updates, sizing help, exchanges.",
+            "link_label": "Start a chat",
+            "link": "https://wa.me/923334056410",
+            "new_tab": true
+          }
+        },
+        "card-contact": {
+          "type": "help_card",
+          "settings": {
+            "icon": "mail",
+            "title": "Send us a message",
+            "text": "Write to our support team and we'll get back to you shortly.",
+            "link_label": "Contact us",
+            "link": "/pages/contact",
+            "new_tab": false
+          }
+        },
+        "card-returns": {
+          "type": "help_card",
+          "settings": {
+            "icon": "return",
+            "title": "Exchange or return",
+            "text": "7-day exchange on unused items with tags and original packaging.",
+            "link_label": "Request an exchange",
+            "link": "/pages/contact",
+            "new_tab": false
+          }
+        }
+      },
+      "block_order": [
+        "cat-orders",
+        "q-place",
+        "q-confirm",
+        "q-change",
+        "q-cancel",
+        "q-track",
+        "cat-payment",
+        "q-cod",
+        "q-methods",
+        "q-charges",
+        "q-payfail",
+        "cat-shipping",
+        "q-time",
+        "q-free",
+        "q-areas",
+        "q-late",
+        "cat-returns",
+        "q-exchange",
+        "q-howreturn",
+        "q-wrongitem",
+        "q-refund",
+        "cat-products",
+        "q-size",
+        "q-fabric",
+        "q-care",
+        "q-restock",
+        "cat-support",
+        "q-contact",
+        "q-complaint",
+        "q-safe",
+        "card-whatsapp",
+        "card-contact",
+        "card-returns"
+      ],
+      "settings": {
+        "eyebrow": "Support",
+        "heading": "Frequently Asked Questions",
+        "subheading": "Orders, delivery, exchanges and sizing — everything answered in one place. Can't find what you're looking for? Message us on WhatsApp and we'll help you out.",
+        "show_search": true,
+        "search_placeholder": "Search a question…",
+        "topics_label": "Topics",
+        "sidebar_menu": "footer-customer-care",
+        "sidebar_menu_label": "Help & policies",
+        "one_at_a_time": false,
+        "question_size": 15,
+        "answer_size": 14,
+        "contact_link": "/pages/contact",
+        "help_heading": "Still need a hand?",
+        "bg_color": "#ffffff",
+        "text_color": "#0a0a0a",
+        "accent_color": "#C6F135",
+        "divider_color": "#e6e6e6",
+        "max_width": 1280,
+        "padding_top": 40,
+        "padding_bottom": 72,
+        "enable_schema": true
+      }
+    },
+    "seo-content": {
+      "type": "seo-content",
+      "settings": {
+        "collapsed_height": 180,
+        "more_label": "Read More",
+        "less_label": "Read Less",
+        "max_width": 1280,
+        "padding_top": 8,
+        "padding_bottom": 48
+      }
+    }
+  },
+  "order": [
+    "faq-hub",
+    "seo-content"
+  ]
+}

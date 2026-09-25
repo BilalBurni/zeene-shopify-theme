@@ -1,0 +1,73 @@
+{%- liquid
+  assign repeat = section.settings.repeat_count
+  assign msg = section.settings.message
+-%}
+
+{%- style -%}
+#marquee-{{ section.id }} { background: {{ section.settings.bg_color }}; padding: {{ section.settings.padding_top }}px 0 {{ section.settings.padding_bottom }}px; overflow: hidden; {% if section.settings.top_border %}border-top: 1px solid {{ section.settings.border_color }};{% endif %} {% if section.settings.bottom_border %}border-bottom: 1px solid {{ section.settings.border_color }};{% endif %} }
+#marquee-{{ section.id }} .mq__row { display: flex; width: max-content; will-change: transform; animation: mqScroll-{{ section.id }} {{ section.settings.speed }}s linear infinite; }
+#marquee-{{ section.id }} .mq:hover .mq__row { {% if section.settings.pause_on_hover %}animation-play-state: paused;{% endif %} }
+#marquee-{{ section.id }} .mq__group { display: flex; align-items: center; flex-shrink: 0; }
+#marquee-{{ section.id }} .mq__item { display: inline-flex; align-items: center; padding: 0 {{ section.settings.gap }}px; font-family: 'Zen Maru Gothic', sans-serif; font-size: clamp(30px, {{ section.settings.font_size | divided_by: 16.0 }}vw, {{ section.settings.font_size }}px); font-weight: 800; line-height: 1; letter-spacing: -0.02em; text-transform: {% if section.settings.uppercase %}uppercase{% else %}none{% endif %}; white-space: nowrap; color: {{ section.settings.text_color }}; }
+{%- if section.settings.alternate_outline -%}
+#marquee-{{ section.id }} .mq__item:nth-child(4n+3) { color: transparent; -webkit-text-stroke: 1.4px {{ section.settings.text_color }}; }
+{%- endif -%}
+#marquee-{{ section.id }} .mq__sep { display: inline-flex; align-items: center; justify-content: center; color: {{ section.settings.accent_color }}; }
+#marquee-{{ section.id }} .mq__sep svg { width: clamp(20px, 2vw, 30px); height: clamp(20px, 2vw, 30px); }
+@keyframes mqScroll-{{ section.id }} { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) { #marquee-{{ section.id }} .mq__row { animation: none; } }
+{%- endstyle -%}
+
+<div id="marquee-{{ section.id }}" class="mq" role="marquee" aria-label="{{ msg | escape }}">
+  <div class="mq__row">
+    {%- for n in (1..2) -%}
+      <div class="mq__group"{% if n == 2 %} aria-hidden="true"{% endif %}>
+        {%- for i in (1..repeat) -%}
+          <span class="mq__item">{{ msg }}</span>
+          <span class="mq__sep">
+            {%- case section.settings.separator -%}
+              {%- when 'star' -%}<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.4 7.4H22l-6 4.4 2.3 7.4L12 16.9 5.7 21.2 8 13.8l-6-4.4h7.6z"/></svg>
+              {%- when 'asterisk' -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 4v16M4.5 7.5l15 9M19.5 7.5l-15 9"/></svg>
+              {%- when 'sparkle' -%}<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c.5 4.5 3 7 7.5 7.5C15 10 12.5 12.5 12 17c-.5-4.5-3-7-7.5-7.5C9 9 11.5 6.5 12 2z"/></svg>
+              {%- when 'dot' -%}<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="12" r="5"/></svg>
+              {%- else -%}<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="12" r="5"/></svg>
+            {%- endcase -%}
+          </span>
+        {%- endfor -%}
+      </div>
+    {%- endfor -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Marquee",
+  "tag": "section",
+  "class": "section-marquee",
+  "settings": [
+    { "type": "header", "content": "Text" },
+    { "type": "text", "id": "message", "label": "Message", "default": "New Season Just Dropped" },
+    { "type": "checkbox", "id": "uppercase", "label": "Uppercase", "default": true },
+    { "type": "checkbox", "id": "alternate_outline", "label": "Alternate outline style (premium)", "default": true, "info": "Every other repeat becomes outlined text." },
+    { "type": "range", "id": "repeat_count", "min": 2, "max": 10, "step": 1, "label": "Repeats", "default": 4 },
+    { "type": "range", "id": "gap", "min": 10, "max": 60, "step": 2, "unit": "px", "label": "Gap around each item", "default": 28 },
+    { "type": "select", "id": "separator", "label": "Separator", "options": [ { "value": "star", "label": "Star" }, { "value": "sparkle", "label": "Sparkle" }, { "value": "asterisk", "label": "Asterisk" }, { "value": "dot", "label": "Dot" } ], "default": "star" },
+    { "type": "range", "id": "font_size", "min": 28, "max": 120, "step": 2, "unit": "px", "label": "Max font size", "default": 64 },
+    { "type": "range", "id": "speed", "min": 10, "max": 80, "step": 2, "unit": "s", "label": "Scroll duration (lower = faster)", "default": 30 },
+    { "type": "checkbox", "id": "pause_on_hover", "label": "Pause on hover", "default": true },
+    { "type": "header", "content": "Colors" },
+    { "type": "color", "id": "bg_color", "label": "Background", "default": "#0a0a0a" },
+    { "type": "color", "id": "text_color", "label": "Text", "default": "#ffffff" },
+    { "type": "color", "id": "accent_color", "label": "Separator (neon)", "default": "#C6F135" },
+    { "type": "color", "id": "border_color", "label": "Border", "default": "#222222" },
+    { "type": "checkbox", "id": "top_border", "label": "Top border", "default": false },
+    { "type": "checkbox", "id": "bottom_border", "label": "Bottom border", "default": false },
+    { "type": "header", "content": "Spacing" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 80, "step": 2, "unit": "px", "label": "Padding top", "default": 22 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 80, "step": 2, "unit": "px", "label": "Padding bottom", "default": 22 }
+  ],
+  "presets": [
+    { "name": "Marquee" }
+  ]
+}
+{% endschema %}

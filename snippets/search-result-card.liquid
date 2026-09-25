@@ -1,0 +1,53 @@
+{%- comment -%} Compact search result card. Param: product {%- endcomment -%}
+{%- assign on_sale = false -%}
+{%- if product.compare_at_price > product.price and product.available -%}{%- assign on_sale = true -%}{%- endif -%}
+{%- assign save_pct = 0 -%}
+{%- if on_sale -%}{%- assign save_pct = product.compare_at_price | minus: product.price | times: 100 | divided_by: product.compare_at_price -%}{%- endif -%}
+<a href="{{ product.url }}" class="src">
+  <div class="src__media">{%- if product.featured_media != blank -%}<img src="{{ product.featured_media | image_url: width: 180 }}" alt="{{ product.title | escape }}" width="76" height="76" loading="lazy" decoding="async">{%- endif -%}</div>
+  <div class="src__info">
+    <div class="src__head">
+      <span class="src__title">{{ product.title }}</span>
+      {%- liquid
+        assign r_avg = 0
+        assign r_cnt = product.metafields.reviews.rating_count.value | plus: 0
+        if product.metafields.reviews.rating.value != blank and r_cnt > 0
+          assign r_avg = product.metafields.reviews.rating.value.rating | plus: 0.0
+        endif
+      -%}
+      {%- if r_avg > 0 -%}<span class="src__rating">{{ r_avg | round: 2 }}<svg viewBox="0 0 24 24" fill="currentColor" width="11" height="11" aria-hidden="true"><path d="M12 2l2.9 6.3 6.9.6-5.2 4.5 1.6 6.8L12 17.3 5.8 20.8l1.6-6.8L2.2 8.9l6.9-.6z"/></svg></span>{%- endif -%}
+    </div>
+    {%- liquid
+      assign color_option = null
+      for opt in product.options_with_values
+        assign nm = opt.name | downcase
+        if nm contains 'color' or nm contains 'colour'
+          assign color_option = opt
+        endif
+      endfor
+    -%}
+    {%- if color_option -%}
+      <div class="src__swatches">
+        {%- for value in color_option.values limit: 4 -%}
+          {%- liquid
+            assign sw_style = ''
+            if value.swatch.image
+              assign sw_style = 'background-image:url(' | append: value.swatch.image | image_url: width: 30 | append: ');'
+            elsif value.swatch.color
+              assign sw_style = 'background-color:rgb(' | append: value.swatch.color.rgb | append: ');'
+            else
+              assign sw_name = value | downcase | split: ' ' | last
+              assign sw_style = 'background-color:' | append: sw_name | append: ';'
+            endif
+          -%}
+          <span class="src__sw" style="{{ sw_style }}"></span>
+        {%- endfor -%}
+        {%- if color_option.values.size > 4 -%}<span class="src__sw-more">+{{ color_option.values.size | minus: 4 }}</span>{%- endif -%}
+      </div>
+    {%- endif -%}
+    <div class="src__price">
+      <span class="src__now{% if on_sale %} src__now--sale{% endif %}">{{ product.price | money }}</span>
+      {%- if on_sale -%}<s class="src__was">{{ product.compare_at_price | money }}</s><span class="src__off">{{ save_pct }}% OFF</span>{%- endif -%}
+    </div>
+  </div>
+</a>

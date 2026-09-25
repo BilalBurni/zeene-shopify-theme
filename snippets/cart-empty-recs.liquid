@@ -1,0 +1,96 @@
+{%- comment -%}
+  Empty-cart product cards, shared by the cart drawer and the cart page.
+  Params: mode ('drawer' compact cards with self-contained CSS, or 'page' full zeene-card grid; default 'drawer'), limit (default 4), cols ('page' mode only, default 4).
+  Do not rename mode to 'layout': Liquid has its own layout tag and the render param will not bind reliably.
+{%- endcomment -%}
+{%- liquid
+  assign recs_mode = mode | default: 'drawer'
+  assign recs_limit = limit | default: 4
+  assign recs_cols = cols | default: 4
+
+# Keep pulling from the next source until `want` is filled. Stopping at the first non-empty source returned a single card.
+  assign ec_products = settings.cart_drawer_collection.products
+  assign ec_size = ec_products.size | plus: 0
+  if ec_size < recs_limit
+    assign ec_products = collections['best-sellers'].products
+    assign ec_size = ec_products.size | plus: 0
+  endif
+  if ec_size < recs_limit
+    assign ec_products = collections['new-arrivals'].products
+    assign ec_size = ec_products.size | plus: 0
+  endif
+  if ec_size < recs_limit
+    assign ec_products = collections.all.products
+  endif
+-%}
+{%- if ec_products != blank -%}
+  {%- style -%}
+    .ce-recs__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 12px; }
+    .ce-rec { display: flex; flex-direction: column; gap: 8px; color: inherit; text-decoration: none; }
+    .ce-rec__media { display: block; aspect-ratio: 4 / 5; overflow: hidden; background: #f4f4f4; }
+    .ce-rec__media img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform 0.35s ease; }
+    .ce-rec:hover .ce-rec__media img { transform: scale(1.04); }
+    .ce-rec__name { font-family: 'Zen Maru Gothic', sans-serif; font-size: 12.5px; font-weight: 500; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .ce-rec__price { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 6px; font-family: 'Zen Maru Gothic', sans-serif; font-size: 11.5px; font-weight: 600; }
+    .ce-rec__price.is-sale > span:first-child { color: #d11a2a; }
+    .ce-rec__price s { font-size: 11px; font-weight: 500; opacity: 0.5; }
+    @media (prefers-reduced-motion: reduce) { .ce-rec__media img { transition: none; } }
+  {%- endstyle -%}
+
+  <div class="cart-empty__recs">
+    <h3 class="cart-empty__recs-title">Popular right now</h3>
+
+    {%- if recs_mode == 'page' -%}
+      <div
+        class="pg zeene-pg cart-empty__pg"
+        style="--pg-bg:transparent;--pg-cols:{{ recs_cols }};--pg-pt:0px;--pg-pb:0px;--pg-pt-m:0px;--pg-pb-m:0px;--pg-maxw:1200px;"
+      >
+        <div class="pg__inner">
+          <div class="pg__track">
+            {%- for p in ec_products limit: recs_limit -%}
+              {%- render 'zeene-card',
+                product: p,
+                cols: recs_cols,
+                show_swatches: true,
+                max_swatches: 2,
+                show_quick_add: true,
+                show_sizes: true,
+                show_sale_badge: true,
+                show_rating: true,
+                show_rating_count: false
+              -%}
+            {%- endfor -%}
+          </div>
+        </div>
+      </div>
+    {%- else -%}
+      <div class="ce-recs__grid">
+        {%- for p in ec_products limit: recs_limit -%}
+          {%- assign p_sale = false -%}
+          {%- if p.compare_at_price > p.price and p.available -%}{%- assign p_sale = true -%}{%- endif -%}
+          <a class="ce-rec" href="{{ p.url }}">
+            <span class="ce-rec__media">
+              {%- if p.featured_media != blank -%}
+                <img
+                  src="{{ p.featured_media | image_url: width: 400 }}"
+                  srcset="{{ p.featured_media | image_url: width: 300 }} 300w, {{ p.featured_media | image_url: width: 500 }} 500w"
+                  sizes="200px"
+                  alt="{{ p.featured_media.alt | default: p.title | escape }}"
+                  width="200"
+                  height="250"
+                  loading="lazy"
+                  decoding="async"
+                >
+              {%- endif -%}
+            </span>
+            <span class="ce-rec__name">{{ p.title }}</span>
+            <span class="ce-rec__price{% if p_sale %} is-sale{% endif %}">
+              <span>{{ p.price | money }}</span>
+              {%- if p_sale -%}<s>{{ p.compare_at_price | money }}</s>{%- endif -%}
+            </span>
+          </a>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+  </div>
+{%- endif -%}

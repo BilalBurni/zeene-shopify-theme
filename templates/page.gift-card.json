@@ -1,0 +1,73 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "gift-card": {
+      "type": "gift-card-page",
+      "blocks": {
+        "step-1": {
+          "type": "step",
+          "settings": {
+            "title": "Pick an amount",
+            "text": "Choose the value you want to gift — from PKR 1,000 upwards."
+          }
+        },
+        "step-2": {
+          "type": "step",
+          "settings": {
+            "title": "Add who it's for",
+            "text": "Their name, email and a short message. Pick the day it should land."
+          }
+        },
+        "step-3": {
+          "type": "step",
+          "settings": {
+            "title": "They shop",
+            "text": "The code arrives by email. They enter it at checkout — any leftover balance stays on the card."
+          }
+        }
+      },
+      "block_order": [
+        "step-1",
+        "step-2",
+        "step-3"
+      ],
+      "settings": {
+        "show_hero": true,
+        "eyebrow": "Gift card",
+        "heading": "Give them the choice",
+        "subheading": "A Zeene gift card lands straight in their inbox — they pick what they actually want.",
+        "hero_height": 380,
+        "hero_height_mobile": 240,
+        "hero_overlay": 45,
+        "hero_align": "center",
+        "hero_full_width": false,
+        "hero_radius": 8,
+        "amounts_heading": "Choose an amount",
+        "amounts_text": "Pick a value, add who it is for, and we will email it to them.",
+        "card_tag": "Gift card",
+        "card_cta": "Buy this card",
+        "steps_heading": "How it works",
+        "terms_heading": "Good to know",
+        "terms": "<ul><li>Gift cards never expire and can be used across as many orders as needed until the balance runs out.</li><li>The code is emailed to the recipient once the order is paid.</li><li>Gift cards cannot be exchanged for cash and are not refundable.</li><li>Discount codes cannot be applied to a gift card purchase.</li></ul>",
+        "bg_color": "#ffffff",
+        "text_color": "#0a0a0a",
+        "accent_color": "#C6F135",
+        "divider_color": "#e6e6e6",
+        "padding_top": 0,
+        "padding_bottom": 72,
+        "product": "zeene-gift-card"
+      }
+    }
+  },
+  "order": [
+    "gift-card"
+  ]
+}

@@ -1,0 +1,61 @@
+{%- comment -%}
+  Bundle block: the main product plus the given products.
+  Params: items (required), heading, product, variant, add_label, note, skip_id (drop this product id so the main row is not repeated).
+  Each block has its own .js-zp-fbt root.
+{%- endcomment -%}
+{%- liquid
+  assign fbt_count = 0
+  assign fbt_add_label = add_label | default: 'Add bundle to cart'
+  assign fbt_note = note | default: 'Selected items will be added to cart.'
+-%}
+{%- capture fbt_rows -%}
+  {%- for sp in items -%}
+    {%- if sp != blank and sp.available and sp.id != skip_id -%}
+      {%- assign fbt_count = fbt_count | plus: 1 -%}
+      {%- assign sv = sp.selected_or_first_available_variant -%}
+      <label class="zp-fbt__item">
+        <input type="checkbox" class="js-fbt-check" data-pid="{{ sp.id }}" checked>
+        <span class="zp-fbt__box" aria-hidden="true"></span>
+        <a class="zp-fbt__media" href="{{ sp.url }}" aria-label="{{ sp.title | escape }}">{%- if sp.featured_media -%}<img src="{{ sp.featured_media | image_url: width: 120 }}" alt="{{ sp.title | escape }}" width="52" height="64" loading="lazy" decoding="async">{%- endif -%}</a>
+        <span class="zp-fbt__info">
+          <a class="zp-fbt__name" href="{{ sp.url }}">{{ sp.title }}</a>
+          {%- if sp.variants.size > 1 -%}
+            <select class="zp-fbt__variant js-fbt-var" data-pid="{{ sp.id }}" aria-label="Option for {{ sp.title | escape }}">
+              {%- for v in sp.variants -%}<option value="{{ v.id }}" data-price="{{ v.price }}"{% unless v.available %} disabled{% endunless %}>{{ v.title }}{% unless v.available %} — sold out{% endunless %}</option>{%- endfor -%}
+            </select>
+          {%- else -%}
+            <input type="hidden" class="js-fbt-var" data-pid="{{ sp.id }}" value="{{ sv.id }}" data-price="{{ sv.price }}">
+          {%- endif -%}
+        </span>
+        <span class="zp-fbt__price" data-pid="{{ sp.id }}">{{ sv.price | money }}</span>
+      </label>
+    {%- endif -%}
+  {%- endfor -%}
+{%- endcapture -%}
+
+{%- if fbt_count > 0 -%}
+  <div class="zp-fbt js-zp-fbt">
+    {%- if heading != blank -%}<h3 class="zp-fbt__title">{{ heading }}</h3>{%- endif -%}
+    <div class="zp-fbt__list">
+      <div class="zp-fbt__item zp-fbt__item--main">
+        <span class="zp-fbt__media">{%- if product.featured_media -%}<img src="{{ product.featured_media | image_url: width: 120 }}" alt="{{ product.title | escape }}" width="52" height="64" loading="lazy">{%- endif -%}</span>
+        <span class="zp-fbt__info">
+          <span class="zp-fbt__name">{{ product.title }}</span>
+          {%- if product.variants.size > 1 -%}
+            <select class="zp-fbt__variant js-fbt-mainvar" aria-label="Option for this product">
+              {%- for v in product.variants -%}<option value="{{ v.id }}" data-price="{{ v.price }}"{% if v.id == variant.id %} selected{% endif %}{% unless v.available %} disabled{% endunless %}>{{ v.title }}{% unless v.available %} — sold out{% endunless %}</option>{%- endfor -%}
+            </select>
+          {%- endif -%}
+        </span>
+        <span class="zp-fbt__price zp-fbt__price--main">{{ variant.price | money }}</span>
+      </div>
+      <div class="zp-fbt__plus" aria-hidden="true"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></div>
+      {{ fbt_rows }}
+    </div>
+    <div class="zp-fbt__foot">
+      <div class="zp-fbt__totrow"><span class="zp-fbt__totlabel">Total</span><span class="zp-fbt__total js-fbt-total"></span></div>
+      <p class="zp-fbt__note">{{ fbt_note }}</p>
+      <button type="button" class="zp-fbt__add js-fbt-add">{{ fbt_add_label }}</button>
+    </div>
+  </div>
+{%- endif -%}

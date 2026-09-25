@@ -1,0 +1,144 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "name": "t:sections.footer.name",
+  "type": "footer",
+  "sections": {
+    "category_links": {
+      "type": "category-links",
+      "settings": {
+        "menu": "main-menu-1",
+        "columns": 4,
+        "collapse_mobile": true,
+        "column_gap": 24,
+        "group_gap": 24,
+        "sub_gap": 14,
+        "link_gap": 4,
+        "max_width": 1280,
+        "title_size": 15,
+        "sub_size": 13,
+        "link_size": 12,
+        "bg_color": "#f4f5f7",
+        "title_color": "#0a0a0a",
+        "sub_color": "#3a3a3a",
+        "link_color": "#7a7f88",
+        "link_hover_color": "#0a0a0a",
+        "divider_color": "#e0e2e6",
+        "padding_top": 48,
+        "padding_bottom": 40
+      }
+    },
+    "site_footer": {
+      "type": "site-footer",
+      "blocks": {
+        "link_column_qfEzVR": {
+          "type": "link_column",
+          "settings": {
+            "heading": "Company",
+            "menu": "footer-company",
+            "show_policies": false
+          }
+        },
+        "link_column_VAjieA": {
+          "type": "link_column",
+          "settings": {
+            "heading": "Customer Care",
+            "menu": "footer-customer-care",
+            "show_policies": false
+          }
+        },
+        "cat-1": {
+          "type": "category_column",
+          "disabled": true,
+          "settings": {
+            "heading": "Apparel",
+            "menu": "main-menu",
+            "show_policies": false
+          }
+        },
+        "cat-2": {
+          "type": "category_column",
+          "disabled": true,
+          "settings": {
+            "heading": "Collections",
+            "menu": "main-menu",
+            "show_policies": false
+          }
+        },
+        "cat-3": {
+          "type": "category_column",
+          "disabled": true,
+          "settings": {
+            "heading": "Fragrances",
+            "menu": "main-menu",
+            "show_policies": false
+          }
+        },
+        "link-1": {
+          "type": "link_column",
+          "settings": {
+            "heading": "Shop",
+            "menu": "footer-shop",
+            "show_policies": false
+          }
+        },
+        "link-2": {
+          "type": "link_column",
+          "settings": {
+            "heading": "Shop by Price",
+            "menu": "footer-shop-by-price",
+            "show_policies": false
+          }
+        }
+      },
+      "block_order": [
+        "link_column_qfEzVR",
+        "link_column_VAjieA",
+        "cat-1",
+        "cat-2",
+        "cat-3",
+        "link-1",
+        "link-2"
+      ],
+      "settings": {
+        "logo": "shopify://shop_images/color_logo_footer.png",
+        "logo_height": 50,
+        "logo_text": "ZEENE",
+        "tagline": "Premium lifestyle essentials — apparel & fragrances designed to stand out.",
+        "show_newsletter": true,
+        "news_heading": "Join the ZEENE movement",
+        "news_sub": "Exclusive drops and styling notes — straight to your inbox.",
+        "news_placeholder": "Enter your email address",
+        "news_button": "Subscribe",
+        "news_success": "Thanks for subscribing — welcome to ZEENE.",
+        "columns_desktop": 4,
+        "show_social": true,
+        "follow_heading": "Follow",
+        "follow_text": "Connect with us on our social channels",
+        "copyright_extra": "© 2026 ZEENE Lifestyle. All Rights Reserved.",
+        "show_payments": true,
+        "payment_image_url": "https://cdn.shopify.com/s/files/1/0966/9351/8650/files/payment-icons.png?v=1784565136",
+        "payment_image_height": 26,
+        "show_watermark": true,
+        "watermark_text": "ZEENE",
+        "max_width": 1280,
+        "bg_color": "#101010",
+        "text_color": "#ffffff",
+        "accent_color": "#c6f135",
+        "border_color": "#2e2e2e",
+        "padding_top": 48
+      }
+    }
+  },
+  "order": [
+    "category_links",
+    "site_footer"
+  ]
+}

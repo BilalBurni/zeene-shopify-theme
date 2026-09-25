@@ -1,0 +1,758 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "hero_slider": {
+      "type": "hero-slider",
+      "blocks": {
+        "slide_iXLbBG": {
+          "type": "slide",
+          "settings": {
+            "desktop_image": "shopify://shop_images/hoodie_banner_dasktop.jpg",
+            "mobile_image": "shopify://shop_images/hoodie-banner-mobile_2.jpg",
+            "link": "",
+            "title": "",
+            "gradient_color": "#c6f135",
+            "gradient_css": ""
+          }
+        },
+        "slide-1": {
+          "type": "slide",
+          "settings": {
+            "desktop_image": "shopify://shop_images/ChatGPT_Image_Jul_28_2026_11_30_01_PM.jpg",
+            "mobile_image": "shopify://shop_images/ChatGPT_Image_Jul_28_2026_11_29_55_PM.png",
+            "link": "",
+            "title": "",
+            "gradient_color": "#2c2c2c",
+            "gradient_css": ""
+          }
+        },
+        "slide-2": {
+          "type": "slide",
+          "settings": {
+            "desktop_image": "shopify://shop_images/ChatGPT_Image_Jul_29_2026_12_32_24_AM.jpg",
+            "mobile_image": "shopify://shop_images/ChatGPT_Image_Jul_29_2026_12_32_51_AM.jpg",
+            "link": "",
+            "title": "",
+            "gradient_color": "#ffc107",
+            "gradient_css": ""
+          }
+        }
+      },
+      "block_order": [
+        "slide_iXLbBG",
+        "slide-1",
+        "slide-2"
+      ],
+      "settings": {
+        "autoplay": true,
+        "autoplay_speed": 5,
+        "corner_radius": 24,
+        "dot_active_color": "#ffc107",
+        "mobile_ratio": "4/5",
+        "desktop_ratio": "24/9"
+      }
+    },
+    "category_grid": {
+      "type": "category-grid",
+      "blocks": {
+        "cat-1": {
+          "type": "category",
+          "settings": {
+            "title": "T-Shirts",
+            "label": "New In",
+            "link": ""
+          }
+        },
+        "cat-2": {
+          "type": "category",
+          "settings": {
+            "title": "Trousers",
+            "label": "",
+            "link": ""
+          }
+        },
+        "cat-3": {
+          "type": "category",
+          "settings": {
+            "title": "Hoodies",
+            "label": "Bestseller",
+            "link": ""
+          }
+        },
+        "cat-4": {
+          "type": "category",
+          "settings": {
+            "title": "Undergarments",
+            "label": "",
+            "link": ""
+          }
+        },
+        "cat-5": {
+          "type": "category",
+          "settings": {
+            "title": "Perfumes",
+            "label": "",
+            "link": ""
+          }
+        }
+      },
+      "block_order": [
+        "cat-1",
+        "cat-2",
+        "cat-3",
+        "cat-4",
+        "cat-5"
+      ],
+      "settings": {
+        "eyebrow": "",
+        "heading": "Shop by Category",
+        "subheading": "",
+        "view_all_label": "View all",
+        "view_all_link": "",
+        "columns_desktop": 5,
+        "card_ratio": "3/4",
+        "gap": 14,
+        "corner_radius": 16,
+        "max_width": 1280,
+        "mobile_slider": true,
+        "mobile_card_width": 70,
+        "bg_color": "#ffffff",
+        "heading_color": "#0a0a0a",
+        "accent_color": "#c6f135",
+        "padding_top": 56,
+        "padding_bottom": 48
+      }
+    },
+    "banner_best": {
+      "type": "banner-image",
+      "settings": {
+        "mobile_image": "shopify://shop_images/hoodie_banner_dasktop.jpg",
+        "link": "",
+        "link_label": "Shop now",
+        "full_width": true,
+        "corner_radius": 18,
+        "max_width": 1280,
+        "height": 200,
+        "mobile_height": 160,
+        "bg_color": "#ffffff",
+        "padding_top": 16,
+        "padding_bottom": 16
+      }
+    },
+    "product_grid_2": {
+      "type": "product-grid",
+      "settings": {
+        "eyebrow": "",
+        "heading": "Best Sellers",
+        "subheading": "",
+        "view_all_label": "View all",
+        "view_all_link": "shopify://collections/all",
+        "collection": "all",
+        "products_to_show": 10,
+        "columns_desktop": 5,
+        "image_ratio": "3/4",
+        "gap": 16,
+        "corner_radius": 14,
+        "max_width": 1280,
+        "show_swatches": true,
+        "max_swatches": 5,
+        "show_second_image": true,
+        "show_quick_add": false,
+        "show_sizes": true,
+        "show_sale_badge": true,
+        "show_vendor": false,
+        "show_rating": true,
+        "show_rating_count": false,
+        "rating_fallback": false,
+        "star_color": "#f5a623",
+        "mobile_slider": false,
+        "mobile_card_width": 65,
+        "bg_color": "#ffffff",
+        "text_color": "#0a0a0a",
+        "accent_color": "#c6f135",
+        "padding_top": 56,
+        "padding_bottom": 48
+      }
+    },
+    "promo_banner": {
+      "type": "promo-banner",
+      "blocks": {
+        "promo-1": {
+          "type": "promo",
+          "settings": {
+            "eyebrow": "",
+            "title": "New Season Drop",
+            "text": "",
+            "button_label": "Shop now",
+            "link": ""
+          }
+        },
+        "promo-2": {
+          "type": "promo",
+          "settings": {
+            "eyebrow": "",
+            "title": "Signature Fragrances",
+            "text": "",
+            "button_label": "Explore",
+            "link": ""
+          }
+        }
+      },
+      "block_order": [
+        "promo-1",
+        "promo-2"
+      ],
+      "settings": {
+        "ratio": "4/5",
+        "mobile_ratio": "4/5",
+        "gap": 14,
+        "corner_radius": 18,
+        "max_width": 1280,
+        "bg_color": "#ffffff",
+        "accent_color": "#c6f135",
+        "padding_top": 16,
+        "padding_bottom": 40
+      }
+    },
+    "banner_new": {
+      "type": "banner-image",
+      "settings": {
+        "link": "",
+        "link_label": "Shop now",
+        "full_width": true,
+        "corner_radius": 18,
+        "max_width": 1280,
+        "height": 200,
+        "mobile_height": 160,
+        "bg_color": "#ffffff",
+        "padding_top": 16,
+        "padding_bottom": 16
+      }
+    },
+    "product_grid": {
+      "type": "product-grid",
+      "settings": {
+        "eyebrow": "",
+        "heading": "New Arrivals",
+        "subheading": "",
+        "view_all_label": "View all",
+        "view_all_link": "shopify://collections/all",
+        "collection": "all",
+        "products_to_show": 10,
+        "columns_desktop": 5,
+        "image_ratio": "3/4",
+        "gap": 16,
+        "corner_radius": 14,
+        "max_width": 1280,
+        "show_swatches": true,
+        "max_swatches": 5,
+        "show_second_image": true,
+        "show_quick_add": false,
+        "show_sizes": true,
+        "show_sale_badge": true,
+        "show_vendor": false,
+        "show_rating": true,
+        "show_rating_count": false,
+        "rating_fallback": false,
+        "star_color": "#f5a623",
+        "mobile_slider": false,
+        "mobile_card_width": 65,
+        "bg_color": "#ffffff",
+        "text_color": "#0a0a0a",
+        "accent_color": "#c6f135",
+        "padding_top": 56,
+        "padding_bottom": 48
+      }
+    },
+    "marquee": {
+      "type": "marquee",
+      "settings": {
+        "message": "New Season Just Dropped",
+        "uppercase": true,
+        "alternate_outline": true,
+        "repeat_count": 4,
+        "gap": 28,
+        "separator": "star",
+        "font_size": 64,
+        "speed": 30,
+        "pause_on_hover": true,
+        "bg_color": "#0a0a0a",
+        "text_color": "#ffffff",
+        "accent_color": "#c6f135",
+        "border_color": "#222222",
+        "top_border": false,
+        "bottom_border": false,
+        "padding_top": 22,
+        "padding_bottom": 22
+      }
+    },
+    "lookbook": {
+      "type": "lookbook",
+      "blocks": {
+        "tile-1": {
+          "type": "tile",
+          "settings": {
+            "size": "feature",
+            "label": "The Winter Edit",
+            "cta": "Shop the look",
+            "link": ""
+          }
+        },
+        "tile-2": {
+          "type": "tile",
+          "settings": {
+            "size": "regular",
+            "label": "Hoodies",
+            "cta": "Discover",
+            "link": ""
+          }
+        },
+        "tile-3": {
+          "type": "tile",
+          "settings": {
+            "size": "regular",
+            "label": "Trousers",
+            "cta": "Discover",
+            "link": ""
+          }
+        },
+        "tile-4": {
+          "type": "tile",
+          "settings": {
+            "size": "wide",
+            "label": "Fragrance",
+            "cta": "Shop now",
+            "link": ""
+          }
+        }
+      },
+      "block_order": [
+        "tile-1",
+        "tile-2",
+        "tile-3",
+        "tile-4"
+      ],
+      "settings": {
+        "eyebrow": "",
+        "heading": "Styled by Zeene",
+        "gap": 12,
+        "corner_radius": 16,
+        "max_width": 1280,
+        "bg_color": "#ffffff",
+        "text_color": "#0a0a0a",
+        "accent_color": "#c6f135",
+        "padding_top": 56,
+        "padding_bottom": 48
+      }
+    },
+    "banner_countdown_XPK7fB": {
+      "type": "banner-countdown",
+      "name": "Banner + countdown",
+      "settings": {
+        "link": "",
+        "link_label": "Shop now",
+        "show_timer": true,
+        "countdown_type": "date",
+        "end_date": "2026-08-18",
+        "end_time": "23:59",
+        "daily_reset_time": "23:59",
+        "heading": "OFFER ENDS IN",
+        "show_days": true,
+        "label_style": "short",
+        "expired_action": "hide_timer",
+        "expired_message": "OFFER ENDED",
+        "timer_position": "right",
+        "mobile_position": "center",
+        "show_timer_mobile": true,
+        "timer_inset": 40,
+        "number_size": 30,
+        "mobile_number_size": 18,
+        "cell_gap": 8,
+        "heading_size": 12,
+        "card_color": "#ffffff",
+        "card_border": "#ffffff",
+        "card_radius": 8,
+        "number_color": "#0a0a0a",
+        "label_color": "#6a6a6a",
+        "heading_color": "#ffffff",
+        "scrim_opacity": 35,
+        "full_width": true,
+        "corner_radius": 18,
+        "max_width": 1280,
+        "height": 200,
+        "mobile_height": 160,
+        "bg_color": "#ffffff",
+        "padding_top": 16,
+        "padding_bottom": 16
+      }
+    },
+    "shop_the_look_N4anHx": {
+      "type": "shop-the-look",
+      "blocks": {
+        "hotspot_AYY9pA": {
+          "type": "hotspot",
+          "settings": {
+            "product": "zeene-extra-comfort-pocket-crewneck-sweat-shirt-lavender",
+            "x": 50,
+            "y": 50,
+            "x_mobile": 20,
+            "y_mobile": 90
+          }
+        },
+        "hotspot_JegW9Q": {
+          "type": "hotspot",
+          "settings": {
+            "product": "zeene-essential-premium-hoodie-jet-black",
+            "x": 30,
+            "y": 70,
+            "x_mobile": 50,
+            "y_mobile": 50
+          }
+        }
+      },
+      "block_order": [
+        "hotspot_AYY9pA",
+        "hotspot_JegW9Q"
+      ],
+      "name": "Shop the Look",
+      "settings": {
+        "heading": "",
+        "subheading": "",
+        "image": "shopify://shop_images/banner_2_dasktop_5760_x_2234_jpg.jpg",
+        "mobile_image": "shopify://shop_images/banner_2_mobile_jpg.jpg",
+        "show_label": true,
+        "button_label": "Quick Buy",
+        "dot_color": "#ffffff",
+        "corner_radius": 18,
+        "max_width": 1280,
+        "bg_color": "#ffffff",
+        "text_color": "#0a0a0a",
+        "accent_color": "#c6f135",
+        "padding_top": 20,
+        "padding_bottom": 20
+      }
+    },
+    "video_carousel": {
+      "type": "video-carousel",
+      "settings": {
+        "heading": "Watch & Shop",
+        "subheading": "",
+        "columns_desktop": 4,
+        "ratio": "9/16",
+        "corner_radius": 16,
+        "mobile_card_width": 70,
+        "max_width": 1280,
+        "bg_color": "#ffffff",
+        "text_color": "#0a0a0a",
+        "accent_color": "#c6f135",
+        "padding_top": 56,
+        "padding_bottom": 48
+      }
+    },
+    "usp_strip": {
+      "type": "usp-strip",
+      "blocks": {
+        "usp-1": {
+          "type": "usp",
+          "settings": {
+            "icon": "truck",
+            "title": "Free Delivery",
+            "subtitle": "On all orders"
+          }
+        },
+        "usp-2": {
+          "type": "usp",
+          "settings": {
+            "icon": "cash",
+            "title": "Cash on Delivery",
+            "subtitle": "Pay at your door"
+          }
+        },
+        "usp-3": {
+          "type": "usp",
+          "settings": {
+            "icon": "return",
+            "title": "Easy Returns",
+            "subtitle": "7-day exchange"
+          }
+        },
+        "usp-4": {
+          "type": "usp",
+          "settings": {
+            "icon": "shield",
+            "title": "100% Original",
+            "subtitle": "Premium quality"
+          }
+        }
+      },
+      "block_order": [
+        "usp-1",
+        "usp-2",
+        "usp-3",
+        "usp-4"
+      ],
+      "settings": {
+        "style": "stacked",
+        "icon_style": "plain",
+        "gap": 48,
+        "dividers": true,
+        "icon_size": 46,
+        "icon_gap": 14,
+        "title_size": 19,
+        "sub_size": 13,
+        "max_width": 1280,
+        "bg_color": "#ffffff",
+        "text_color": "#0a0a0a",
+        "accent_color": "#0a0a0a",
+        "icon_color": "#0a0a0a",
+        "border_color": "#e6e6e6",
+        "show_top_border": true,
+        "show_bottom_border": true,
+        "padding_top": 44,
+        "padding_bottom": 44
+      }
+    },
+    "blogs_carousel": {
+      "type": "blogs-carousel",
+      "settings": {
+        "heading": "From the Journal",
+        "subheading": "",
+        "view_all_label": "View all",
+        "view_all_link": "",
+        "blog": "news",
+        "posts_to_show": 3,
+        "show_date": true,
+        "show_excerpt": true,
+        "show_tag": false,
+        "columns_desktop": 3,
+        "corner_radius": 14,
+        "mobile_card_width": 80,
+        "max_width": 1280,
+        "bg_color": "#ffffff",
+        "text_color": "#0a0a0a",
+        "accent_color": "#c6f135",
+        "padding_top": 56,
+        "padding_bottom": 56
+      }
+    },
+    "faq": {
+      "type": "faq",
+      "blocks": {
+        "q1": {
+          "type": "faq_item",
+          "settings": {
+            "question": "How long does delivery take?",
+            "answer": "<p>Orders are dispatched within 24 hours and usually delivered in <strong>3–5 working days</strong> across Pakistan — Karachi, Lahore, Islamabad, Rawalpindi, Faisalabad, Multan, Peshawar and beyond.</p>"
+          }
+        },
+        "q2": {
+          "type": "faq_item",
+          "settings": {
+            "question": "Do you offer cash on delivery?",
+            "answer": "<p>Yes. Cash on delivery is available on all orders across Pakistan — you pay when your order reaches you. You can also pay online and save extra on your order.</p>"
+          }
+        },
+        "q3": {
+          "type": "faq_item",
+          "settings": {
+            "question": "Is delivery free?",
+            "answer": "<p>Yes — delivery is free on all orders, with no minimum order value.</p>"
+          }
+        },
+        "q4": {
+          "type": "faq_item",
+          "settings": {
+            "question": "Can I exchange or return my order?",
+            "answer": "<p>Yes. If the size or the piece isn't right, you can request an exchange or return within <strong>7 days</strong> of delivery, as long as the item is unused and in its original packaging with tags attached.</p>"
+          }
+        },
+        "q5": {
+          "type": "faq_item",
+          "settings": {
+            "question": "How do I choose the right size?",
+            "answer": "<p>Every product page has a size chart under the product details — measure a piece you already own and match it to the chart. Our hoodies and tees are relaxed fit, so if you're between sizes we recommend going with your usual size.</p>"
+          }
+        },
+        "q6": {
+          "type": "faq_item",
+          "settings": {
+            "question": "How can I track my order?",
+            "answer": "<p>Once your order is dispatched, you'll receive a tracking number by SMS and email. You can also message us on WhatsApp and we'll share the latest update.</p>"
+          }
+        }
+      },
+      "block_order": [
+        "q1",
+        "q2",
+        "q3",
+        "q4",
+        "q5",
+        "q6"
+      ],
+      "settings": {
+        "eyebrow": "",
+        "heading": "Frequently Asked Questions",
+        "subheading": "Everything you need to know before you order.",
+        "contact_label": "Still need help?",
+        "contact_link": "/pages/contact",
+        "layout": "split",
+        "one_at_a_time": true,
+        "open_first": false,
+        "row_padding": 18,
+        "question_size": 15,
+        "answer_size": 13,
+        "max_width": 1280,
+        "bg_color": "#ffffff",
+        "text_color": "#0a0a0a",
+        "accent_color": "#c6f135",
+        "divider_color": "#e6e6e6",
+        "padding_top": 48,
+        "padding_bottom": 48,
+        "enable_schema": true
+      }
+    },
+    "newsletter": {
+      "type": "newsletter-cta",
+      "settings": {
+        "eyebrow": "",
+        "heading": "Get 10% Off Your First Order",
+        "subheading": "Early access to drops, offers & restocks.",
+        "placeholder": "Enter your email",
+        "button_label": "Subscribe",
+        "success_text": "Thanks for subscribing — welcome to Zeene.",
+        "image_opacity": 45,
+        "corner_radius": 24,
+        "max_width": 1280,
+        "bg_color": "#ffffff",
+        "card_color": "#f5f5f5",
+        "text_color": "#0a0a0a",
+        "accent_color": "#c6f135",
+        "field_bg": "#ffffff",
+        "field_border": "#e0e0e0",
+        "padding_top": 40,
+        "padding_bottom": 56
+      }
+    },
+    "seo_content": {
+      "type": "seo-content",
+      "settings": {
+        "heading": "ZEENE Lifestyle — Premium Everyday Essentials in Pakistan",
+        "content": "<p>ZEENE Lifestyle is a Pakistani apparel brand built on one idea: everyday essentials should look premium, feel comfortable, and stay within reach. From hoodies and t-shirts to tracksuits, joggers, and accessories, every piece is made for how people actually dress in Pakistan — at university, at work, at the gym, and everywhere in between.</p><p>Instead of chasing trends that fade in a season, ZEENE focuses on the pieces you reach for again and again: the hoodie that survives every winter, the tee that holds its shape after twenty washes, the joggers you wear from the gym to the grocery store. Honest fabric, honest fit, honest pricing.</p><h3>Shop by Category</h3><p><strong>Upperwear</strong> covers our core range — premium tees, drop shoulder tees, graphic tees, and plain tees, alongside classic and performance polo shirts, pullover and zip hoodies, fleece hoodies, sweatshirts, and top tanks.</p><p><strong>Bottom Wear</strong> brings together tracksuits, joggers, cargo pants, baggy trousers, shorts, and performance bottoms — built for movement, cut for everyday wear.</p><p><strong>Accessories</strong> finishes the look with leather belts and wallets, while our <strong>Seasonal Collection</strong> splits into lightweight summer essentials and warm winter layering pieces.</p><h3>Built for the Pakistani Climate</h3><p>Clothing that works in Karachi's humidity is not the same clothing that works through an Islamabad winter. That is why our range is split seasonally: breathable cotton tees, polos, and lightweight essentials for summer, and fleece hoodies, sweatshirts, and winter tracksuits when the temperature drops.</p><h3>Shop Online Across Pakistan</h3><p>ZEENE Lifestyle ships nationwide — Karachi, Lahore, Islamabad, Rawalpindi, Faisalabad, Multan, Peshawar, and beyond. Wherever you order from, you get the same range, the same pricing, and the same support.</p><h3>Why Shop with ZEENE</h3><ul>\n<li>\n<strong>Free delivery</strong> on all orders across Pakistan</li>\n<li>\n<strong>Cash on delivery</strong> — pay when your order reaches you</li>\n<li>\n<strong>Easy returns</strong> if the fit or the piece is not right</li>\n</ul><p>New drops land regularly in New Arrivals, and our Sale section is where you will find the best value across hoodies, tees, tracksuits, and more. Browse the full range and find the essentials you will actually wear.</p>",
+        "collapsed_height": 180,
+        "more_label": "Read More",
+        "less_label": "Read Less",
+        "max_width": 1280,
+        "bg_color": "#ffffff",
+        "text_color": "#0a0a0a",
+        "button_bg": "#0a0a0a",
+        "button_text": "#ffffff",
+        "padding_top": 8,
+        "padding_bottom": 48
+      }
+    },
+    "flash-sale-slider": {
+      "type": "flash-sale-slider",
+      "blocks": {
+        "s1": {
+          "type": "sale",
+          "settings": {
+            "status": "auto",
+            "badge": "Flash sale",
+            "offer": "Up to 50% off",
+            "title": "Winter Flash Sale",
+            "description": "Hoodies, tracksuits and joggers at their lowest prices of the season.",
+            "tags": "Hoodies, Tracksuits, Joggers",
+            "show_countdown": true,
+            "countdown_date": "",
+            "countdown_time": "23:59",
+            "countdown_label": "Ends in"
+          }
+        },
+        "s2": {
+          "type": "sale",
+          "settings": {
+            "status": "auto",
+            "badge": "Bundle deal",
+            "offer": "Buy 2 get 1",
+            "title": "Buy 2 Get 1 Free",
+            "description": "Mix and match any three everyday essentials and pay for two.",
+            "tags": "Oversized Tees, Basics",
+            "show_countdown": true,
+            "countdown_date": "2026-08-31",
+            "countdown_time": "23:59",
+            "countdown_label": "Ends in"
+          }
+        },
+        "s3": {
+          "type": "sale",
+          "settings": {
+            "status": "coming_soon",
+            "badge": "Upcoming",
+            "offer": "Up to 70% off",
+            "title": "Mega Sale — Up To 70% Off",
+            "description": "Our biggest drop of the year. Set a reminder so you don't miss it.",
+            "tags": "Sitewide",
+            "starts_text": "Starts soon",
+            "show_countdown": true,
+            "countdown_date": "2026-09-25",
+            "countdown_time": "00:00",
+            "countdown_label": "Starts in"
+          }
+        }
+      },
+      "block_order": [
+        "s1",
+        "s2",
+        "s3"
+      ],
+      "settings": {
+        "eyebrow": "Live now",
+        "heading": "Flash sales",
+        "subheading": "Limited-time drops at their lowest prices.",
+        "link_label": "View all",
+        "link": "/pages/flash-sale",
+        "cta_label": "View collection",
+        "soon_cta_label": "Coming soon",
+        "ended_label": "Sale ended",
+        "columns_desktop": 3,
+        "image_ratio": "16/9",
+        "corner_radius": 18,
+        "max_width": 1280,
+        "padding_top": 56,
+        "padding_bottom": 56,
+        "bg_color": "#ffffff",
+        "text_color": "#0a0a0a",
+        "accent_color": "#C6F135",
+        "divider_color": "#e6e6e6"
+      }
+    }
+  },
+  "order": [
+    "hero_slider",
+    "category_grid",
+    "banner_best",
+    "product_grid_2",
+    "promo_banner",
+    "banner_new",
+    "product_grid",
+    "marquee",
+    "lookbook",
+    "banner_countdown_XPK7fB",
+    "shop_the_look_N4anHx",
+    "video_carousel",
+    "flash-sale-slider",
+    "usp_strip",
+    "blogs_carousel",
+    "faq",
+    "newsletter",
+    "seo_content"
+  ]
+}

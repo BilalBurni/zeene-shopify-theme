@@ -1,0 +1,147 @@
+{%- liquid
+  assign s = section.settings
+  assign repeat = s.repeat_count | default: 3
+  assign sep = s.separator
+-%}
+
+<div class="top-ticker" id="top-ticker-{{ section.id }}" role="region" aria-label="Announcements">
+  <div class="top-ticker__scroll">
+    <div class="top-ticker__track">
+      {%- for n in (1..2) -%}
+        <div class="top-ticker__group"{% if n == 2 %} aria-hidden="true"{% endif %}>
+          {%- for r in (1..repeat) -%}
+            {%- for block in section.blocks -%}
+              {%- if block.type == 'message' and block.settings.text != blank -%}
+                {%- if block.settings.link != blank -%}
+                  <a class="top-ticker__item top-ticker__item--link" href="{{ block.settings.link }}"{% if n == 1 and r == 1 %} {{ block.shopify_attributes }}{% endif %}>{{ block.settings.text }}</a>
+                {%- else -%}
+                  <span class="top-ticker__item"{% if n == 1 and r == 1 %} {{ block.shopify_attributes }}{% endif %}>{{ block.settings.text }}</span>
+                {%- endif -%}
+                {%- if sep != blank -%}<span class="top-ticker__sep">{{ sep }}</span>{%- endif -%}
+              {%- endif -%}
+            {%- endfor -%}
+          {%- endfor -%}
+          {%- if s.show_timer -%}
+            <span class="top-ticker__item top-ticker__item--timer">
+              {%- if s.timer_label != blank -%}{{ s.timer_label }} {% endif -%}
+              <span class="top-ticker__clock"><span class="top-ticker__num" data-unit="hours">00</span><span class="top-ticker__colon">:</span><span class="top-ticker__num" data-unit="minutes">00</span><span class="top-ticker__colon">:</span><span class="top-ticker__num" data-unit="seconds">00</span></span>
+            </span>
+            {%- if sep != blank -%}<span class="top-ticker__sep">{{ sep }}</span>{%- endif -%}
+          {%- endif -%}
+        </div>
+      {%- endfor -%}
+    </div>
+  </div>
+</div>
+
+{%- style -%}
+#top-ticker-{{ section.id }} { position: relative; display: flex; align-items: center; width: 100%; background: {{ s.bg_color }}; color: {{ s.text_color }}; overflow: hidden; white-space: nowrap; }
+#top-ticker-{{ section.id }} .top-ticker__scroll { flex: 1 1 auto; min-width: 0; overflow: hidden; display: flex; align-items: center; }
+#top-ticker-{{ section.id }} .top-ticker__track { display: flex; align-items: center; width: max-content; animation: topTickerScroll-{{ section.id }} {{ s.speed }}s linear infinite; }
+#top-ticker-{{ section.id }}:hover .top-ticker__track { animation-play-state: paused; }
+#top-ticker-{{ section.id }} .top-ticker__group { display: flex; align-items: center; flex-shrink: 0; }
+#top-ticker-{{ section.id }} .top-ticker__item { display: inline-flex; align-items: center; padding: {{ s.padding_y }}px 0; font-size: {{ s.font_size }}px; font-weight: {{ s.font_weight }}; text-transform: uppercase; letter-spacing: 0.04em; color: inherit; text-decoration: none; }
+#top-ticker-{{ section.id }} a.top-ticker__item--link:hover { text-decoration: underline; text-underline-offset: 3px; }
+#top-ticker-{{ section.id }} .top-ticker__item--timer { color: {{ s.timer_text_color }}; }
+#top-ticker-{{ section.id }} .top-ticker__sep { margin: 0 20px; font-size: {{ s.font_size }}px; font-weight: {{ s.font_weight }}; }
+#top-ticker-{{ section.id }} .top-ticker__clock { display: inline-flex; align-items: center; margin-left: 8px; gap: {{ s.box_gap }}px; font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+#top-ticker-{{ section.id }} .top-ticker__num { display: inline-flex; align-items: center; justify-content: center; min-width: 2.1em; padding: 0.18em 0.3em; background: {{ s.box_bg_color }}; color: {{ s.box_text_color }}; border-radius: {{ s.box_radius }}px; line-height: 1; font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; text-align: center; }
+#top-ticker-{{ section.id }} .top-ticker__colon { margin: 0 1px; opacity: 0.8; font-weight: 700; }
+@keyframes topTickerScroll-{{ section.id }} { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@media (max-width: 768px) { #top-ticker-{{ section.id }} .top-ticker__item { font-size: {{ s.mobile_font_size }}px; padding: {{ s.mobile_padding_y }}px 0; } #top-ticker-{{ section.id }} .top-ticker__sep { font-size: {{ s.mobile_font_size }}px; margin: 0 14px; } }
+@media (prefers-reduced-motion: reduce) { #top-ticker-{{ section.id }} .top-ticker__track { animation: none; } }
+{%- endstyle -%}
+
+<script>
+(function () {
+  var root = document.getElementById('top-ticker-{{ section.id }}');
+  if (!root) return;
+  var DAY_MS = 86400000;
+  function parseEndTime(str) {
+    var m = /^(\d{1,2}):(\d{2})$/.exec(String(str || '').trim());
+    if (!m) return { h: 23, min: 59 };
+    var h = parseInt(m[1], 10), min = parseInt(m[2], 10);
+    if (h > 23 || min > 59) return { h: 23, min: 59 };
+    return { h: h, min: min };
+  }
+  var endTime = parseEndTime({{ s.end_time | json }});
+  var hEls = root.querySelectorAll('[data-unit="hours"]');
+  var mEls = root.querySelectorAll('[data-unit="minutes"]');
+  var sEls = root.querySelectorAll('[data-unit="seconds"]');
+  if (!hEls.length) return;
+  function pad(n) { return String(n).padStart(2, '0'); }
+  function setAll(list, val) { for (var i = 0; i < list.length; i++) list[i].textContent = val; }
+  function getRemainingMs() {
+    var now = new Date();
+    var target = new Date(now.getFullYear(), now.getMonth(), now.getDate(), endTime.h, endTime.min, 0, 0);
+    if (now >= target) target.setDate(target.getDate() + 1);
+    var diff = target - now;
+    return diff > 0 ? diff : DAY_MS;
+  }
+  function tick() {
+    var diff = getRemainingMs();
+    setAll(hEls, pad(Math.floor(diff / 3600000)));
+    setAll(mEls, pad(Math.floor((diff / 60000) % 60)));
+    setAll(sEls, pad(Math.floor((diff / 1000) % 60)));
+  }
+  function start() { tick(); setInterval(tick, 1000); }
+  if (document.readyState === 'complete' || document.readyState === 'interactive') start();
+  else document.addEventListener('DOMContentLoaded', start, { once: true });
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Top Ticker",
+  "tag": "section",
+  "class": "top-ticker-section",
+  "max_blocks": 12,
+  "settings": [
+    { "type": "paragraph", "content": "Add one or more Message blocks below — each can have its own text and link. They scroll across the bar." },
+    { "type": "text", "id": "separator", "label": "Separator between items", "default": "•" },
+    { "type": "range", "id": "repeat_count", "min": 1, "max": 8, "step": 1, "label": "Repeat message set (to fill the bar)", "default": 3, "info": "Increase if you see a gap before it loops." },
+    { "type": "range", "id": "speed", "min": 10, "max": 80, "step": 1, "unit": "s", "label": "Scroll duration (lower = faster)", "default": 30 },
+    { "type": "header", "content": "Colors" },
+    { "type": "color", "id": "bg_color", "label": "Background", "default": "#C6F135" },
+    { "type": "color", "id": "text_color", "label": "Text", "default": "#0a0a0a" },
+    { "type": "header", "content": "Text size" },
+    { "type": "range", "id": "font_size", "min": 10, "max": 22, "step": 1, "unit": "px", "label": "Font size", "default": 14 },
+    { "type": "range", "id": "font_weight", "min": 400, "max": 800, "step": 100, "label": "Font weight", "default": 600 },
+    { "type": "range", "id": "padding_y", "min": 4, "max": 20, "step": 1, "unit": "px", "label": "Vertical padding", "default": 8 },
+    { "type": "header", "content": "Countdown timer (one, shown in the bar)" },
+    { "type": "paragraph", "content": "Counts down daily to the reset time below, then auto-restarts the next 24h cycle." },
+    { "type": "checkbox", "id": "show_timer", "label": "Show countdown in the ticker", "default": true },
+    { "type": "text", "id": "timer_label", "label": "Timer text", "default": "OFFER ENDS IN" },
+    { "type": "text", "id": "end_time", "label": "Daily reset time (HH:MM, 24h)", "info": "Example: 23:59", "default": "23:59" },
+    { "type": "color", "id": "timer_text_color", "label": "Timer label color", "default": "#0a0a0a" },
+    { "type": "header", "content": "Timer digit boxes" },
+    { "type": "color", "id": "box_bg_color", "label": "Box background", "default": "#0a0a0a" },
+    { "type": "color", "id": "box_text_color", "label": "Box digit color", "default": "#C6F135" },
+    { "type": "range", "id": "box_radius", "min": 0, "max": 16, "step": 1, "unit": "px", "label": "Box corner radius", "default": 4 },
+    { "type": "range", "id": "box_gap", "min": 0, "max": 10, "step": 1, "unit": "px", "label": "Gap between boxes", "default": 3 },
+    { "type": "header", "content": "Mobile" },
+    { "type": "range", "id": "mobile_font_size", "min": 9, "max": 18, "step": 1, "unit": "px", "label": "Mobile font size", "default": 12 },
+    { "type": "range", "id": "mobile_padding_y", "min": 3, "max": 16, "step": 1, "unit": "px", "label": "Mobile vertical padding", "default": 7 }
+  ],
+  "blocks": [
+    {
+      "type": "message",
+      "name": "Message",
+      "settings": [
+        { "type": "text", "id": "text", "label": "Text", "default": "FREE DELIVERY ON ALL ORDERS — SHOP NOW" },
+        { "type": "url", "id": "link", "label": "Link (optional)" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Top Ticker",
+      "category": "Promotional",
+      "blocks": [
+        { "type": "message", "settings": { "text": "FREE DELIVERY ON ALL ORDERS — SHOP NOW" } },
+        { "type": "message", "settings": { "text": "NEW ARRIVALS JUST DROPPED — EXPLORE NOW" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

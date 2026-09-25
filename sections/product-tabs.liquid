@@ -1,0 +1,335 @@
+{%- comment -%} Tab content comes from per-product metafields: custom.overview_images (list of files), custom.specs ("Label: Value" per line), custom.faqs (list of faq metaobjects). Section blocks are only a global fallback; a metafield always wins. {%- endcomment -%}
+{%- liquid
+  assign s = section.settings
+  assign img_blocks = section.blocks | where: 'type', 'overview_image'
+  assign spec_blocks = section.blocks | where: 'type', 'spec_row'
+  assign faq_blocks = section.blocks | where: 'type', 'faq_item'
+
+  assign mf_imgs = product.metafields.custom.overview_images.value
+  assign mf_specs_raw = product.metafields.custom.specs.value
+  assign mf_faqs = product.metafields.custom.faqs.value
+
+  assign use_mf_imgs = false
+  if mf_imgs != blank and mf_imgs.size > 0
+    assign use_mf_imgs = true
+  endif
+
+  assign spec_lines = ''
+  assign use_mf_specs = false
+  if mf_specs_raw != blank
+    assign spec_lines = mf_specs_raw | newline_to_br | split: '<br />'
+    if spec_lines.size > 0
+      assign use_mf_specs = true
+    endif
+  endif
+
+  assign use_mf_faqs = false
+  if mf_faqs != blank and mf_faqs.size > 0
+    assign use_mf_faqs = true
+  endif
+
+  assign has_overview = false
+  if use_mf_imgs or img_blocks.size > 0
+    assign has_overview = true
+  endif
+  assign has_specs = false
+  if use_mf_specs or spec_blocks.size > 0
+    assign has_specs = true
+  endif
+  assign has_faq = false
+  if use_mf_faqs or faq_blocks.size > 0
+    assign has_faq = true
+  endif
+
+  comment
+    Pehla mojood panel default active hota hai.
+  endcomment
+  assign first_panel = ''
+  if has_overview
+    assign first_panel = 'overview'
+  elsif has_specs
+    assign first_panel = 'specs'
+  elsif has_faq
+    assign first_panel = 'faq'
+  endif
+-%}
+
+{%- if has_overview or has_specs or has_faq or s.show_review_tab -%}
+  <div id="ptabs-{{ section.id }}" class="ptabs" style="--pt-bg:{{ s.bg_color }};--pt-text:{{ s.text_color }};--pt-accent:{{ s.accent_color }};--pt-maxw:{{ s.max_width }}px;">
+    <div class="ptabs__bar">
+      <div class="ptabs__inner">
+        <div class="ptabs__nav" role="tablist">
+          {%- if has_overview -%}
+            <button type="button" class="ptabs__tab{% if first_panel == 'overview' %} is-active{% endif %}" data-panel="overview" role="tab" aria-selected="{% if first_panel == 'overview' %}true{% else %}false{% endif %}" aria-controls="ptabs-overview-{{ section.id }}">{{ s.label_overview | default: 'Overview' }}</button>
+          {%- endif -%}
+          {%- if s.show_review_tab -%}
+            <button type="button" class="ptabs__tab ptabs__tab--jump js-ptabs-scroll">{{ s.label_review | default: 'Review' }}<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M18 13l-6 6-6-6"/></svg></button>
+          {%- endif -%}
+          {%- if has_specs -%}
+            <button type="button" class="ptabs__tab{% if first_panel == 'specs' %} is-active{% endif %}" data-panel="specs" role="tab" aria-selected="{% if first_panel == 'specs' %}true{% else %}false{% endif %}" aria-controls="ptabs-specs-{{ section.id }}">{{ s.label_specs | default: 'Specs' }}</button>
+          {%- endif -%}
+          {%- if has_faq -%}
+            <button type="button" class="ptabs__tab{% if first_panel == 'faq' %} is-active{% endif %}" data-panel="faq" role="tab" aria-selected="{% if first_panel == 'faq' %}true{% else %}false{% endif %}" aria-controls="ptabs-faq-{{ section.id }}">{{ s.label_faq | default: 'FAQ' }}</button>
+          {%- endif -%}
+        </div>
+      </div>
+    </div>
+
+    {%- if has_overview -%}
+      <div class="ptabs__panel{% if first_panel == 'overview' %} is-active{% endif %}" data-panel="overview" id="ptabs-overview-{{ section.id }}" role="tabpanel">
+        <div class="ptabs__imgs{% unless s.full_width %} ptabs__imgs--contained{% endunless %}">
+          {%- if use_mf_imgs -%}
+            {%- for img in mf_imgs -%}
+              {%- if img != blank -%}
+                <div class="ptabs__img"><img src="{{ img | image_url: width: 1600 }}" srcset="{{ img | image_url: width: 900 }} 900w, {{ img | image_url: width: 1400 }} 1400w, {{ img | image_url: width: 1900 }} 1900w" sizes="100vw" alt="{{ img.alt | default: product.title | escape }}" width="{{ img.width }}" height="{{ img.height }}" loading="lazy" decoding="async"></div>
+              {%- endif -%}
+            {%- endfor -%}
+          {%- else -%}
+            {%- for b in img_blocks -%}
+              {%- liquid
+                assign img = b.settings.image
+                assign img_m = b.settings.image_mobile
+                assign alt = b.settings.alt | default: product.title
+              -%}
+              {%- if img != blank -%}
+                {%- capture media -%}
+                  <picture>
+                    {%- if img_m != blank -%}<source media="(max-width: 749px)" srcset="{{ img_m | image_url: width: 600 }} 600w, {{ img_m | image_url: width: 900 }} 900w" sizes="100vw">{%- endif -%}
+                    <img src="{{ img | image_url: width: 1600 }}" srcset="{{ img | image_url: width: 900 }} 900w, {{ img | image_url: width: 1400 }} 1400w, {{ img | image_url: width: 1900 }} 1900w" sizes="100vw" alt="{{ alt | escape }}" width="{{ img.width }}" height="{{ img.height }}" loading="lazy" decoding="async">
+                  </picture>
+                {%- endcapture -%}
+                {%- if b.settings.link != blank -%}
+                  <a class="ptabs__img" href="{{ b.settings.link }}" {{ b.shopify_attributes }}>{{ media }}</a>
+                {%- else -%}
+                  <div class="ptabs__img" {{ b.shopify_attributes }}>{{ media }}</div>
+                {%- endif -%}
+              {%- endif -%}
+            {%- endfor -%}
+          {%- endif -%}
+        </div>
+      </div>
+    {%- endif -%}
+
+    {%- if has_specs -%}
+      <div class="ptabs__panel{% if first_panel == 'specs' %} is-active{% endif %}" data-panel="specs" id="ptabs-specs-{{ section.id }}" role="tabpanel">
+        <div class="ptabs__inner">
+          <dl class="ptabs__specs">
+            {%- if use_mf_specs -%}
+              {%- for line in spec_lines -%}
+                {%- liquid
+                  assign row = line | strip_newlines | strip
+                  assign sp_label = row | split: ':' | first | strip
+                  assign sp_value = row | remove_first: sp_label | remove_first: ':' | strip
+                -%}
+                {%- if row != blank -%}
+                  <div class="ptabs__spec">
+                    <dt>{{ sp_label }}</dt>
+                    <dd>{{ sp_value }}</dd>
+                  </div>
+                {%- endif -%}
+              {%- endfor -%}
+            {%- else -%}
+              {%- for b in spec_blocks -%}
+                <div class="ptabs__spec" {{ b.shopify_attributes }}>
+                  <dt>{{ b.settings.label }}</dt>
+                  <dd>{{ b.settings.value }}</dd>
+                </div>
+              {%- endfor -%}
+            {%- endif -%}
+          </dl>
+        </div>
+      </div>
+    {%- endif -%}
+
+    {%- if has_faq -%}
+      <div class="ptabs__panel{% if first_panel == 'faq' %} is-active{% endif %}" data-panel="faq" id="ptabs-faq-{{ section.id }}" role="tabpanel">
+        <div class="ptabs__inner">
+          <div class="ptabs__faq">
+            {%- if use_mf_faqs -%}
+              {%- for f in mf_faqs -%}
+                <details class="ptabs__q">
+                  <summary class="ptabs__q-head">{{ f.question }}<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+                  <div class="ptabs__q-wrap"><div class="ptabs__q-body rte">{{ f.answer | metafield_tag }}</div></div>
+                </details>
+              {%- endfor -%}
+            {%- else -%}
+              {%- for b in faq_blocks -%}
+                <details class="ptabs__q" {{ b.shopify_attributes }}>
+                  <summary class="ptabs__q-head">{{ b.settings.question }}<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+                  <div class="ptabs__q-wrap"><div class="ptabs__q-body rte">{{ b.settings.answer }}</div></div>
+                </details>
+              {%- endfor -%}
+            {%- endif -%}
+          </div>
+        </div>
+      </div>
+    {%- endif -%}
+  </div>
+{%- endif -%}
+
+{%- style -%}
+#ptabs-{{ section.id }} { background: var(--pt-bg); color: var(--pt-text); padding: {{ s.padding_top }}px 0 {{ s.padding_bottom }}px; }
+#ptabs-{{ section.id }} .ptabs__inner { max-width: var(--pt-maxw); margin: 0 auto; padding: 0 16px; }
+#ptabs-{{ section.id }} .ptabs__bar { border-bottom: 1px solid rgba(0,0,0,0.09); }
+#ptabs-{{ section.id }} .ptabs__nav { display: flex; align-items: center; justify-content: flex-start; gap: 30px; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+#ptabs-{{ section.id }} .ptabs__nav::-webkit-scrollbar { display: none; }
+#ptabs-{{ section.id }} .ptabs__tab { position: relative; flex: 0 0 auto; display: inline-flex; align-items: center; gap: 7px; padding: 16px 0; border: 0; background: none; font-family: 'Zen Maru Gothic', sans-serif; font-size: 14px; font-weight: 500; color: var(--pt-text); opacity: 0.5; white-space: nowrap; cursor: pointer; transition: opacity 0.25s ease; }
+#ptabs-{{ section.id }} .ptabs__tab:hover { opacity: 1; }
+#ptabs-{{ section.id }} .ptabs__tab.is-active { opacity: 1; font-weight: 600; }
+#ptabs-{{ section.id }} .ptabs__tab::after { content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 3px; border-radius: 3px 3px 0 0; background: var(--pt-accent); transform: scaleX(0); transform-origin: right; transition: transform 0.36s cubic-bezier(.16,1,.3,1), opacity 0.25s ease; }
+#ptabs-{{ section.id }} .ptabs__tab.is-active::after { transform: scaleX(1); transform-origin: left; }
+#ptabs-{{ section.id }} .ptabs__tab:hover::after { transform: scaleX(1); transform-origin: left; opacity: 0.4; }
+#ptabs-{{ section.id }} .ptabs__tab.is-active:hover::after { opacity: 1; }
+#ptabs-{{ section.id }} .ptabs__tab--jump::after { display: none; }
+#ptabs-{{ section.id }} .ptabs__tab--jump svg { opacity: 0.65; transition: transform 0.3s cubic-bezier(.16,1,.3,1); }
+#ptabs-{{ section.id }} .ptabs__tab--jump:hover svg { transform: translateY(3px); }
+#ptabs-{{ section.id }} .ptabs__panel { display: none; }
+#ptabs-{{ section.id }} .ptabs__panel.is-active { display: block; animation: ptabsIn{{ section.id }} 0.4s cubic-bezier(.16,1,.3,1); }
+@keyframes ptabsIn{{ section.id }} { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+#ptabs-{{ section.id }} .ptabs__imgs--contained { max-width: var(--pt-maxw); margin: 0 auto; padding: 0 16px; }
+#ptabs-{{ section.id }} .ptabs__img { display: block; }
+#ptabs-{{ section.id }} .ptabs__img img { display: block; width: 100%; height: auto; }
+#ptabs-{{ section.id }} .ptabs__specs { margin: 26px 0 0; }
+#ptabs-{{ section.id }} .ptabs__spec { display: grid; grid-template-columns: 260px 1fr; gap: 18px; padding: 12px 0; border-bottom: 1px solid rgba(0,0,0,0.07); }
+#ptabs-{{ section.id }} .ptabs__spec dt { margin: 0; font-family: 'Zen Maru Gothic', sans-serif; font-size: 12.5px; font-weight: 600; color: var(--pt-text); }
+#ptabs-{{ section.id }} .ptabs__spec dd { margin: 0; font-family: 'Zen Maru Gothic', sans-serif; font-size: 12.5px; line-height: 1.6; color: var(--pt-text); opacity: 0.65; }
+#ptabs-{{ section.id }} .ptabs__faq { margin: 26px 0 0; }
+#ptabs-{{ section.id }} .ptabs__q { border-bottom: 1px solid rgba(0,0,0,0.09); }
+#ptabs-{{ section.id }} .ptabs__q-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 15px 0; font-family: 'Zen Maru Gothic', sans-serif; font-size: 12.5px; font-weight: 600; color: var(--pt-text); cursor: pointer; list-style: none; }
+#ptabs-{{ section.id }} .ptabs__q-head::-webkit-details-marker { display: none; }
+#ptabs-{{ section.id }} .ptabs__q-head svg { flex-shrink: 0; opacity: 0.55; transition: transform 0.35s cubic-bezier(.16,1,.3,1); }
+#ptabs-{{ section.id }} .ptabs__q.is-open .ptabs__q-head svg { transform: rotate(180deg); }
+#ptabs-{{ section.id }} .ptabs__q-wrap { display: grid; grid-template-rows: 0fr; overflow: hidden; transition: grid-template-rows 0.38s cubic-bezier(.16,1,.3,1); }
+#ptabs-{{ section.id }} .ptabs__q.is-open .ptabs__q-wrap { grid-template-rows: 1fr; }
+#ptabs-{{ section.id }} .ptabs__q-body { min-height: 0; overflow: hidden; padding: 0; font-family: 'Zen Maru Gothic', sans-serif; font-size: 12.5px; line-height: 1.7; color: var(--pt-text); opacity: 0.7; }
+#ptabs-{{ section.id }} .ptabs__q.is-open .ptabs__q-body { padding-bottom: 16px; }
+#ptabs-{{ section.id }} .ptabs__q-body img { max-width: 100%; }
+@media (max-width: 749px) { #ptabs-{{ section.id }} .ptabs__nav { gap: 22px; } #ptabs-{{ section.id }} .ptabs__tab { font-size: 13px; padding: 13px 0; } #ptabs-{{ section.id }} .ptabs__spec { grid-template-columns: 1fr; gap: 3px; } #ptabs-{{ section.id }} .ptabs__specs, #ptabs-{{ section.id }} .ptabs__faq { margin-top: 18px; } }
+@media (prefers-reduced-motion: reduce) { #ptabs-{{ section.id }} .ptabs__panel.is-active { animation: none; } #ptabs-{{ section.id }} .ptabs__tab::after, #ptabs-{{ section.id }} .ptabs__tab--jump svg, #ptabs-{{ section.id }} .ptabs__q-wrap, #ptabs-{{ section.id }} .ptabs__q-head svg { transition: none; } }
+{%- endstyle -%}
+
+<script>
+(function () {
+  var root = document.getElementById('ptabs-{{ section.id }}');
+  if (!root) return;
+
+  var tabs = Array.prototype.slice.call(root.querySelectorAll('.ptabs__tab'));
+  var panels = Array.prototype.slice.call(root.querySelectorAll('.ptabs__panel'));
+
+  function activate(name) {
+    tabs.forEach(function (t) {
+      var on = t.getAttribute('data-panel') === name;
+      t.classList.toggle('is-active', on);
+      if (t.hasAttribute('aria-selected')) t.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+    panels.forEach(function (p) { p.classList.toggle('is-active', p.getAttribute('data-panel') === name); });
+  }
+
+  tabs.forEach(function (t) {
+    var name = t.getAttribute('data-panel');
+    if (!name) return; // Review tab — us ka apna handler neeche hai.
+    t.addEventListener('click', function () { activate(name); });
+  });
+
+var scrollBtn = root.querySelector('.js-ptabs-scroll');
+  if (scrollBtn) {
+    scrollBtn.addEventListener('click', function () {
+      var sel = '{{ s.review_target | default: ".section-product-reviews" }}';
+      var el = document.querySelector(sel) || document.getElementById('judgeme_product_reviews');
+      if (!el) return;
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+
+var FAQ_MS = 380; // upar wali grid-template-rows transition ke barabar.
+  var qs = Array.prototype.slice.call(root.querySelectorAll('.ptabs__q'));
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  function qClose(d) {
+    if (!d.open) return;
+    if (d._t) { clearTimeout(d._t); d._t = null; }
+    d.classList.remove('is-open');
+    if (reduce.matches) { d.open = false; return; }
+    d._t = setTimeout(function () { d.open = false; d._t = null; }, FAQ_MS);
+  }
+
+  function qOpen(d) {
+    if (d._t) { clearTimeout(d._t); d._t = null; }
+    qs.forEach(function (o) { if (o !== d) qClose(o); });
+    d.open = true;
+    if (reduce.matches) { d.classList.add('is-open'); return; }
+    requestAnimationFrame(function () { requestAnimationFrame(function () { d.classList.add('is-open'); }); });
+  }
+
+  qs.forEach(function (d) {
+    var head = d.querySelector('.ptabs__q-head');
+    if (!head) return;
+    head.addEventListener('click', function (e) {
+      e.preventDefault();
+      if (d.open && d.classList.contains('is-open')) qClose(d); else qOpen(d);
+    });
+  });
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Product tabs",
+  "tag": "section",
+  "class": "section-product-tabs",
+  "settings": [
+    { "type": "paragraph", "content": "Content har product ka apna — METAFIELDS se aata hai: custom.overview_images (List of files), custom.specs (Multi-line text, \"Label: Value\" har line), custom.faqs (List of metaobjects). Neeche ke blocks sirf fallback hain — jis product ka metafield khali ho wahan wo dikhte hain." },
+    { "type": "header", "content": "Tab labels" },
+    { "type": "text", "id": "label_overview", "label": "Overview tab", "default": "Overview" },
+    { "type": "text", "id": "label_review", "label": "Review tab", "default": "Review" },
+    { "type": "text", "id": "label_specs", "label": "Specs tab", "default": "Specs" },
+    { "type": "text", "id": "label_faq", "label": "FAQ tab", "default": "FAQ" },
+    { "type": "header", "content": "Review tab" },
+    { "type": "checkbox", "id": "show_review_tab", "label": "Show Review tab", "default": true, "info": "Ye tab panel nahi kholta — click par reviews section tak scroll karta hai." },
+    { "type": "text", "id": "review_target", "label": "Scroll target (CSS selector)", "default": ".section-product-reviews", "info": "Chhorein waise hi. Sirf tab badlein jab reviews kisi aur section mein hon." },
+    { "type": "header", "content": "Overview images" },
+    { "type": "checkbox", "id": "full_width", "label": "Full width images", "default": true, "info": "Off karein to images content width tak mehdood rahengi." },
+    { "type": "header", "content": "Appearance" },
+    { "type": "range", "id": "max_width", "min": 1000, "max": 1600, "step": 20, "unit": "px", "label": "Max content width", "default": 1280 },
+    { "type": "color", "id": "bg_color", "label": "Background", "default": "#ffffff" },
+    { "type": "color", "id": "text_color", "label": "Text", "default": "#0a0a0a" },
+    { "type": "color", "id": "accent_color", "label": "Neon accent", "default": "#C6F135" },
+    { "type": "header", "content": "Spacing" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 100, "step": 4, "unit": "px", "label": "Padding top", "default": 0 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 100, "step": 4, "unit": "px", "label": "Padding bottom", "default": 24 }
+  ],
+  "blocks": [
+    {
+      "type": "overview_image",
+      "name": "Overview image (fallback)",
+      "settings": [
+        { "type": "paragraph", "content": "Sirf un products par dikhta hai jinka custom.overview_images metafield khali ho." },
+        { "type": "image_picker", "id": "image", "label": "Image (desktop)" },
+        { "type": "image_picker", "id": "image_mobile", "label": "Image (mobile)", "info": "Optional." },
+        { "type": "text", "id": "alt", "label": "Alt text" },
+        { "type": "url", "id": "link", "label": "Link", "info": "Optional." }
+      ]
+    },
+    {
+      "type": "spec_row",
+      "name": "Spec row (fallback)",
+      "settings": [
+        { "type": "text", "id": "label", "label": "Label", "default": "Material" },
+        { "type": "text", "id": "value", "label": "Value", "default": "100% Cotton" }
+      ]
+    },
+    {
+      "type": "faq_item",
+      "name": "FAQ item (fallback)",
+      "settings": [
+        { "type": "text", "id": "question", "label": "Question", "default": "How do I choose my size?" },
+        { "type": "richtext", "id": "answer", "label": "Answer", "default": "<p>Check the size chart on the product page.</p>" }
+      ]
+    }
+  ],
+  "max_blocks": 30,
+  "presets": [
+    { "name": "Product tabs" }
+  ]
+}
+{% endschema %}

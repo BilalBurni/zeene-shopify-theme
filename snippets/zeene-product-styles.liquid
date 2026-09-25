@@ -1,0 +1,289 @@
+{%- comment -%} Styles for zeene-product section. Param: id {%- endcomment -%}
+{%- style -%}
+#zeene-product-{{ id }} { padding: 8px 0 48px; }
+{%- comment -%} Floating video bubble (bottom-left) + lightbox. {%- endcomment -%}
+#zeene-product-{{ id }} .zp-vid { position: fixed; left: 18px; bottom: 18px; z-index: 5; }
+#zeene-product-{{ id }} .zp-vid__bubble { position: relative; display: block; width: 86px; height: 86px; padding: 0; border: 0; border-radius: 50%; overflow: hidden; background: #0a0a0a; cursor: pointer; box-shadow: 0 10px 28px -10px rgba(0,0,0,0.5); transition: transform 0.25s cubic-bezier(.16,1,.3,1); }
+#zeene-product-{{ id }} .zp-vid__bubble:hover { transform: scale(1.06); }
+#zeene-product-{{ id }} .zp-vid__prev { width: 100%; height: 100%; object-fit: cover; display: block; }
+#zeene-product-{{ id }} .zp-vid__play { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%; background: rgba(255,255,255,0.92); color: #0a0a0a; padding-left: 2px; }
+#zeene-product-{{ id }} .zp-vid__x { position: absolute; top: -4px; right: -4px; display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border: 0; border-radius: 50%; background: #0a0a0a; color: #fff; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+#zeene-product-{{ id }} .zp-vid-lb { position: fixed; inset: 0; z-index: 1007; display: flex; align-items: center; justify-content: center; padding: 24px; visibility: hidden; opacity: 0; background: rgba(8,8,8,0.9); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); transition: opacity 0.3s ease, visibility 0.3s ease; }
+#zeene-product-{{ id }} .zp-vid-lb.active { visibility: visible; opacity: 1; }
+#zeene-product-{{ id }} .zp-vid-lb__inner { width: min(460px, 92vw); aspect-ratio: 9/16; max-height: 88vh; background: #000; overflow: hidden; }
+#zeene-product-{{ id }} .zp-vid-lb__inner video, #zeene-product-{{ id }} .zp-vid-lb__frame, #zeene-product-{{ id }} .zp-vid-lb__frame iframe { width: 100%; height: 100%; display: block; border: 0; object-fit: contain; background: #000; }
+#zeene-product-{{ id }} .zp-vid-lb__close { position: absolute; top: 18px; right: 18px; display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border: 0; border-radius: 50%; background: rgba(255,255,255,0.12); color: #fff; cursor: pointer; transition: background-color 0.2s ease; }
+#zeene-product-{{ id }} .zp-vid-lb__close:hover { background: rgba(255,255,255,0.24); }
+@media (max-width: 749px) { #zeene-product-{{ id }} .zp-vid { left: 12px; bottom: 12px; } #zeene-product-{{ id }} .zp-vid__bubble { width: 68px; height: 68px; } #zeene-product-{{ id }} .zp-vid__play { width: 26px; height: 26px; } }
+@media (prefers-reduced-motion: reduce) { #zeene-product-{{ id }} .zp-vid__bubble, #zeene-product-{{ id }} .zp-vid-lb { transition: none; } }
+
+#zeene-product-{{ id }} .zp-sticky { position: fixed; top: 0; left: 0; right: 0; z-index: 3; background: #fff; border-bottom: 1px solid rgba(0,0,0,0.09); box-shadow: 0 6px 20px -12px rgba(0,0,0,0.25); transform: translateY(-100%); visibility: hidden; transition: transform 0.35s cubic-bezier(.16,1,.3,1), visibility 0.35s ease; }
+#zeene-product-{{ id }} .zp-sticky.is-visible { transform: translateY(0); visibility: visible; }
+#zeene-product-{{ id }} .zp-sticky__inner { max-width: var(--zp-maxw, 1280px); margin: 0 auto; padding: 9px var(--zeene-pad, 16px); display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+#zeene-product-{{ id }} .zp-sticky__prod { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1; }
+#zeene-product-{{ id }} .zp-sticky__media { flex: 0 0 42px; width: 42px; height: 42px; border-radius: 6px; overflow: hidden; background: #f2f2f2; }
+#zeene-product-{{ id }} .zp-sticky__media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+#zeene-product-{{ id }} .zp-sticky__meta { min-width: 0; display: flex; align-items: baseline; gap: 3px 12px; flex-wrap: wrap; }
+#zeene-product-{{ id }} .zp-sticky__name { font-family: 'Zen Maru Gothic', sans-serif; font-size: 13px; font-weight: 600; color: #0a0a0a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 340px; }
+#zeene-product-{{ id }} .zp-sticky__price { font-family: 'Zen Maru Gothic', sans-serif; font-size: 13px; font-weight: 700; color: #0a0a0a; white-space: nowrap; }
+#zeene-product-{{ id }} .zp-sticky__actions { display: flex; align-items: stretch; gap: 10px; flex: 0 0 auto; height: 44px; }
+#zeene-product-{{ id }} .zp-sticky__var { box-sizing: border-box; height: 44px; max-width: 190px; padding: 0 34px 0 14px; font-family: 'Zen Maru Gothic', sans-serif; font-size: 12.5px; font-weight: 500; color: #0a0a0a; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%230a0a0a' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center; border: 1px solid rgba(0,0,0,0.2); border-radius: 8px; cursor: pointer; -webkit-appearance: none; appearance: none; }
+#zeene-product-{{ id }} .zp-sticky__add { box-sizing: border-box; height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 26px; border: 0; border-radius: 8px; background: #0a0a0a; color: #fff; font-family: 'Zen Maru Gothic', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; cursor: pointer; transition: background-color 0.2s ease; }
+#zeene-product-{{ id }} .zp-sticky__add svg { flex: 0 0 auto; }
+#zeene-product-{{ id }} .zp-sticky__add:hover:not(:disabled) { background: #1f1f1f; }
+#zeene-product-{{ id }} .zp-sticky__add:disabled { opacity: 0.4; cursor: not-allowed; }
+#zeene-product-{{ id }} .zp-sticky__add.is-loading { opacity: 0.7; pointer-events: none; }
+@media (max-width: 749px) { #zeene-product-{{ id }} .zp-sticky__media, #zeene-product-{{ id }} .zp-sticky__name { display: none; } #zeene-product-{{ id }} .zp-sticky__var { max-width: 120px; } #zeene-product-{{ id }} .zp-sticky__add { padding: 0 18px; } #zeene-product-{{ id }} .zp-sticky__inner { padding: 8px 14px; } }
+@media (prefers-reduced-motion: reduce) { #zeene-product-{{ id }} .zp-sticky { transition: visibility 0.2s ease; } }
+#zeene-product-{{ id }} .zp__inner { max-width: var(--zp-maxw, 1280px); margin: 0 auto; padding: 0 16px; display: grid; grid-template-columns: 55fr 45fr; gap: 48px; align-items: start; }
+#zeene-product-{{ id }} .zp__media, #zeene-product-{{ id }} .zp__info { min-width: 0; }
+#zeene-product-{{ id }} .zp__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+#zeene-product-{{ id }} .zp__cell { position: relative; overflow: hidden; background: #f4f4f4; aspect-ratio: 3/4; }
+#zeene-product-{{ id }} .zp__cell--wide { grid-column: 1 / -1; aspect-ratio: 4/5; }
+#zeene-product-{{ id }} .zp__cell img { width: 100%; height: 100%; object-fit: cover; display: block; }
+#zeene-product-{{ id }} .zp__info { font-family: 'Zen Maru Gothic', sans-serif; overflow-wrap: break-word; }
+#zeene-product-{{ id }} .zp__acc-body img, #zeene-product-{{ id }} .zp__acc-body table, #zeene-product-{{ id }} .zp__acc-body iframe { max-width: 100%; }
+#zeene-product-{{ id }} .zp__head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; margin-bottom: 10px; min-height: 20px; }
+#zeene-product-{{ id }} .zp__eyebrow { font-size: 10.5px; font-weight: 600; text-transform: uppercase; color: var(--zp-accent, #C6F135); filter: brightness(0.72); }
+#zeene-product-{{ id }} .zp__rating { display: inline-flex; align-items: center; gap: 7px; margin-left: auto; }
+#zeene-product-{{ id }} .zp__stars { position: relative; font-size: 13px; letter-spacing: 2px; color: rgba(0,0,0,0.16); }
+#zeene-product-{{ id }} .zp__stars::before { content: '★★★★★'; position: absolute; left: 0; top: 0; width: var(--r, 0%); overflow: hidden; color: #f5a623; white-space: nowrap; }
+#zeene-product-{{ id }} .zp__rcount { font-size: 11.5px; font-weight: 400; color: #0a0a0a; opacity: 0.55; }
+#zeene-product-{{ id }} .zp__ctags { display: flex; flex-wrap: wrap; gap: 5px; margin: 0; min-width: 0; }
+#zeene-product-{{ id }} .zp__ctag { display: inline-flex; align-items: center; justify-content: center; padding: 0 8px 2px; height: 21px; line-height: 1; border-radius: 3px; background: var(--ct-bg, #FFD400); color: var(--ct-fg, #0a0a0a); font-size: 11.5px; font-weight: 700; white-space: nowrap; }
+#zeene-product-{{ id }} .zp__title { margin: 0; font-size: 18px; font-weight: 600; line-height: 1.35; color: #0a0a0a; }
+#zeene-product-{{ id }} .zp__vendor { margin: 5px 0 0; font-size: 12px; font-weight: 400; color: #0a0a0a; opacity: 0.5; }
+#zeene-product-{{ id }} .zp__prices { display: flex; flex-wrap: wrap; align-items: baseline; gap: 9px; margin: 14px 0 0; }
+#zeene-product-{{ id }} .zp__price { font-size: 16px; font-weight: 600; color: #0a0a0a; }
+#zeene-product-{{ id }} .zp__price--sale { color: #d11a2a; }
+#zeene-product-{{ id }} .zp__compare { font-size: 13px; font-weight: 400; opacity: 0.42; text-decoration: line-through; }
+#zeene-product-{{ id }} .zp__deal { position: relative; overflow: hidden; display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 14px; padding: 8px 10px 8px 15px; border-radius: 8px; background: linear-gradient(100deg, #aee01f 0%, var(--zp-accent, #C6F135) 46%, #dcfa74 100%); box-shadow: 0 10px 26px -14px rgba(150,200,20,0.9); }
+#zeene-product-{{ id }} .zp__deal--notag { justify-content: flex-end; }
+{%- comment -%} Same shine keyframe as the card badge: travel exactly one 200% tile (-100% to 100%) for a seamless loop. {%- endcomment -%}
+@keyframes zpShine { 0% { background-position: -100% 0; } 100% { background-position: 100% 0; } }
+#zeene-product-{{ id }} .zp__deal::after { content: ''; position: absolute; inset: 0; z-index: 2; pointer-events: none; background: linear-gradient(-45deg, rgba(255,255,255,0) 20%, rgba(255,255,255,0.62) 40%, rgba(255,255,255,0) 60%); background-size: 200% auto; animation: zpShine 3s linear infinite; }
+#zeene-product-{{ id }} .zp__deal-tag { position: relative; z-index: 1; flex: 0 0 auto; font-family: 'Zen Maru Gothic', sans-serif; font-size: 14px; font-weight: 800; text-transform: uppercase; color: #0a0a0a; }
+#zeene-product-{{ id }} .zp__deal-timer { position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 10px; }
+#zeene-product-{{ id }} .zp__deal-label { font-size: 11px; font-weight: 600; text-transform: uppercase; color: #0a0a0a; opacity: 0.62; white-space: nowrap; }
+#zeene-product-{{ id }} .zp__deal-clock { display: inline-flex; align-items: center; gap: 2px; font-variant-numeric: tabular-nums; }
+#zeene-product-{{ id }} .zp__deal-unit { display: inline-flex; flex-direction: column; align-items: center; gap: 1px; min-width: 32px; padding: 4px 3px 3px; background: #0a0a0a; border-radius: 6px; }
+#zeene-product-{{ id }} .zp__deal-unit b { font-family: 'Zen Maru Gothic', sans-serif; font-size: 13px; font-weight: 700; line-height: 1; color: var(--zp-accent, #C6F135); }
+#zeene-product-{{ id }} .zp__deal-unit i { font-style: normal; font-size: 7.5px; font-weight: 600; line-height: 1; text-transform: uppercase; color: var(--zp-accent, #C6F135); opacity: 0.55; }
+#zeene-product-{{ id }} .zp__deal-colon { font-size: 12px; font-weight: 700; color: #0a0a0a; opacity: 0.35; padding-bottom: 2px; }
+@media (max-width: 480px) { #zeene-product-{{ id }} .zp__deal { gap: 10px; padding-left: 12px; } #zeene-product-{{ id }} .zp__deal-label { display: none; } }
+@media (prefers-reduced-motion: reduce) { #zeene-product-{{ id }} .zp__deal::after { animation: none; opacity: 0; } }
+
+#zeene-product-{{ id }} .zp__prepaid { display: block; width: 100%; margin-top: 12px; padding: 0; text-align: left; background: none; border: 0; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+#zeene-product-{{ id }} .zp__prepaid-row { display: flex; align-items: center; gap: 10px; padding: 11px 13px; border: 1px solid rgba(150,190,20,0.5); border-left: 3px solid var(--zp-accent, #C6F135); border-radius: 9px; background: linear-gradient(100deg, rgba(198,241,53,0.18), rgba(198,241,53,0.04)); transition: background-color 0.2s ease; }
+#zeene-product-{{ id }} .zp__prepaid:hover .zp__prepaid-row { background: linear-gradient(100deg, rgba(198,241,53,0.28), rgba(198,241,53,0.08)); }
+#zeene-product-{{ id }} .zp__prepaid-ic { flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; background: var(--zp-accent, #C6F135); color: #0a0a0a; }
+#zeene-product-{{ id }} .zp__prepaid-text { flex: 1; min-width: 0; font-family: 'Zen Maru Gothic', sans-serif; font-size: 12.5px; font-weight: 500; color: #0a0a0a; }
+#zeene-product-{{ id }} .zp__prepaid-pill { flex: 0 0 auto; padding: 5px 11px; font-family: 'Zen Maru Gothic', sans-serif; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em; color: #0a0a0a; background: var(--zp-accent, #C6F135); border-radius: 9999px; white-space: nowrap; }
+#zeene-product-{{ id }} .zp__prepaid-caret { flex: 0 0 auto; color: #0a0a0a; opacity: 0.5; transition: transform 0.35s cubic-bezier(.16,1,.3,1); }
+#zeene-product-{{ id }} .zp__prepaid[aria-expanded="true"] .zp__prepaid-caret { transform: rotate(180deg); }
+#zeene-product-{{ id }} .zp__prepaid-wrap { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.35s cubic-bezier(.16,1,.3,1); }
+#zeene-product-{{ id }} .zp__prepaid[aria-expanded="true"] .zp__prepaid-wrap { grid-template-rows: 1fr; }
+#zeene-product-{{ id }} .zp__prepaid-note { min-height: 0; overflow: hidden; display: block; padding: 0 13px; font-family: 'Zen Maru Gothic', sans-serif; font-size: 11.5px; font-weight: 400; line-height: 1.55; color: #4a4a4a; }
+#zeene-product-{{ id }} .zp__prepaid[aria-expanded="true"] .zp__prepaid-note { padding-top: 9px; padding-bottom: 3px; }
+@media (prefers-reduced-motion: reduce) { #zeene-product-{{ id }} .zp__prepaid-caret, #zeene-product-{{ id }} .zp__prepaid-wrap { transition: none; } }
+#zeene-product-{{ id }} .zp__promo { display: flex; align-items: center; gap: 10px; margin-top: 14px; padding: 11px 14px; background: linear-gradient(100deg, rgba(198,241,53,0.16), rgba(198,241,53,0.05)); border: 1px solid rgba(198,241,53,0.5); border-radius: 10px; }
+#zeene-product-{{ id }} .zp__promo-icon { color: #0a0a0a; }
+#zeene-product-{{ id }} .zp__promo-text { flex: 1; font-size: 12.5px; font-weight: 500; color: #0a0a0a; }
+#zeene-product-{{ id }} .zp__promo-badge { font-size: 10px; font-weight: 600; color: #0a0a0a; background: var(--zp-accent, #C6F135); padding: 4px 8px; border-radius: 6px; white-space: nowrap; }
+#zeene-product-{{ id }} .zp__urgency { display: flex; align-items: center; gap: 7px; margin: 12px 0 0; font-size: 12px; font-weight: 500; color: #1a7f37; }
+#zeene-product-{{ id }} .zp__article { margin: 16px 0 0; font-size: 12px; font-weight: 400; color: #4a4a4a; }
+#zeene-product-{{ id }} .zp__article strong { color: #0a0a0a; font-weight: 600; }
+#zeene-product-{{ id }} .zp__features { margin: 11px 0 0; padding-left: 17px; list-style: disc; }
+#zeene-product-{{ id }} .zp__features li { font-size: 12px; font-weight: 400; line-height: 1.55; color: #3a3a3a; margin-bottom: 4px; }
+#zeene-product-{{ id }} .zp__modelinfo { margin: 12px 0 0; font-size: 11.5px; font-weight: 400; color: #6a6a6a; }
+#zeene-product-{{ id }} .zp__red { color: #d11a2a; font-weight: 600; }
+#zeene-product-{{ id }} .zp__form { margin-top: 20px; }
+#zeene-product-{{ id }} .zp__opt { margin-bottom: 16px; }
+#zeene-product-{{ id }} .zp__opt-label { display: flex; align-items: center; gap: 8px; font-size: 11.5px; font-weight: 600; text-transform: uppercase; margin-bottom: 9px; }
+#zeene-product-{{ id }} .zp__opt-label .js-zp-optval { font-weight: 400; text-transform: none; opacity: 0.6; }
+#zeene-product-{{ id }} .zp__swatches { display: flex; flex-wrap: wrap; gap: 9px; }
+#zeene-product-{{ id }} .zp__sw { width: 38px; height: 38px; border-radius: 0; border: 1px solid rgba(0,0,0,0.15); background-size: cover; background-position: center; cursor: pointer; padding: 0; transition: box-shadow 0.15s ease; }
+#zeene-product-{{ id }} .zp__sw.is-active { box-shadow: 0 0 0 2px #fff, 0 0 0 4px #0a0a0a; }
+#zeene-product-{{ id }} .zp__sizes { display: flex; flex-wrap: wrap; gap: 7px; }
+#zeene-product-{{ id }} .zp__size { min-width: 34px; height: 32px; padding: 0 9px; display: inline-flex; align-items: center; justify-content: center; font-family: 'Zen Maru Gothic', sans-serif; font-size: 11.5px; font-weight: 500; color: #0a0a0a; background: #fff; border: 1px solid rgba(0,0,0,0.2); border-radius: 0; cursor: pointer; transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease; }
+#zeene-product-{{ id }} .zp__size:hover { border-color: #0a0a0a; }
+#zeene-product-{{ id }} .zp__size.is-active { background: #0a0a0a; color: #fff; border-color: #0a0a0a; }
+#zeene-product-{{ id }} .zp__size.is-unavailable { position: relative; overflow: hidden; opacity: 0.5; color: #a5a5a5; }
+#zeene-product-{{ id }} .zp__size.is-unavailable::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top right, transparent calc(50% - 0.8px), #d11a2a calc(50% - 0.8px), #d11a2a calc(50% + 0.8px), transparent calc(50% + 0.8px)); }
+#zeene-product-{{ id }} .zp__qtyrow { display: flex; gap: 10px; margin-top: 20px; }
+{%- comment -%} Gift card recipient fields — sirf gift card products par render hote hain. {%- endcomment -%}
+#zeene-product-{{ id }} .zp__gift { margin: 4px 0 16px; padding: 14px 16px; border: 1px solid rgba(0,0,0,0.14); border-radius: 10px; background: rgba(198,241,53,0.06); transition: border-color 0.2s ease, background-color 0.2s ease; }
+#zeene-product-{{ id }} .zp__gift.is-on { border-color: #0a0a0a; background: rgba(198,241,53,0.12); }
+#zeene-product-{{ id }} .zp__gift-toggle { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+#zeene-product-{{ id }} .zp__gift-toggle input { position: absolute; opacity: 0; width: 0; height: 0; }
+#zeene-product-{{ id }} .zp__gift-box { flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border: 1.5px solid rgba(0,0,0,0.35); border-radius: 5px; background: #fff; color: transparent; transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease; }
+#zeene-product-{{ id }} .zp__gift-box svg { width: 12px; height: 12px; }
+#zeene-product-{{ id }} .zp__gift-toggle input:checked + .zp__gift-box { background: #C6F135; border-color: #C6F135; color: #0a0a0a; }
+#zeene-product-{{ id }} .zp__gift-toggle input:focus-visible + .zp__gift-box { outline: 2px solid #C6F135; outline-offset: 2px; }
+#zeene-product-{{ id }} .zp__gift-toggle-text { font-family: 'Zen Maru Gothic', sans-serif; font-size: 13.5px; font-weight: 600; color: #0a0a0a; }
+#zeene-product-{{ id }} .zp__gift-fields { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+#zeene-product-{{ id }} .zp__gift-fields[hidden] { display: none; }
+#zeene-product-{{ id }} .zp__gift-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+#zeene-product-{{ id }} .zp__gift-field { display: flex; flex-direction: column; gap: 5px; }
+#zeene-product-{{ id }} .zp__gift-label { font-size: 10.5px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.6; }
+#zeene-product-{{ id }} .zp__gift-label i { font-style: normal; font-weight: 600; letter-spacing: 0.02em; text-transform: none; opacity: 0.8; }
+#zeene-product-{{ id }} .zp__gift-label b { color: #d11a2a; }
+#zeene-product-{{ id }} .zp__gift-input { width: 100%; height: 42px; padding: 0 12px; font-family: 'Zen Maru Gothic', sans-serif; font-size: 13.5px; color: #0a0a0a; background: #fff; border: 1.5px solid rgba(0,0,0,0.14); border-radius: 8px; outline: 0; transition: border-color 0.16s ease, box-shadow 0.16s ease; }
+#zeene-product-{{ id }} .zp__gift-input:focus { border-color: #0a0a0a; box-shadow: 0 0 0 3px rgba(198,241,53,0.45); }
+#zeene-product-{{ id }} .zp__gift-area { height: auto; min-height: 74px; padding: 10px 12px; line-height: 1.55; resize: vertical; }
+#zeene-product-{{ id }} .zp__gift-err { margin: 0; font-size: 12px; font-weight: 600; color: #d11a2a; }
+#zeene-product-{{ id }} .zp__gift-err[hidden] { display: none; }
+#zeene-product-{{ id }} .zp__gift-note { margin: 0; font-size: 11.5px; line-height: 1.5; opacity: 0.55; }
+@media (max-width: 749px) { #zeene-product-{{ id }} .zp__gift { padding: 12px 13px; } #zeene-product-{{ id }} .zp__gift-row { grid-template-columns: 1fr; } }
+#zeene-product-{{ id }} .zp__qty { display: inline-flex; align-items: center; border: 1px solid rgba(0,0,0,0.2); border-radius: 0; overflow: hidden; flex: 0 0 auto; }
+#zeene-product-{{ id }} .zp__qty button { width: 40px; height: 48px; border: 0; background: #fff; font-size: 17px; cursor: pointer; color: #0a0a0a; }
+#zeene-product-{{ id }} .zp__qty input { width: 40px; height: 48px; border: 0; text-align: center; font-family: 'Zen Maru Gothic', sans-serif; font-size: 13px; font-weight: 500; -moz-appearance: textfield; }
+#zeene-product-{{ id }} .zp__qty input::-webkit-outer-spin-button, #zeene-product-{{ id }} .zp__qty input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+#zeene-product-{{ id }} .zp__add { flex: 1; min-height: 48px; display: inline-flex; align-items: center; justify-content: center; gap: 9px; border: 0; border-radius: 8px; background: #0a0a0a; color: #fff; font-family: 'Zen Maru Gothic', sans-serif; font-size: 12px; font-weight: 600; text-transform: uppercase; cursor: pointer; transition: background-color 0.2s ease, transform 0.15s ease; }
+#zeene-product-{{ id }} .zp__btn-ic { flex: 0 0 auto; }
+#zeene-product-{{ id }} .zp__add { position: relative; overflow: hidden; }
+#zeene-product-{{ id }} .zp__add::after { content: ''; position: absolute; inset: 0; z-index: 2; pointer-events: none; border-radius: inherit; background: linear-gradient(-45deg, rgba(255,255,255,0) 20%, rgba(255,255,255,0.26) 40%, rgba(255,255,255,0) 60%); background-size: 200% auto; animation: zpShine 3s linear infinite; }
+#zeene-product-{{ id }} .zp__add:disabled::after { display: none; }
+@media (prefers-reduced-motion: reduce) { #zeene-product-{{ id }} .zp__add::after { animation: none; opacity: 0; } }
+#zeene-product-{{ id }} .zp__add:hover:not(:disabled) { background: #1f1f1f; transform: translateY(-1px); }
+#zeene-product-{{ id }} .zp__add:disabled { opacity: 0.4; cursor: not-allowed; }
+#zeene-product-{{ id }} .zp__add.is-loading, #zeene-product-{{ id }} .zp__buynow.is-loading { opacity: 0.7; pointer-events: none; }
+#zeene-product-{{ id }} .zp__buynow { width: 100%; margin-top: 10px; min-height: 48px; display: inline-flex; align-items: center; justify-content: center; gap: 9px; border: 1.5px solid #0a0a0a; border-radius: 8px; background: var(--zp-accent, #C6F135); color: #0a0a0a; font-family: 'Zen Maru Gothic', sans-serif; font-size: 12px; font-weight: 600; text-transform: uppercase; cursor: pointer; transition: filter 0.2s ease, transform 0.15s ease; }
+#zeene-product-{{ id }} .zp__buynow:hover:not(:disabled) { filter: brightness(0.95); transform: translateY(-1px); }
+#zeene-product-{{ id }} .zp__buynow:disabled { opacity: 0.4; cursor: not-allowed; }
+{%- comment -%} Delivery estimate — 3-stage timeline. Track light neon-tint, icons/text dark (minimal). Dashed connector line icon-center par. {%- endcomment -%}
+#zeene-product-{{ id }} .zp-del { margin: 18px 0 0; padding: 15px 16px 16px; border: 1px solid rgba(0,0,0,0.09); border-radius: 12px; }
+#zeene-product-{{ id }} .zp-del__head { display: flex; align-items: flex-start; gap: 8px; margin: 0 0 14px; font-family: 'Zen Maru Gothic', sans-serif; font-size: 12px; font-weight: 400; line-height: 1.55; color: #4a4a4a; }
+#zeene-product-{{ id }} .zp-del__clock { flex: 0 0 auto; margin-top: 2px; color: #0a0a0a; }
+#zeene-product-{{ id }} .zp-del__head b { font-weight: 700; color: #0a0a0a; font-variant-numeric: tabular-nums; }
+#zeene-product-{{ id }} .zp-del__track { display: flex; align-items: flex-start; padding: 16px 12px 13px; border-radius: 10px; background: linear-gradient(100deg, rgba(198,241,53,0.4) 0%, rgba(198,241,53,0.14) 100%); }
+#zeene-product-{{ id }} .zp-del__stage { flex: 0 0 auto; width: 84px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; }
+#zeene-product-{{ id }} .zp-del__ic { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; color: #0a0a0a; }
+#zeene-product-{{ id }} .zp-del__label { font-family: 'Zen Maru Gothic', sans-serif; font-size: 12px; font-weight: 700; color: #0a0a0a; }
+#zeene-product-{{ id }} .zp-del__date { font-family: 'Zen Maru Gothic', sans-serif; font-size: 11px; font-weight: 400; color: #3a3a3a; }
+#zeene-product-{{ id }} .zp-del__line { flex: 1; height: 0; margin: 15px 2px 0; border-top: 2px dashed rgba(10,10,10,0.4); }
+@media (max-width: 380px) { #zeene-product-{{ id }} .zp-del__stage { width: 70px; } #zeene-product-{{ id }} .zp-del__track { padding: 14px 6px 11px; } }
+
+{%- comment -%} Buy More, Save More — volume tiers (radio). Selected tier neon-outlined. {%- endcomment -%}
+#zeene-product-{{ id }} .zp-vm { margin: 20px 0 0; }
+#zeene-product-{{ id }} .zp-vm__head { margin: 0 0 12px; font-family: 'Zen Maru Gothic', sans-serif; font-size: 16px; font-weight: 700; text-align: center; color: #0a0a0a; }
+#zeene-product-{{ id }} .zp-vm__tier { position: relative; margin-bottom: 10px; background: #f6f6f6; border: 1.5px solid transparent; border-radius: 10px; transition: border-color 0.18s ease, background-color 0.18s ease; }
+#zeene-product-{{ id }} .zp-vm__tier.is-active { background: #fff; border-color: #0a0a0a; }
+#zeene-product-{{ id }} .zp-vm__row { display: flex; align-items: center; gap: 11px; width: 100%; padding: 14px 16px; background: none; border: 0; text-align: left; cursor: pointer; }
+#zeene-product-{{ id }} .zp-vm__radio { flex: 0 0 auto; position: relative; width: 18px; height: 18px; border: 1.5px solid rgba(0,0,0,0.35); border-radius: 50%; transition: border-color 0.15s ease; }
+#zeene-product-{{ id }} .zp-vm__tier.is-active .zp-vm__radio { border-color: #0a0a0a; }
+#zeene-product-{{ id }} .zp-vm__tier.is-active .zp-vm__radio::after { content: ''; position: absolute; inset: 3px; border-radius: 50%; background: #0a0a0a; }
+#zeene-product-{{ id }} .zp-vm__main { flex: 1; min-width: 0; display: inline-flex; align-items: center; gap: 8px; }
+#zeene-product-{{ id }} .zp-vm__buy { font-family: 'Zen Maru Gothic', sans-serif; font-size: 14px; font-weight: 700; color: #0a0a0a; }
+#zeene-product-{{ id }} .zp-vm__badge { font-family: 'Zen Maru Gothic', sans-serif; font-size: 9.5px; font-weight: 700; text-transform: uppercase; color: #0a0a0a; background: var(--zp-accent, #C6F135); padding: 3px 7px; border-radius: 4px; }
+#zeene-product-{{ id }} .zp-vm__prices { flex: 0 0 auto; text-align: right; line-height: 1.25; }
+#zeene-product-{{ id }} .zp-vm__now { display: block; font-family: 'Zen Maru Gothic', sans-serif; font-size: 14px; font-weight: 700; color: #0a0a0a; }
+#zeene-product-{{ id }} .zp-vm__was { display: block; font-size: 11px; font-weight: 400; color: #9a9a9a; text-decoration: line-through; }
+#zeene-product-{{ id }} .zp-vm__best { position: absolute; top: -9px; right: 12px; z-index: 1; font-family: 'Zen Maru Gothic', sans-serif; font-size: 9.5px; font-weight: 700; text-transform: uppercase; color: #fff; background: #0a0a0a; padding: 3px 8px; border-radius: 4px; }
+#zeene-product-{{ id }} .zp-vm__units { display: none; padding: 0 16px 14px 45px; }
+#zeene-product-{{ id }} .zp-vm__tier.is-active .zp-vm__units { display: block; }
+#zeene-product-{{ id }} .zp-vm__tier.is-active .zp-vm__units:empty { display: none; }
+#zeene-product-{{ id }} .zp-vm__unit { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+#zeene-product-{{ id }} .zp-vm__unit-n { flex: 0 0 auto; font-family: 'Zen Maru Gothic', sans-serif; font-size: 12px; font-weight: 600; color: #6a6a6a; }
+#zeene-product-{{ id }} .zp-vm__unit-sels { flex: 1; display: flex; flex-wrap: wrap; gap: 8px; }
+#zeene-product-{{ id }} .zp-vm__unit-var { flex: 1; min-width: 90px; padding: 8px 26px 8px 10px; font-family: 'Zen Maru Gothic', sans-serif; font-size: 12px; color: #0a0a0a; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%230a0a0a' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 9px center; border: 1px solid rgba(0,0,0,0.2); border-radius: 7px; cursor: pointer; -webkit-appearance: none; appearance: none; }
+#zeene-product-{{ id }} .zp-vm__unit-var option:disabled { color: #b4b4b4; }
+{%- comment -%} Takes no space when empty. {%- endcomment -%}
+#zeene-product-{{ id }} .zp-vm__warn { margin: 12px 0 0; font-family: 'Zen Maru Gothic', sans-serif; font-size: 12px; font-weight: 500; line-height: 1.5; color: #d11a2a; }
+#zeene-product-{{ id }} .zp-vm__warn:empty { display: none; }
+
+{%- comment -%} Frequently bought together — reference jaisa card. {%- endcomment -%}
+#zeene-product-{{ id }} .zp-fbt { margin: 18px 0 0; padding: 16px; background: #f6f6f6; border-radius: 12px; }
+#zeene-product-{{ id }} .zp-fbt__title { margin: 0 0 14px; font-family: 'Zen Maru Gothic', sans-serif; font-size: 16px; font-weight: 700; color: #0a0a0a; }
+#zeene-product-{{ id }} .zp-fbt__list { display: flex; flex-direction: column; gap: 8px; }
+#zeene-product-{{ id }} .zp-fbt__item { display: flex; align-items: center; gap: 11px; padding: 12px; background: #fff; border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; cursor: pointer; }
+#zeene-product-{{ id }} .zp-fbt__item--main { cursor: default; }
+#zeene-product-{{ id }} .zp-fbt__item input[type="checkbox"] { position: absolute; opacity: 0; width: 0; height: 0; }
+#zeene-product-{{ id }} .zp-fbt__box { flex: 0 0 auto; position: relative; width: 18px; height: 18px; border: 1.5px solid rgba(0,0,0,0.35); border-radius: 4px; background: #fff; transition: background-color 0.15s ease, border-color 0.15s ease; }
+#zeene-product-{{ id }} .zp-fbt__item input:checked + .zp-fbt__box { background: #0a0a0a; border-color: #0a0a0a; }
+{%- comment -%} The tick is drawn as a path, not border + rotate: that version sits about 1.4px below centre. {%- endcomment -%}
+#zeene-product-{{ id }} .zp-fbt__item input:checked + .zp-fbt__box::after { content: ''; position: absolute; inset: 0; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.7 4.7L19 7.6'/%3E%3C/svg%3E") no-repeat center / 11px 11px; }
+#zeene-product-{{ id }} .zp-fbt__item input:focus-visible + .zp-fbt__box { outline: 2px solid #0a0a0a; outline-offset: 2px; }
+#zeene-product-{{ id }} .zp-fbt__media { flex: 0 0 52px; width: 52px; height: 64px; background: #f0f0f0; overflow: hidden; display: block; }
+#zeene-product-{{ id }} .zp-fbt__media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+#zeene-product-{{ id }} .zp-fbt__info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+#zeene-product-{{ id }} .zp-fbt__name { font-family: 'Zen Maru Gothic', sans-serif; font-size: 12px; font-weight: 500; line-height: 1.3; color: #0a0a0a; text-decoration: none; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+#zeene-product-{{ id }} .zp-fbt__variant { max-width: 170px; padding: 5px 24px 5px 8px; font-family: 'Zen Maru Gothic', sans-serif; font-size: 11px; color: #0a0a0a; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%230a0a0a' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 7px center; border: 1px solid rgba(0,0,0,0.2); cursor: pointer; -webkit-appearance: none; appearance: none; }
+#zeene-product-{{ id }} .zp-fbt__price { flex: 0 0 auto; font-family: 'Zen Maru Gothic', sans-serif; font-size: 12.5px; font-weight: 700; color: #0a0a0a; white-space: nowrap; }
+#zeene-product-{{ id }} .zp-fbt__plus { display: flex; align-items: center; justify-content: center; width: 26px; height: 26px; margin: -17px auto; position: relative; z-index: 1; border-radius: 50%; background: #fff; border: 1px solid rgba(0,0,0,0.12); color: #0a0a0a; }
+#zeene-product-{{ id }} .zp-fbt__foot { margin-top: 14px; }
+#zeene-product-{{ id }} .zp-fbt__totrow { display: flex; align-items: baseline; justify-content: space-between; }
+#zeene-product-{{ id }} .zp-fbt__totlabel { font-family: 'Zen Maru Gothic', sans-serif; font-size: 13px; font-weight: 700; color: #0a0a0a; }
+#zeene-product-{{ id }} .zp-fbt__total { font-family: 'Zen Maru Gothic', sans-serif; font-size: 16px; font-weight: 800; color: #0a0a0a; }
+#zeene-product-{{ id }} .zp-fbt__note { margin: 3px 0 12px; font-family: 'Zen Maru Gothic', sans-serif; font-size: 11px; font-weight: 400; color: #6a6a6a; }
+#zeene-product-{{ id }} .zp-fbt__add { width: 100%; min-height: 46px; display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 8px; background: #0a0a0a; color: #fff; font-family: 'Zen Maru Gothic', sans-serif; font-size: 12px; font-weight: 600; text-transform: uppercase; cursor: pointer; transition: background-color 0.2s ease; }
+#zeene-product-{{ id }} .zp-fbt__add:hover { background: #1f1f1f; }
+#zeene-product-{{ id }} .zp-fbt__add.is-loading { opacity: 0.7; pointer-events: none; }
+
+{%- comment -%} Disclaimer + info links (Deliveries & Exchange / Product Care) — trust badges ki jagah. {%- endcomment -%}
+#zeene-product-{{ id }} .zp__disclaimer { margin: 20px 0 0; padding: 16px 0 0; border-top: 1px solid rgba(0,0,0,0.08); font-family: 'Zen Maru Gothic', sans-serif; font-size: 10.5px; font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase; line-height: 1.5; color: #d11a2a; }
+#zeene-product-{{ id }} .zp__info-links { display: flex; flex-wrap: wrap; gap: 14px 28px; margin: 16px 0 0; padding: 16px 0; border-top: 1px solid rgba(0,0,0,0.08); }
+#zeene-product-{{ id }} .zp__info-link { display: inline-flex; align-items: center; gap: 9px; padding: 0; border: 0; background: none; font-family: 'Zen Maru Gothic', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.02em; text-transform: uppercase; color: #0a0a0a; cursor: pointer; transition: opacity 0.15s ease; }
+#zeene-product-{{ id }} .zp__info-link:hover { opacity: 0.6; }
+#zeene-product-{{ id }} .zp__info-link svg { flex-shrink: 0; }
+{%- comment -%} Product info drawer — right se slide, quick-view jaisa. {%- endcomment -%}
+#zeene-product-{{ id }} .zp-info { position: fixed; inset: 0; z-index: 1006; visibility: hidden; pointer-events: none; background: rgba(10,10,10,0); -webkit-backdrop-filter: blur(0); backdrop-filter: blur(0); transition: background-color 0.45s ease, -webkit-backdrop-filter 0.45s ease, backdrop-filter 0.45s ease, visibility 0.5s ease; }
+#zeene-product-{{ id }} .zp-info.active { visibility: visible; pointer-events: auto; background: rgba(10,10,10,0.46); -webkit-backdrop-filter: blur(3.5px); backdrop-filter: blur(3.5px); }
+#zeene-product-{{ id }} .zp-info__overlay { position: absolute; inset: 0; }
+#zeene-product-{{ id }} .zp-info__panel { position: absolute; top: 0; right: 0; width: min(460px, 94vw); height: 100%; background: #fff; box-shadow: -18px 0 60px rgba(0,0,0,0.22); transform: translateX(100%); transition: transform 0.5s cubic-bezier(.16,1,.3,1); display: flex; flex-direction: column; }
+#zeene-product-{{ id }} .zp-info.active .zp-info__panel { transform: translateX(0); }
+#zeene-product-{{ id }} .zp-info__head { flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between; padding: 20px 22px; border-bottom: 1px solid rgba(0,0,0,0.09); }
+#zeene-product-{{ id }} .zp-info__title { font-family: 'Zen Maru Gothic', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #0a0a0a; }
+#zeene-product-{{ id }} .zp-info__close { display: inline-flex; width: 34px; height: 34px; align-items: center; justify-content: center; border: 0; background: none; border-radius: 50%; cursor: pointer; color: #0a0a0a; }
+#zeene-product-{{ id }} .zp-info__tabs { flex: 0 0 auto; display: flex; border-bottom: 1px solid rgba(0,0,0,0.09); }
+#zeene-product-{{ id }} .zp-info__tab { flex: 1; padding: 15px 12px; border: 0; border-bottom: 2px solid transparent; background: #f4f4f4; font-family: 'Zen Maru Gothic', sans-serif; font-size: 11.5px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #0a0a0a; opacity: 0.55; cursor: pointer; transition: opacity 0.2s ease, background-color 0.2s ease, border-color 0.2s ease; }
+#zeene-product-{{ id }} .zp-info__tab.is-active { background: #fff; opacity: 1; border-bottom-color: #0a0a0a; }
+#zeene-product-{{ id }} .zp-info__body { flex: 1; overflow-y: auto; padding: 22px; }
+#zeene-product-{{ id }} .zp-info__pane { display: none; font-family: 'Zen Maru Gothic', sans-serif; }
+#zeene-product-{{ id }} .zp-info__pane.is-active { display: block; animation: zpInfoIn 0.35s cubic-bezier(.16,1,.3,1); }
+@keyframes zpInfoIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+#zeene-product-{{ id }} .zp-info__pane > *:first-child { margin-top: 0; }
+#zeene-product-{{ id }} .zp-info__pane h2, #zeene-product-{{ id }} .zp-info__pane h3, #zeene-product-{{ id }} .zp-info__pane h4 { margin: 22px 0 10px; font-size: 15px; font-weight: 600; line-height: 1.3; color: #0a0a0a; }
+#zeene-product-{{ id }} .zp-info__pane p { margin: 0 0 12px; font-size: 13px; font-weight: 400; line-height: 1.7; color: #4a4a4a; }
+#zeene-product-{{ id }} .zp-info__pane ul, #zeene-product-{{ id }} .zp-info__pane ol { margin: 0 0 12px; padding-left: 18px; }
+#zeene-product-{{ id }} .zp-info__pane li { margin-bottom: 7px; font-size: 13px; line-height: 1.6; color: #4a4a4a; }
+#zeene-product-{{ id }} .zp-info__pane strong, #zeene-product-{{ id }} .zp-info__pane b { color: #0a0a0a; font-weight: 600; }
+#zeene-product-{{ id }} .zp-info__pane a { color: #0a0a0a; text-decoration: underline; text-underline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { #zeene-product-{{ id }} .zp-info__panel, #zeene-product-{{ id }} .zp-info__overlay, #zeene-product-{{ id }} .zp-info__pane.is-active { transition: none; animation: none; } }
+#zeene-product-{{ id }} .zp__acc { border-top: 1px solid rgba(0,0,0,0.09); }
+#zeene-product-{{ id }} .zp__acc:first-of-type { margin-top: 20px; }
+#zeene-product-{{ id }} .zp__acc-head { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 15px 0; background: none; border: 0; text-align: left; font-family: 'Zen Maru Gothic', sans-serif; font-size: 12.5px; font-weight: 600; color: #0a0a0a; cursor: pointer; }
+#zeene-product-{{ id }} .zp__acc-head svg { transition: transform 0.35s cubic-bezier(.16,1,.3,1); opacity: 0.6; }
+#zeene-product-{{ id }} .zp__acc.is-open .zp__acc-head svg { transform: rotate(180deg); }
+#zeene-product-{{ id }} .zp__acc-wrap { display: grid; grid-template-rows: 0fr; overflow: hidden; transition: grid-template-rows 0.38s cubic-bezier(.16,1,.3,1); }
+#zeene-product-{{ id }} .zp__acc.is-open .zp__acc-wrap { grid-template-rows: 1fr; }
+#zeene-product-{{ id }} .zp__acc-body { min-height: 0; overflow: hidden; padding: 0; font-size: 12.5px; line-height: 1.7; color: #444; }
+#zeene-product-{{ id }} .zp__acc.is-open .zp__acc-body { padding-bottom: 18px; }
+{%- comment -%} Shopify's editor wraps every bullet as <li><p>. Needs list-style-position:outside plus margin:0 on the inner p, or the marker sits on its own line. {%- endcomment -%}
+#zeene-product-{{ id }} .zp__acc-body.rte ul, #zeene-product-{{ id }} .zp__acc-body.rte ol { list-style-position: outside; margin: 8px 0; padding-left: 18px; }
+#zeene-product-{{ id }} .zp__acc-body.rte li { margin: 0 0 6px; }
+#zeene-product-{{ id }} .zp__acc-body.rte li:last-child { margin-bottom: 0; }
+#zeene-product-{{ id }} .zp__acc-body.rte li > p { margin: 0; }
+#zeene-product-{{ id }} .zp__acc-body.rte li > p + p { margin-top: 4px; }
+#zeene-product-{{ id }} .zp__acc-body.rte li > ul, #zeene-product-{{ id }} .zp__acc-body.rte li > ol { margin: 6px 0 0; }
+#zeene-product-{{ id }} .zp__acc-body.rte > p:first-child { margin-top: 0; }
+#zeene-product-{{ id }} .zp__acc-body.rte > p:last-child { margin-bottom: 0; }
+#zeene-product-{{ id }} .zp__acc-body.rte br + br { display: none; }
+@media (prefers-reduced-motion: reduce) { #zeene-product-{{ id }} .zp__acc-wrap, #zeene-product-{{ id }} .zp__acc-head svg { transition: none; } }
+#zeene-product-{{ id }} .zp__sc-img { width: 100%; height: auto; display: block; border-radius: 10px; }
+@media (max-width: 989px) {
+  #zeene-product-{{ id }} .zp__inner { grid-template-columns: 1fr; gap: 24px; }
+  #zeene-product-{{ id }} .zp__grid { display: flex; gap: 6px; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  #zeene-product-{{ id }} .zp__grid::-webkit-scrollbar { display: none; }
+  #zeene-product-{{ id }} .zp__cell { flex: 0 0 88%; scroll-snap-align: center; aspect-ratio: 3/4; }
+  #zeene-product-{{ id }} .zp__cell--wide { grid-column: auto; aspect-ratio: 3/4; }
+}
+@media (max-width: 749px) {
+  #zeene-product-{{ id }} { padding-bottom: 36px; }
+  #zeene-product-{{ id }} .zp__inner { gap: 20px; }
+  #zeene-product-{{ id }} .zp__qtyrow { flex-wrap: wrap; }
+  #zeene-product-{{ id }} .zp__add { flex: 1 1 160px; }
+  #zeene-product-{{ id }} .zp__info-links { gap: 12px 20px; }
+  #zeene-product-{{ id }} .zp__info-link { font-size: 11px; }
+}
+{%- endstyle -%}

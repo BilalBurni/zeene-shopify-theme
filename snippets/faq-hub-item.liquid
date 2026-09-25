@@ -1,0 +1,12 @@
+{%- comment -%} Shared by faq-hub: questions render both inside a category and in the loose group above the first one. {%- endcomment -%}
+<div class="fh__item js-fh-item" {{ block.shopify_attributes }}>
+  <button type="button" class="fh__q js-fh-q" aria-expanded="false" aria-controls="fh-a-{{ block.id }}">
+    <span class="fh__q-text">{{ block.settings.question }}</span>
+    <span class="fh__q-ic" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+    </span>
+  </button>
+  <div class="fh__wrap" id="fh-a-{{ block.id }}">
+    <div class="fh__a rte">{{ block.settings.answer }}</div>
+  </div>
+</div>

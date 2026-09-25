@@ -1,0 +1,73 @@
+{%- comment -%}
+  Compact product card for the promo popup.
+  Params: product (required), badge (optional), buy_label (optional - shows a Buy now button)
+{%- endcomment -%}
+{%- liquid
+  assign on_sale = false
+  if product.compare_at_price > product.price and product.available
+    assign on_sale = true
+  endif
+  assign img = product.featured_media | default: product.featured_image
+-%}
+
+<a class="zpop-p" href="{{ product.url }}">
+  <span class="zpop-p__media">
+    {%- if img != blank -%}
+      <img
+        src="{{ img | image_url: width: 320 }}"
+        srcset="{{ img | image_url: width: 200 }} 200w, {{ img | image_url: width: 320 }} 320w"
+        sizes="150px"
+        alt="{{ product.title | escape }}"
+        width="160"
+        height="200"
+        loading="lazy"
+        decoding="async"
+      >
+    {%- else -%}
+      <img src="{% render 'demo-image', set: 'product', index: 0, width: 320 %}" alt="{{ product.title | escape }}" width="160" height="200" loading="lazy" decoding="async">
+    {%- endif -%}
+    {%- if badge != blank -%}
+      <span class="zpop-p__badge">{{ badge }}</span>
+    {%- elsif on_sale -%}
+      {%- assign off = product.compare_at_price | minus: product.price | times: 100 | divided_by: product.compare_at_price -%}
+      <span class="zpop-p__badge zpop-p__badge--sale">{{ off }}% off</span>
+    {%- endif -%}
+  </span>
+  <span class="zpop-p__info">
+    <span class="zpop-p__title">{{ product.title }}</span>
+    <span class="zpop-p__price{% if on_sale %} zpop-p__price--sale{% endif %}">
+      <span>{{ product.price | money }}</span>
+      {%- if on_sale -%}<s>{{ product.compare_at_price | money }}</s>{%- endif -%}
+    </span>
+    {%- if on_sale -%}
+      {%- assign saved = product.compare_at_price | minus: product.price -%}
+      <span class="zpop-p__save">You save {{ saved | money }}</span>
+    {%- endif -%}
+  </span>
+</a>
+
+{%- if buy_label != blank and product.available -%}
+  <button type="button" class="zpop-p__buy js-zpop-buy" data-vid="{{ product.selected_or_first_available_variant.id }}">
+    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>
+    <span>{{ buy_label }}</span>
+  </button>
+{%- endif -%}
+
+{%- style -%}
+  .zpop-p { display: flex; flex-direction: column; text-decoration: none; color: inherit; border: 1px solid rgba(0,0,0,0.09); border-radius: 6px; overflow: hidden; background: #fff; transition: border-color 0.22s ease, box-shadow 0.22s ease; }
+  .zpop-p:hover { border-color: rgba(0,0,0,0.3); box-shadow: 0 14px 28px -20px rgba(10,10,10,0.5); }
+  .zpop-p__media { position: relative; display: block; aspect-ratio: 1 / 1; background: #f0f0f0; overflow: hidden; }
+  .zpop-p__media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .zpop-p__badge { position: absolute; top: 8px; left: 8px; padding: 5px 9px; font-size: 10px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #0a0a0a; background: var(--zp-accent, #C6F135); border-radius: 5px; }
+  .zpop-p__badge--sale { color: #fff; background: #d11a2a; }
+  .zpop-p__info { display: flex; flex-direction: column; gap: 3px; padding: 8px 9px 10px; }
+  .zpop-p__title { font-family: 'Zen Maru Gothic', sans-serif; font-size: 12px; font-weight: 500; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .zpop-p__price { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; font-family: 'Zen Maru Gothic', sans-serif; font-size: 11.5px; font-weight: 600; }
+  .zpop-p__price--sale > span:first-child { color: #d11a2a; }
+  .zpop-p__price s { font-size: 11px; font-weight: 500; opacity: 0.45; }
+  .zpop-p__save { font-size: 11px; font-weight: 700; letter-spacing: 0.02em; color: #0a0a0a; opacity: 0.55; }
+  .zpop-p__buy { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; margin-top: 10px; padding: 13px 20px; font-family: 'Zen Maru Gothic', sans-serif; font-size: 12px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: #0a0a0a; background: var(--zp-accent, #C6F135); border: 0; border-radius: 9px; cursor: pointer; transition: filter 0.18s ease, transform 0.15s ease; }
+  .zpop-p__buy:hover { filter: brightness(0.94); transform: translateY(-1px); }
+  .zpop-p__buy.is-loading { opacity: 0.6; pointer-events: none; }
+  @media (prefers-reduced-motion: reduce) { .zpop-p { transition: none; } }
+{%- endstyle -%}

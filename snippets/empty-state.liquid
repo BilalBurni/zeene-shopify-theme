@@ -1,0 +1,56 @@
+{%- comment -%}
+  Shared empty state for collection-filters and collection-grid.
+  Params: icon ('filter' | 'bag'), title, text, primary_label + primary_url, secondary_label + secondary_url, accent, text_color.
+{%- endcomment -%}
+{%- liquid
+  assign accent = accent | default: '#C6F135'
+  assign text_color = text_color | default: '#0a0a0a'
+  assign icon = icon | default: 'bag'
+-%}
+
+<div class="zempty">
+  <span class="zempty__ic" aria-hidden="true">
+    {%- case icon -%}
+      {%- when 'filter' -%}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M7 12h10M10 18h4"/><path d="M3 3l18 18"/></svg>
+      {%- else -%}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l1 12H5L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
+    {%- endcase -%}
+  </span>
+
+  <h2 class="zempty__title">{{ title | default: 'Nothing here yet' }}</h2>
+  {%- if text != blank -%}<p class="zempty__text">{{ text }}</p>{%- endif -%}
+
+  {%- if primary_label != blank and primary_url != blank or secondary_label != blank and secondary_url != blank -%}
+    <div class="zempty__actions">
+      {%- if primary_label != blank and primary_url != blank -%}
+        <a class="zempty__btn" href="{{ primary_url }}">{{ primary_label }}</a>
+      {%- endif -%}
+      {%- if secondary_label != blank and secondary_url != blank -%}
+        <a class="zempty__btn zempty__btn--ghost" href="{{ secondary_url }}">{{ secondary_label }}</a>
+      {%- endif -%}
+    </div>
+  {%- endif -%}
+</div>
+
+{%- style -%}
+  .zempty { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 64px 20px 68px; }
+  .zempty__ic { display: inline-flex; align-items: center; justify-content: center; width: 72px; height: 72px; margin-bottom: 20px; color: {{ text_color }}; background: {{ accent | color_modify: 'alpha', 0.22 }}; border-radius: 50%; }
+  .zempty__ic svg { width: 32px; height: 32px; }
+  .zempty__title { margin: 0; font-family: 'Zen Maru Gothic', sans-serif; font-size: clamp(18px, 2.4vw, 23px); font-weight: 600; line-height: 1.3; color: {{ text_color }}; }
+  .zempty__text { margin: 10px 0 0; max-width: 440px; font-size: 14px; line-height: 1.65; color: {{ text_color }}; opacity: 0.6; }
+  .zempty__actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px; margin-top: 26px; }
+  .zempty__btn { display: inline-flex; align-items: center; justify-content: center; padding: 14px 30px; font-family: 'Zen Maru Gothic', sans-serif; font-size: 12px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; text-decoration: none; color: #0a0a0a; background: {{ accent }}; border: 1.5px solid {{ accent }}; border-radius: 10px; transition: transform 0.15s ease, filter 0.18s ease; }
+  .zempty__btn:hover { transform: translateY(-1px); filter: brightness(0.94); }
+  .zempty__btn--ghost { color: {{ text_color }}; background: transparent; border-color: {{ text_color | color_modify: 'alpha', 0.28 }}; }
+  .zempty__btn--ghost:hover { border-color: {{ text_color }}; filter: none; }
+  @media (max-width: 749px) {
+    .zempty { padding: 44px 14px 48px; }
+    .zempty__ic { width: 60px; height: 60px; margin-bottom: 16px; }
+    .zempty__ic svg { width: 27px; height: 27px; }
+    .zempty__text { font-size: 13.5px; }
+    .zempty__actions { gap: 8px; margin-top: 20px; width: 100%; }
+    .zempty__btn { flex: 1 1 auto; padding: 13px 18px; font-size: 11px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .zempty__btn { transition: none; } }
+{%- endstyle -%}

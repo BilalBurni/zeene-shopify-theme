@@ -1,0 +1,24 @@
+{%- comment -%}
+  Returns a stock (Unsplash) image URL for previewing the UI when a real image
+  isn't set yet. Remove usages once real images are uploaded.
+
+  Usage: <img src="{% render 'demo-image', set: 'category', index: forloop.index0, width: 700 %}">
+  Sets: hero | category | product | lifestyle
+{%- endcomment -%}
+{%- liquid
+  assign idx = index | default: 0
+  case set
+    when 'hero'
+      assign ids = 'photo-1490481651871-ab68de25d43d,photo-1483985988355-763728e1935b,photo-1441984904996-e0b6ba687e04' | split: ','
+    when 'category'
+      assign ids = 'photo-1521572163474-6864f9cf17ab,photo-1542272604-787c3835535d,photo-1556821840-3a63f95609a7,photo-1434389677669-e08b4cac3105,photo-1541643600914-78b084683601' | split: ','
+    when 'product'
+      assign ids = 'photo-1576566588028-4147f3842f27,photo-1521572163474-6864f9cf17ab,photo-1556821840-3a63f95609a7,photo-1542272604-787c3835535d,photo-1434389677669-e08b4cac3105,photo-1496747611176-843222e1e57c,photo-1525507119028-ed4c629a60a3,photo-1487412720507-e7ab37603c6f' | split: ','
+    else
+      assign ids = 'photo-1483985988355-763728e1935b,photo-1487412720507-e7ab37603c6f,photo-1490481651871-ab68de25d43d,photo-1485462537746-965f33f7f6a7,photo-1496747611176-843222e1e57c' | split: ','
+  endcase
+  assign n = idx | modulo: ids.size
+  assign id = ids[n]
+  assign w = width | default: 800
+  echo 'https://images.unsplash.com/' | append: id | append: '?auto=format&fit=crop&w=' | append: w | append: '&q=80'
+-%}

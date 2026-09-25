@@ -1,0 +1,71 @@
+{%- comment -%}
+  Gift card payment notice.
+
+  Shopify checkout se COD hide karna Plus-only feature hai, is liye enforcement yahan hoti hai:
+  gift card ka order hamesha ALAG rehna chahiye, taake COD wala gift card order foran pehchana
+  jaye. Mixed cart par checkout band ho jata hai.
+
+  Params:
+    context - 'product' (gift card product page) | 'cart' (cart page / drawer)
+    compact - true for the cart drawer
+{%- endcomment -%}
+{%- liquid
+  assign gc_count = 0
+  assign other_count = 0
+  for item in cart.items
+    if item.product.gift_card?
+      assign gc_count = gc_count | plus: 1
+    else
+      assign other_count = other_count | plus: 1
+    endif
+  endfor
+
+  assign is_mixed = false
+  if gc_count > 0 and other_count > 0
+    assign is_mixed = true
+  endif
+
+  assign show = false
+  if context == 'product'
+    assign show = true
+  elsif gc_count > 0
+    assign show = true
+  endif
+-%}
+
+{%- if show -%}
+  <div class="gcn{% if compact %} gcn--compact{% endif %}{% if is_mixed %} gcn--stop{% endif %}" role="note">
+    <span class="gcn__ic" aria-hidden="true">
+      {%- if is_mixed -%}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v5M12 17h.01"/><circle cx="12" cy="12" r="9"/></svg>
+      {%- else -%}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M3 11h18M8 7V5a2 2 0 0 1 4 0 2 2 0 0 1 4 0v2"/></svg>
+      {%- endif -%}
+    </span>
+    <span class="gcn__body">
+      {%- if is_mixed -%}
+        <span class="gcn__title">Gift cards check out on their own</span>
+        <span class="gcn__text">Please place the gift card in a separate order — remove the other items, or remove the gift card, to continue.</span>
+      {%- else -%}
+        <span class="gcn__title">Online payment only</span>
+        <span class="gcn__text">Cash on delivery is not available on gift cards. The code is emailed to the recipient as soon as the payment goes through.</span>
+      {%- endif -%}
+    </span>
+  </div>
+{%- endif -%}
+
+{%- style -%}
+  .gcn { display: flex; gap: 11px; padding: 13px 15px; margin: 0 0 14px; border: 1px solid rgba(198,241,53,0.7); border-radius: 10px; background: rgba(198,241,53,0.14); }
+  .gcn--stop { border-color: rgba(209,26,42,0.4); background: rgba(209,26,42,0.07); }
+  .gcn__ic { flex: 0 0 auto; display: inline-flex; color: #0a0a0a; }
+  .gcn--stop .gcn__ic { color: #d11a2a; }
+  .gcn__ic svg { width: 19px; height: 19px; }
+  .gcn__body { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+  .gcn__title { font-family: 'Zen Maru Gothic', sans-serif; font-size: 13px; font-weight: 800; letter-spacing: 0.02em; color: #0a0a0a; }
+  .gcn--stop .gcn__title { color: #a8121f; }
+  .gcn__text { font-size: 12.5px; line-height: 1.55; color: #0a0a0a; opacity: 0.72; }
+  .gcn--compact { padding: 11px 12px; gap: 9px; margin-bottom: 10px; }
+  .gcn--compact .gcn__ic svg { width: 17px; height: 17px; }
+  .gcn--compact .gcn__title { font-size: 12px; }
+  .gcn--compact .gcn__text { font-size: 11.5px; line-height: 1.5; }
+{%- endstyle -%}

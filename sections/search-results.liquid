@@ -1,0 +1,419 @@
+{%- liquid
+  assign s = section.settings
+  assign cols = s.columns_desktop
+  assign pt_m = s.padding_top | times: 0.55 | round
+  assign pb_m = s.padding_bottom | times: 0.55 | round
+  assign terms = search.terms | escape
+
+  assign popular = settings.search_popular | newline_to_br | split: '<br />'
+  assign bs = settings.search_bestseller_collection
+
+  assign product_count = 0
+  assign content_count = 0
+  for item in search.results
+    if item.object_type == 'product'
+      assign product_count = product_count | plus: 1
+    else
+      assign content_count = content_count | plus: 1
+    endif
+  endfor
+-%}
+
+{{ 'zeene-card.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'zeene-card.js' | asset_url }}" defer="defer"></script>
+
+<div
+  id="search-results-{{ section.id }}"
+  class="sr"
+  style="--sr-bg:{{ s.bg_color }};--sr-text:{{ s.text_color }};--sr-accent:{{ s.accent_color }};--sr-maxw:{{ s.max_width }}px;--sr-pt:{{ s.padding_top }}px;--sr-pb:{{ s.padding_bottom }}px;--sr-pt-m:{{ pt_m }}px;--sr-pb-m:{{ pb_m }}px;"
+>
+  <div class="sr__inner">
+    <div class="sr__hero">
+      <span class="sr__eyebrow">Search</span>
+      {%- if search.performed and terms != blank -%}
+        <h1 class="sr__title">Results for &ldquo;{{ search.terms }}&rdquo;</h1>
+      {%- else -%}
+        <h1 class="sr__title">{{ s.blank_heading | default: 'What are you looking for?' }}</h1>
+      {%- endif -%}
+
+      <form action="{{ routes.search_url }}" method="get" role="search" class="sr__form">
+        <span class="sr__form-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg>
+        </span>
+        <input
+          class="sr__input"
+          id="SearchPage-{{ section.id }}"
+          type="search"
+          name="q"
+          value="{{ search.terms | escape }}"
+          placeholder="{{ s.placeholder | default: 'Search hoodies, tees, collections…' | escape }}"
+          autocomplete="off"
+          autocorrect="off"
+          spellcheck="false"
+          aria-label="Search"
+        >
+        <input type="hidden" name="options[prefix]" value="last">
+        <button type="submit" class="sr__submit">Search</button>
+      </form>
+
+      {%- if s.show_popular and settings.search_popular != blank -%}
+        <div class="sr__pills">
+          <span class="sr__pills-label">Popular</span>
+          {%- for term in popular -%}
+            {%- assign t = term | strip | strip_newlines -%}
+            {%- if t != blank -%}
+              <a class="sr__pill" href="{{ routes.search_url }}?q={{ t | url_encode }}&options[prefix]=last">{{ t }}</a>
+            {%- endif -%}
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+    </div>
+
+    {%- if search.performed -%}
+      {%- paginate search.results by s.results_per_page -%}
+
+        {%- if search.results_count > 0 -%}
+          <div class="sr__bar">
+            <span class="sr__count">
+              <strong>{{ search.results_count }}</strong> result{% if search.results_count != 1 %}s{% endif %} found
+            </span>
+            {%- if search.sort_options.size > 0 -%}
+              <label class="sr__sortlabel">
+                Sort by:
+                <select class="sr__sort js-sr-sort" aria-label="Sort results">
+                  {%- assign sort_by = search.sort_by | default: search.default_sort_by -%}
+                  {%- for opt in search.sort_options -%}
+                    <option value="{{ opt.value | escape }}"{% if opt.value == sort_by %} selected{% endif %}>{{ opt.name | escape }}</option>
+                  {%- endfor -%}
+                </select>
+              </label>
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+
+        {%- if search.results_count == 0 -%}
+          <div class="sr__empty">
+            <span class="sr__empty-ic" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6M8.5 8.5l5 5M13.5 8.5l-5 5"/></svg>
+            </span>
+            <h2 class="sr__empty-title">No results for &ldquo;{{ search.terms }}&rdquo;</h2>
+            <p class="sr__empty-sub">Check the spelling, try a shorter word, or browse what everyone else is buying.</p>
+            <div class="sr__empty-actions">
+              <a class="sr__btn" href="{{ routes.all_products_collection_url }}">Shop all products</a>
+              <a class="sr__btn sr__btn--ghost" href="{{ routes.root_url }}">Back to home</a>
+            </div>
+          </div>
+
+          {%- if s.show_bestsellers and bs != blank and bs.products.size > 0 -%}
+            <div class="sr__block">
+              <h2 class="sr__block-title">{{ s.bestseller_heading | default: 'Trending right now' }}</h2>
+              <div class="pg zeene-pg" style="--pg-text:{{ s.text_color }};--pg-accent:{{ s.accent_color }};--pg-star:{{ s.star_color }};--pg-radius:{{ s.corner_radius }}px;--pg-ratio:{{ s.image_ratio }};--pg-cols:{{ cols }};--pg-gap:{{ s.gap }}px;--pg-maxw:100%;--pg-pt:0px;--pg-pb:0px;--pg-pt-m:0px;--pg-pb-m:0px;">
+                <div class="pg__inner sr__grid-inner">
+                  <div class="pg__track">
+                    {%- for product in bs.products limit: cols -%}
+                      {%- render 'zeene-card', product: product, cols: cols, show_swatches: s.show_swatches, max_swatches: s.max_swatches, show_sizes: s.show_sizes, show_sale_badge: s.show_sale_badge, show_rating: s.show_rating -%}
+                    {%- endfor -%}
+                  </div>
+                </div>
+              </div>
+            </div>
+          {%- endif -%}
+        {%- else -%}
+
+          {%- if product_count > 0 -%}
+            <div class="sr__block">
+              {%- if content_count > 0 -%}<h2 class="sr__block-title">Products</h2>{%- endif -%}
+              <div class="pg zeene-pg" style="--pg-text:{{ s.text_color }};--pg-accent:{{ s.accent_color }};--pg-star:{{ s.star_color }};--pg-radius:{{ s.corner_radius }}px;--pg-ratio:{{ s.image_ratio }};--pg-cols:{{ cols }};--pg-gap:{{ s.gap }}px;--pg-maxw:100%;--pg-pt:0px;--pg-pb:0px;--pg-pt-m:0px;--pg-pb-m:0px;">
+                <div class="pg__inner sr__grid-inner">
+                  <div class="pg__track" id="sr-track-{{ section.id }}">
+                    {%- for item in search.results -%}
+                      {%- if item.object_type == 'product' -%}
+                        {%- render 'zeene-card', product: item, cols: cols, show_swatches: s.show_swatches, max_swatches: s.max_swatches, show_quick_add: s.show_quick_add, show_sizes: s.show_sizes, show_sale_badge: s.show_sale_badge, show_vendor: s.show_vendor, show_rating: s.show_rating, show_rating_count: s.show_rating_count, rating_fallback: s.rating_fallback -%}
+                      {%- endif -%}
+                    {%- endfor -%}
+                  </div>
+                </div>
+              </div>
+            </div>
+          {%- endif -%}
+
+          {%- if content_count > 0 -%}
+            <div class="sr__block">
+              <h2 class="sr__block-title">Pages &amp; journal</h2>
+              <div class="sr__content" id="sr-content-{{ section.id }}">
+                {%- for item in search.results -%}
+                  {%- case item.object_type -%}
+                    {%- when 'article' -%}
+                      <a class="sr__doc" href="{{ item.url }}">
+                        {%- if item.image != blank -%}
+                          <span class="sr__doc-media">
+                            <img src="{{ item.image | image_url: width: 300 }}" alt="{{ item.image.alt | default: item.title | escape }}" width="120" height="120" loading="lazy" decoding="async">
+                          </span>
+                        {%- else -%}
+                          <span class="sr__doc-media sr__doc-media--blank" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 4h9l4 4v12H6z"/><path d="M15 4v4h4M9 13h7M9 17h5"/></svg>
+                          </span>
+                        {%- endif -%}
+                        <span class="sr__doc-body">
+                          <span class="sr__doc-tag">Journal</span>
+                          <span class="sr__doc-title">{{ item.title | escape }}</span>
+                          {%- if item.excerpt_or_content != blank -%}
+                            <span class="sr__doc-text">{{ item.excerpt_or_content | strip_html | truncatewords: 22 }}</span>
+                          {%- endif -%}
+                        </span>
+                      </a>
+                    {%- when 'page' -%}
+                      <a class="sr__doc" href="{{ item.url }}">
+                        <span class="sr__doc-media sr__doc-media--blank" aria-hidden="true">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 4h9l4 4v12H6z"/><path d="M15 4v4h4M9 13h7M9 17h5"/></svg>
+                        </span>
+                        <span class="sr__doc-body">
+                          <span class="sr__doc-tag">Page</span>
+                          <span class="sr__doc-title">{{ item.title | escape }}</span>
+                          {%- if item.content != blank -%}
+                            <span class="sr__doc-text">{{ item.content | strip_html | truncatewords: 22 }}</span>
+                          {%- endif -%}
+                        </span>
+                      </a>
+                  {%- endcase -%}
+                {%- endfor -%}
+              </div>
+            </div>
+          {%- endif -%}
+
+          {%- if paginate.next -%}
+            <div class="sr__more">
+              <span class="sr__more-count js-sr-count" data-shown="{{ search.results.size }}" data-total="{{ search.results_count }}">Showing {{ search.results.size }} of {{ search.results_count }}</span>
+              <button type="button" class="sr__loadmore js-sr-loadmore" data-next-url="{{ paginate.next.url }}">Load more</button>
+            </div>
+          {%- endif -%}
+
+        {%- endif -%}
+      {%- endpaginate -%}
+    {%- endif -%}
+  </div>
+</div>
+
+{%- style -%}
+#search-results-{{ section.id }} { background: var(--sr-bg); color: var(--sr-text); padding: var(--sr-pt) 0 var(--sr-pb); overflow-x: clip; }
+#search-results-{{ section.id }} .sr__inner { max-width: var(--sr-maxw); margin: 0 auto; padding: 0 16px; box-sizing: border-box; }
+#search-results-{{ section.id }} *, #search-results-{{ section.id }} *::before, #search-results-{{ section.id }} *::after { box-sizing: border-box; }
+
+#search-results-{{ section.id }} .sr__hero { position: relative; text-align: center; max-width: 720px; margin: 0 auto 34px; }
+#search-results-{{ section.id }} .sr__hero::before { content: ''; position: absolute; left: 50%; top: -60px; width: 100%; max-width: 460px; height: 260px; transform: translateX(-50%); background: radial-gradient(ellipse at center, {{ s.accent_color | color_modify: 'alpha', 0.34 }}, transparent 68%); filter: blur(6px); pointer-events: none; z-index: 0; }
+#search-results-{{ section.id }} .sr__hero > * { position: relative; z-index: 1; }
+#search-results-{{ section.id }} .sr__eyebrow { display: inline-block; margin: 0 0 10px; font-size: 11px; font-weight: 800; letter-spacing: 0.24em; text-transform: uppercase; opacity: 0.55; }
+#search-results-{{ section.id }} .sr__title { margin: 0 0 22px; font-family: 'Zen Maru Gothic', sans-serif; font-size: clamp(24px, 3.4vw, 36px); font-weight: 500; line-height: 1.22; letter-spacing: -0.015em; }
+
+#search-results-{{ section.id }} .sr__form { display: flex; align-items: center; gap: 10px; padding: 6px 6px 6px 16px; background: #fff; border: 1.5px solid {{ s.text_color | color_modify: 'alpha', 0.88 }}; border-radius: 14px; box-shadow: 0 16px 34px -22px rgba(10,10,10,0.45); }
+#search-results-{{ section.id }} .sr__form-icon { display: inline-flex; flex-shrink: 0; opacity: 0.5; }
+#search-results-{{ section.id }} .sr__form-icon svg { width: 20px; height: 20px; }
+#search-results-{{ section.id }} .sr__input { flex: 1; min-width: 0; height: 46px; border: 0; outline: 0; background: transparent; font-family: 'Zen Maru Gothic', sans-serif; font-size: 15px; font-weight: 500; color: var(--sr-text); }
+#search-results-{{ section.id }} .sr__input::placeholder { color: {{ s.text_color | color_modify: 'alpha', 0.42 }}; }
+#search-results-{{ section.id }} .sr__input::-webkit-search-cancel-button { -webkit-appearance: none; }
+#search-results-{{ section.id }} .sr__submit { flex-shrink: 0; height: 46px; padding: 0 26px; font-family: 'Zen Maru Gothic', sans-serif; font-size: 12px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: #0a0a0a; background: var(--sr-accent); border: 0; border-radius: 10px; cursor: pointer; transition: filter 0.18s ease, transform 0.15s ease; }
+#search-results-{{ section.id }} .sr__submit:hover { filter: brightness(0.94); transform: translateY(-1px); }
+
+#search-results-{{ section.id }} .sr__pills { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; margin-top: 18px; }
+#search-results-{{ section.id }} .sr__pills-label { font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.45; margin-right: 2px; }
+#search-results-{{ section.id }} .sr__pill { display: inline-flex; align-items: center; padding: 7px 14px; font-family: 'Zen Maru Gothic', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; color: var(--sr-text); text-decoration: none; background: {{ s.accent_color | color_modify: 'alpha', 0.18 }}; border: 1px solid {{ s.accent_color | color_modify: 'alpha', 0.65 }}; border-radius: 9999px; transition: background-color 0.15s ease, border-color 0.15s ease; }
+#search-results-{{ section.id }} .sr__pill:hover { background: var(--sr-accent); border-color: var(--sr-accent); }
+
+#search-results-{{ section.id }} .sr__bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 0; margin-bottom: 10px; border-top: 1px solid {{ s.text_color | color_modify: 'alpha', 0.12 }}; border-bottom: 1px solid {{ s.text_color | color_modify: 'alpha', 0.12 }}; }
+#search-results-{{ section.id }} .sr__count { font-family: 'Zen Maru Gothic', sans-serif; font-size: 13px; letter-spacing: 0.02em; opacity: 0.7; }
+#search-results-{{ section.id }} .sr__count strong { font-weight: 800; opacity: 1; }
+#search-results-{{ section.id }} .sr__sortlabel { display: inline-flex; align-items: center; gap: 6px; font-family: 'Zen Maru Gothic', sans-serif; font-size: 13px; opacity: 0.7; }
+#search-results-{{ section.id }} .sr__sort { font-family: 'Zen Maru Gothic', sans-serif; font-size: 13px; font-weight: 600; color: var(--sr-text); background: transparent; border: 0; border-bottom: 1.5px solid var(--sr-accent); padding: 3px 18px 3px 2px; cursor: pointer; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230a0a0a' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0 center; background-size: 13px; }
+
+#search-results-{{ section.id }} .sr__block { margin-top: 30px; }
+#search-results-{{ section.id }} .sr__block-title { margin: 0 0 18px; font-family: 'Zen Maru Gothic', sans-serif; font-size: 13px; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; opacity: 0.6; }
+#search-results-{{ section.id }} .sr__grid-inner { padding: 0 !important; }
+
+#search-results-{{ section.id }} .sr__content { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+#search-results-{{ section.id }} .sr__doc { display: flex; gap: 14px; padding: 14px; text-decoration: none; color: inherit; border: 1px solid {{ s.text_color | color_modify: 'alpha', 0.12 }}; border-radius: 14px; transition: border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease; }
+#search-results-{{ section.id }} .sr__doc:hover { border-color: {{ s.text_color | color_modify: 'alpha', 0.55 }}; transform: translateY(-2px); box-shadow: 0 14px 30px -22px rgba(10,10,10,0.55); }
+#search-results-{{ section.id }} .sr__doc-media { flex: 0 0 74px; width: 74px; height: 74px; border-radius: 10px; overflow: hidden; background: {{ s.text_color | color_modify: 'alpha', 0.06 }}; }
+#search-results-{{ section.id }} .sr__doc-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+#search-results-{{ section.id }} .sr__doc-media--blank { display: inline-flex; align-items: center; justify-content: center; opacity: 0.4; }
+#search-results-{{ section.id }} .sr__doc-media--blank svg { width: 26px; height: 26px; }
+#search-results-{{ section.id }} .sr__doc-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+#search-results-{{ section.id }} .sr__doc-tag { align-self: flex-start; padding: 3px 8px; font-size: 9.5px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; background: {{ s.accent_color | color_modify: 'alpha', 0.30 }}; border-radius: 5px; }
+#search-results-{{ section.id }} .sr__doc-title { font-family: 'Zen Maru Gothic', sans-serif; font-size: 14px; font-weight: 600; line-height: 1.35; }
+#search-results-{{ section.id }} .sr__doc-text { font-size: 12.5px; line-height: 1.55; opacity: 0.6; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+#search-results-{{ section.id }} .sr__more { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 42px; }
+#search-results-{{ section.id }} .sr__more-count { font-family: 'Zen Maru Gothic', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; opacity: 0.55; }
+#search-results-{{ section.id }} .sr__loadmore { min-width: 210px; padding: 15px 34px; font-family: 'Zen Maru Gothic', sans-serif; font-size: 12px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--sr-text); background: transparent; border: 1.5px solid var(--sr-text); border-radius: 10px; cursor: pointer; transition: background-color 0.2s ease, color 0.2s ease, transform 0.15s ease; }
+#search-results-{{ section.id }} .sr__loadmore:hover { background: var(--sr-text); color: #fff; transform: translateY(-1px); }
+#search-results-{{ section.id }} .sr__loadmore.is-loading { opacity: 0.6; pointer-events: none; }
+
+#search-results-{{ section.id }} .sr__empty { text-align: center; padding: 44px 16px 10px; }
+#search-results-{{ section.id }} .sr__empty-ic { display: inline-flex; align-items: center; justify-content: center; width: 68px; height: 68px; margin-bottom: 18px; border-radius: 50%; background: {{ s.accent_color | color_modify: 'alpha', 0.22 }}; }
+#search-results-{{ section.id }} .sr__empty-ic svg { width: 30px; height: 30px; }
+#search-results-{{ section.id }} .sr__empty-title { margin: 0 0 8px; font-family: 'Zen Maru Gothic', sans-serif; font-size: clamp(18px, 2.4vw, 22px); font-weight: 600; }
+#search-results-{{ section.id }} .sr__empty-sub { margin: 0 auto; max-width: 460px; font-size: 14px; line-height: 1.65; opacity: 0.6; }
+#search-results-{{ section.id }} .sr__empty-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px; margin-top: 22px; }
+#search-results-{{ section.id }} .sr__btn { display: inline-flex; align-items: center; padding: 14px 28px; font-family: 'Zen Maru Gothic', sans-serif; font-size: 12px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; text-decoration: none; color: #0a0a0a; background: var(--sr-accent); border: 1.5px solid var(--sr-accent); border-radius: 10px; transition: transform 0.15s ease, filter 0.18s ease; }
+#search-results-{{ section.id }} .sr__btn:hover { transform: translateY(-1px); filter: brightness(0.95); }
+#search-results-{{ section.id }} .sr__btn--ghost { color: var(--sr-text); background: transparent; border-color: {{ s.text_color | color_modify: 'alpha', 0.30 }}; }
+#search-results-{{ section.id }} .sr__btn--ghost:hover { border-color: var(--sr-text); filter: none; }
+
+@media (max-width: 989px) {
+  #search-results-{{ section.id }} .sr__content { grid-template-columns: 1fr; }
+}
+{%- comment -%} Mobile keeps the hero compact so the first screen shows products, not the search box. {%- endcomment -%}
+@media (max-width: 749px) {
+  #search-results-{{ section.id }} { padding: var(--sr-pt-m) 0 var(--sr-pb-m); }
+  #search-results-{{ section.id }} .sr__inner { padding: 0 14px; }
+
+  #search-results-{{ section.id }} .sr__hero { margin-bottom: 16px; }
+  #search-results-{{ section.id }} .sr__hero::before { top: -34px; height: 170px; max-width: 300px; }
+  #search-results-{{ section.id }} .sr__eyebrow { margin-bottom: 5px; font-size: 10px; letter-spacing: 0.2em; }
+  #search-results-{{ section.id }} .sr__title { margin-bottom: 14px; font-size: 21px; line-height: 1.3; }
+
+  #search-results-{{ section.id }} .sr__form { gap: 8px; padding: 5px 5px 5px 12px; border-radius: 12px; box-shadow: 0 10px 22px -18px rgba(10,10,10,0.5); }
+  #search-results-{{ section.id }} .sr__form-icon svg { width: 18px; height: 18px; }
+  #search-results-{{ section.id }} .sr__input { height: 42px; font-size: 14px; }
+  #search-results-{{ section.id }} .sr__submit { height: 38px; padding: 0 16px; font-size: 11px; letter-spacing: 0.09em; border-radius: 9px; }
+
+  {%- comment -%} Pills wrap ho kar do line le rahi thin — ab ek swipe-able row. {%- endcomment -%}
+  #search-results-{{ section.id }} .sr__pills { flex-wrap: nowrap; justify-content: flex-start; gap: 7px; margin-top: 12px; padding-bottom: 2px; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  #search-results-{{ section.id }} .sr__pills::-webkit-scrollbar { display: none; }
+  #search-results-{{ section.id }} .sr__pills-label { flex: 0 0 auto; font-size: 10px; }
+  #search-results-{{ section.id }} .sr__pill { flex: 0 0 auto; padding: 6px 12px; font-size: 11px; }
+
+  #search-results-{{ section.id }} .sr__bar { gap: 10px; padding: 10px 0; margin-bottom: 4px; }
+  #search-results-{{ section.id }} .sr__count, #search-results-{{ section.id }} .sr__sortlabel, #search-results-{{ section.id }} .sr__sort { font-size: 12px; }
+  #search-results-{{ section.id }} .sr__sortlabel { gap: 4px; }
+
+  #search-results-{{ section.id }} .sr__block { margin-top: 16px; }
+  #search-results-{{ section.id }} .sr__block-title { margin-bottom: 12px; font-size: 11px; letter-spacing: 0.16em; }
+
+  #search-results-{{ section.id }} .sr__doc { padding: 12px; gap: 12px; border-radius: 12px; }
+  #search-results-{{ section.id }} .sr__doc-media { flex-basis: 58px; width: 58px; height: 58px; }
+
+  #search-results-{{ section.id }} .sr__more { margin-top: 28px; gap: 10px; }
+  #search-results-{{ section.id }} .sr__loadmore { width: 100%; min-width: 0; padding: 14px 20px; }
+
+  #search-results-{{ section.id }} .sr__empty { padding: 28px 8px 4px; }
+  #search-results-{{ section.id }} .sr__empty-ic { width: 56px; height: 56px; margin-bottom: 14px; }
+  #search-results-{{ section.id }} .sr__empty-ic svg { width: 26px; height: 26px; }
+  #search-results-{{ section.id }} .sr__empty-actions { gap: 8px; margin-top: 18px; }
+  #search-results-{{ section.id }} .sr__btn { flex: 1 1 auto; justify-content: center; padding: 13px 18px; font-size: 11px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #search-results-{{ section.id }} * { transition: none !important; }
+}
+{%- endstyle -%}
+
+<script>
+(function () {
+  var root = document.getElementById('search-results-{{ section.id }}');
+  if (!root) return;
+
+  // Sort — sort_by param badal kar wapas usi search URL par.
+  var sort = root.querySelector('.js-sr-sort');
+  if (sort) {
+    sort.addEventListener('change', function () {
+      var url = new URL(window.location.href);
+      url.searchParams.set('sort_by', sort.value);
+      window.location.href = url.toString();
+    });
+  }
+
+var btn = root.querySelector('.js-sr-loadmore');
+  if (!btn) return;
+  var track = document.getElementById('sr-track-{{ section.id }}');
+  var docs = document.getElementById('sr-content-{{ section.id }}');
+  var countEl = root.querySelector('.js-sr-count');
+
+  btn.addEventListener('click', function () {
+    var url = btn.getAttribute('data-next-url');
+    if (!url || btn.classList.contains('is-loading')) return;
+    btn.classList.add('is-loading');
+    var orig = btn.textContent;
+    btn.textContent = 'Loading…';
+
+    fetch(url).then(function (r) { return r.text(); }).then(function (html) {
+      var doc = new DOMParser().parseFromString(html, 'text/html');
+      var added = 0;
+
+      var newTrack = doc.getElementById('sr-track-{{ section.id }}');
+      if (newTrack && track) {
+        var cards = newTrack.querySelectorAll('.pc');
+        for (var i = 0; i < cards.length; i++) { track.appendChild(cards[i]); added++; }
+        if (window.zeeneInitCards) window.zeeneInitCards(track);
+        try { if (window.jdgm && typeof window.jdgm.customizeBadges === 'function') window.jdgm.customizeBadges(); } catch (e) {}
+      }
+
+      var newDocs = doc.getElementById('sr-content-{{ section.id }}');
+      if (newDocs && docs) {
+        var items = newDocs.querySelectorAll('.sr__doc');
+        for (var j = 0; j < items.length; j++) { docs.appendChild(items[j]); added++; }
+      }
+
+      if (countEl) {
+        var shown = parseInt(countEl.getAttribute('data-shown'), 10) + added;
+        countEl.setAttribute('data-shown', shown);
+        countEl.textContent = 'Showing ' + shown + ' of ' + countEl.getAttribute('data-total');
+      }
+
+      var newBtn = doc.querySelector('.js-sr-loadmore');
+      if (newBtn && newBtn.getAttribute('data-next-url')) {
+        btn.setAttribute('data-next-url', newBtn.getAttribute('data-next-url'));
+        btn.classList.remove('is-loading');
+        btn.textContent = orig;
+      } else {
+        var wrap = btn.parentElement;
+        btn.remove();
+        if (wrap && countEl) countEl.textContent = 'Showing all ' + countEl.getAttribute('data-total') + ' results';
+      }
+    }).catch(function () { btn.classList.remove('is-loading'); btn.textContent = orig; });
+  });
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Search results",
+  "tag": "section",
+  "class": "section-search-results",
+  "settings": [
+    { "type": "header", "content": "Header" },
+    { "type": "text", "id": "blank_heading", "label": "Heading (before searching)", "default": "What are you looking for?" },
+    { "type": "text", "id": "placeholder", "label": "Search box placeholder", "default": "Search hoodies, tees, collections…" },
+    { "type": "checkbox", "id": "show_popular", "label": "Show popular search pills", "default": true, "info": "Terms come from Theme settings → Search drawer → Popular searches." },
+
+    { "type": "header", "content": "Results" },
+    { "type": "range", "id": "results_per_page", "min": 8, "max": 48, "step": 4, "label": "Results per page", "default": 20 },
+    { "type": "range", "id": "columns_desktop", "min": 2, "max": 6, "step": 1, "label": "Desktop columns", "default": 4 },
+    { "type": "select", "id": "image_ratio", "label": "Image aspect ratio", "options": [ { "value": "1/1", "label": "Square (1:1)" }, { "value": "4/5", "label": "Portrait (4:5)" }, { "value": "3/4", "label": "Portrait (3:4)" }, { "value": "2/3", "label": "Tall portrait (2:3)" } ], "default": "3/4" },
+    { "type": "range", "id": "gap", "min": 4, "max": 28, "step": 2, "unit": "px", "label": "Gap between cards", "default": 16 },
+    { "type": "range", "id": "corner_radius", "min": 0, "max": 32, "step": 2, "unit": "px", "label": "Image corner radius", "default": 14 },
+
+    { "type": "header", "content": "Card content" },
+    { "type": "checkbox", "id": "show_swatches", "label": "Show color swatches", "default": true },
+    { "type": "range", "id": "max_swatches", "min": 3, "max": 8, "step": 1, "label": "Max swatches before \"+N\"", "default": 5 },
+    { "type": "checkbox", "id": "show_quick_add", "label": "Show quick \"+\" button", "default": false },
+    { "type": "checkbox", "id": "show_sizes", "label": "Show size buttons on hover (add to cart)", "default": true },
+    { "type": "checkbox", "id": "show_sale_badge", "label": "Show sale badge", "default": true },
+    { "type": "checkbox", "id": "show_vendor", "label": "Show vendor", "default": false },
+    { "type": "checkbox", "id": "show_rating", "label": "Show star rating (Judge.me)", "default": true },
+    { "type": "checkbox", "id": "show_rating_count", "label": "Show review count next to rating", "default": false },
+    { "type": "checkbox", "id": "rating_fallback", "label": "Show 5.0 placeholder when no reviews", "default": false },
+    { "type": "color", "id": "star_color", "label": "Star color", "default": "#f5a623" },
+
+    { "type": "header", "content": "No results" },
+    { "type": "checkbox", "id": "show_bestsellers", "label": "Show bestsellers when nothing is found", "default": true, "info": "Collection comes from Theme settings → Search drawer → Bestseller collection." },
+    { "type": "text", "id": "bestseller_heading", "label": "Bestsellers heading", "default": "Trending right now" },
+
+    { "type": "header", "content": "Colors & spacing" },
+    { "type": "color", "id": "bg_color", "label": "Background", "default": "#ffffff" },
+    { "type": "color", "id": "text_color", "label": "Text", "default": "#0a0a0a" },
+    { "type": "color", "id": "accent_color", "label": "Neon accent", "default": "#C6F135" },
+    { "type": "range", "id": "max_width", "min": 1000, "max": 1600, "step": 20, "unit": "px", "label": "Max content width", "default": 1280 },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 100, "step": 4, "unit": "px", "label": "Padding top", "default": 40 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 100, "step": 4, "unit": "px", "label": "Padding bottom", "default": 64 }
+  ]
+}
+{% endschema %}

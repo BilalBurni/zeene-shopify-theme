@@ -1,0 +1,111 @@
+{%- comment -%} Rendered once in theme.liquid only. Never render this inside a section: that caused duplicate breadcrumbs. {%- endcomment -%}
+{%- liquid
+  assign tn = template.name
+  assign from_section = from_section | default: false
+  assign overlay = overlay | default: false
+  assign show_bc = true
+  if tn == 'index' or tn == 'cart' or tn == 'password' or tn == 'gift_card'
+    assign show_bc = false
+  endif
+# These templates draw their own breadcrumb over the banner (from_section: true), so the generic
+# render in theme.liquid is skipped. Keep in sync with the sections that render it:
+# collection-timer, bundle-builder, flash-sale-hub.
+  assign self_rendered = 'collection.sale,page.bundle,page.flash-sale,page.gift-card'
+  assign tkey = tn
+  if template.suffix != blank
+    assign tkey = tn | append: '.' | append: template.suffix
+  endif
+  if from_section == false and self_rendered contains tkey
+    assign show_bc = false
+  endif
+-%}
+{%- if show_bc -%}
+  {%- liquid
+    assign delim = '~||~'
+    assign names = 'Home'
+    assign urls = routes.root_url
+    case tn
+      when 'product'
+        if collection.url != blank
+          assign names = names | append: delim | append: collection.title
+          assign urls = urls | append: delim | append: collection.url
+        elsif product.collections.first != blank
+          assign names = names | append: delim | append: product.collections.first.title
+          assign urls = urls | append: delim | append: product.collections.first.url
+        endif
+        assign names = names | append: delim | append: product.title
+        assign urls = urls | append: delim | append: product.url
+      when 'collection'
+        assign names = names | append: delim | append: 'Collections'
+        assign urls = urls | append: delim | append: routes.collections_url
+        assign names = names | append: delim | append: collection.title
+        assign urls = urls | append: delim | append: collection.url
+        if current_tags.size > 0
+          assign tagname = current_tags | join: ', '
+          assign names = names | append: delim | append: tagname
+          assign urls = urls | append: delim | append: request.path
+        endif
+      when 'article'
+        assign names = names | append: delim | append: blog.title
+        assign urls = urls | append: delim | append: blog.url
+        assign names = names | append: delim | append: article.title
+        assign urls = urls | append: delim | append: article.url
+      when 'blog'
+        assign names = names | append: delim | append: blog.title
+        assign urls = urls | append: delim | append: blog.url
+      when 'page'
+        assign names = names | append: delim | append: page.title
+        assign urls = urls | append: delim | append: page.url
+      when 'list-collections'
+        assign names = names | append: delim | append: 'Collections'
+        assign urls = urls | append: delim | append: routes.collections_url
+      when 'search'
+        assign names = names | append: delim | append: 'Search'
+        assign urls = urls | append: delim | append: routes.search_url
+      when '404'
+        assign names = names | append: delim | append: 'Page not found'
+        assign urls = urls | append: delim | append: request.path
+      else
+        assign clean_title = page_title | split: ' &ndash; ' | first | default: page_title
+        assign names = names | append: delim | append: clean_title
+        assign urls = urls | append: delim | append: request.path
+    endcase
+    assign names_arr = names | split: delim
+    assign urls_arr = urls | split: delim
+  -%}
+
+  <nav class="breadcrumb{% if overlay %} breadcrumb--overlay{% endif %}" aria-label="Breadcrumb" role="navigation">
+    <ol class="breadcrumb__list">
+      {%- for name in names_arr -%}
+        {%- assign u = urls_arr[forloop.index0] -%}
+        {%- if forloop.last -%}
+          <li class="breadcrumb__item breadcrumb__item--current"><span aria-current="page">{{ name }}</span></li>
+        {%- else -%}
+          <li class="breadcrumb__item"><a href="{{ u }}">{{ name }}</a></li>
+        {%- endif -%}
+      {%- endfor -%}
+    </ol>
+  </nav>
+
+  <script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{%- for name in names_arr -%}{"@type":"ListItem","position":{{ forloop.index }},"name":{{ name | json }},"item":{{ request.origin | append: urls_arr[forloop.index0] | json }}}{%- unless forloop.last -%},{%- endunless -%}{%- endfor -%}]}
+  </script>
+
+  {%- style -%}
+  .breadcrumb { display: block; width: 100%; }
+  .breadcrumb--overlay { position: absolute; top: 0; left: 0; right: 0; z-index: 2; background: linear-gradient(to bottom, rgba(0,0,0,0.42), rgba(0,0,0,0)); pointer-events: none; }
+  .breadcrumb--overlay .breadcrumb__list { padding-top: 12px; padding-bottom: 22px; pointer-events: auto; }
+  .breadcrumb--overlay .breadcrumb__item a { color: #fff; opacity: 0.8; }
+  .breadcrumb--overlay .breadcrumb__item a:hover { opacity: 1; }
+  .breadcrumb--overlay .breadcrumb__item:not(:first-child)::before { color: #fff; opacity: 0.5; }
+  .breadcrumb--overlay .breadcrumb__item--current span { color: #fff; opacity: 1; text-shadow: 0 1px 6px rgba(0,0,0,0.45); }
+  .breadcrumb__list { max-width: 1280px; margin: 0 auto; padding: 14px 16px 0; display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-start; text-align: left; list-style: none; font-family: 'Zen Maru Gothic', sans-serif; font-size: 12.5px; box-sizing: border-box; }
+  .breadcrumb__item { display: inline-flex; align-items: center; min-width: 0; }
+  .breadcrumb__item:not(:first-child)::before { content: '/'; margin: 0 9px; color: #0a0a0a; opacity: 0.32; }
+  .breadcrumb__item a { color: #0a0a0a; opacity: 0.55; text-decoration: none; transition: opacity 0.15s ease; }
+  .breadcrumb__item a:hover { opacity: 1; text-decoration: underline; text-underline-offset: 2px; }
+  .breadcrumb__item--current span { color: #0a0a0a; font-weight: 600; opacity: 0.9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px; display: inline-block; }
+  /* Mobile keeps one line: min-width:0 is needed on both the li and the span, or the flex item will not shrink and the ellipsis never kicks in. */
+  @media (max-width: 749px) { .breadcrumb__list { flex-wrap: nowrap; padding: 10px 16px 0; font-size: 11.5px; } .breadcrumb__item { flex: 0 0 auto; white-space: nowrap; } .breadcrumb__item--current { flex: 0 1 auto; min-width: 0; } .breadcrumb__item--current span { min-width: 0; max-width: none; } }
+  {%- endstyle -%}
+{%- endif -%}

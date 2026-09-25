@@ -1,0 +1,423 @@
+{%- liquid
+  assign s = section.settings
+  assign cols = s.columns_desktop
+  assign radius = s.corner_radius
+  assign ratio = s.image_ratio
+  assign pt_m = s.padding_top | times: 0.5 | round
+  assign pb_m = s.padding_bottom | times: 0.5 | round
+
+# Tabs come from the menu only. The old collection.all_tags fallback scattered every tag as a tab.
+  assign tabs_menu = null
+  assign mf_menu = collection.metafields.custom.subcategory_menu
+  if mf_menu != blank
+    assign tabs_menu = linklists[mf_menu]
+  elsif s.top_tabs_menu != blank
+    assign tabs_menu = linklists[s.top_tabs_menu]
+  endif
+
+  assign has_active = false
+  for f in collection.filters
+    for v in f.values
+      if v.active
+        assign has_active = true
+      endif
+    endfor
+    if f.type == 'price_range'
+      if f.min_value.value != blank or f.max_value.value != blank
+        assign has_active = true
+      endif
+    endif
+  endfor
+-%}
+{{ 'zeene-card.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'zeene-card.js' | asset_url }}" defer="defer"></script>
+
+<div id="collection-filters-{{ section.id }}" class="cf" style="--cf-bg:{{ s.bg_color }};--cf-text:{{ s.text_color }};--cf-accent:{{ s.accent_color }};--cf-maxw:{{ s.max_width }}px;">
+  <div class="cf__inner">
+    {%- if s.show_title -%}<h1 class="cf__title">{{ collection.title }}</h1>{%- endif -%}
+
+    {%- comment -%} Sub-category cards — heading ke neeche, left-aligned. Image linked collection se (link.object), na ho to dummy fallback. {%- endcomment -%}
+    {%- if s.show_top_tags and tabs_menu != blank and tabs_menu.links.size > 0 -%}
+      <div class="cf__cats">
+        {%- for link in tabs_menu.links -%}
+          {%- liquid
+            assign lc = link.object
+            assign limg = blank
+            if link.type == 'collection_link'
+              if lc.image != blank
+                assign limg = lc.image
+              elsif lc.featured_image != blank
+                assign limg = lc.featured_image
+              endif
+            endif
+          -%}
+          <a class="cf__cat{% if link.current %} is-active{% endif %}" href="{{ link.url }}">
+            <span class="cf__cat-media">
+              {%- if limg != blank -%}
+                <img src="{{ limg | image_url: width: 400 }}" srcset="{{ limg | image_url: width: 200 }} 200w, {{ limg | image_url: width: 400 }} 400w" sizes="150px" alt="{{ link.title | escape }}" width="150" height="180" loading="lazy" decoding="async">
+              {%- else -%}
+                <img src="{% render 'demo-image', set: 'category', index: forloop.index0, width: 400 %}" alt="{{ link.title | escape }}" width="150" height="180" loading="lazy" decoding="async">
+              {%- endif -%}
+            </span>
+            <span class="cf__cat-label">{{ link.title }}</span>
+          </a>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+
+    <div class="cf__bar">
+      <button type="button" class="cf__filter-btn js-cf-open" aria-label="Open filters">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+        Filter
+      </button>
+      <div class="cf__bar-right">
+        {%- if collection.sort_options.size > 0 -%}
+          <label class="cf__sortlabel">Sort by:
+            <select class="cf__sort js-cf-sort" aria-label="Sort products">
+              {%- for opt in collection.sort_options -%}
+                <option value="{{ opt.value }}"{% if opt.value == collection.sort_by %} selected{% endif %}>{{ opt.name }}</option>
+              {%- endfor -%}
+            </select>
+          </label>
+        {%- endif -%}
+        <span class="cf__count">( {{ collection.products_count }} product{% if collection.products_count != 1 %}s{% endif %} )</span>
+      </div>
+    </div>
+
+    {%- if has_active -%}
+      <div class="cf__active">
+        {%- for f in collection.filters -%}
+          {%- for v in f.values -%}
+            {%- if v.active -%}<a class="cf__chip" href="{{ v.url_to_remove }}">{{ v.label }}<span aria-hidden="true">&times;</span></a>{%- endif -%}
+          {%- endfor -%}
+          {%- if f.type == 'price_range' and f.min_value.value != blank or f.type == 'price_range' and f.max_value.value != blank -%}
+            <a class="cf__chip" href="{{ f.url_to_remove }}">Price<span aria-hidden="true">&times;</span></a>
+          {%- endif -%}
+        {%- endfor -%}
+        <a class="cf__clear-all" href="{{ collection.url }}">Clear all</a>
+      </div>
+    {%- endif -%}
+
+    {%- paginate collection.products by s.products_per_page -%}
+      {%- if collection.products.size > 0 -%}
+        <div class="pg zeene-pg" style="--pg-bg:{{ s.bg_color }};--pg-text:{{ s.text_color }};--pg-accent:{{ s.accent_color }};--pg-star:{{ s.star_color }};--pg-radius:{{ radius }}px;--pg-ratio:{{ ratio }};--pg-cols:{{ cols }};--pg-gap:{{ s.gap }}px;--pg-maxw:{{ s.max_width }}px;--pg-pt:0px;--pg-pb:{{ s.padding_bottom }}px;--pg-pt-m:0px;--pg-pb-m:{{ pb_m }}px;">
+          <div class="pg__inner">
+            <div class="pg__track" id="cf-track-{{ section.id }}">
+              {%- for product in collection.products -%}
+                {%- render 'zeene-card', product: product, cols: cols, show_swatches: s.show_swatches, max_swatches: s.max_swatches, show_quick_add: s.show_quick_add, show_sizes: s.show_sizes, show_sale_badge: s.show_sale_badge, show_vendor: s.show_vendor, show_rating: s.show_rating, show_rating_count: s.show_rating_count, rating_fallback: s.rating_fallback -%}
+              {%- endfor -%}
+            </div>
+            {%- if paginate.next -%}
+              <div class="pg__loadmore-wrap">
+                <button type="button" class="pg__loadmore js-cf-loadmore" data-next-url="{{ paginate.next.url }}" data-target="cf-track-{{ section.id }}">Load more</button>
+              </div>
+            {%- endif -%}
+          </div>
+        </div>
+      {%- else -%}
+        {%- if has_active -%}
+          {%- render 'empty-state',
+            icon: 'filter',
+            title: 'No products match these filters',
+            text: 'Try removing a filter or two — or browse everything in this collection.',
+            primary_label: 'Clear all filters',
+            primary_url: collection.url,
+            secondary_label: 'Shop all products',
+            secondary_url: routes.all_products_collection_url,
+            accent: s.accent_color,
+            text_color: s.text_color -%}
+        {%- else -%}
+          {%- render 'empty-state',
+            icon: 'bag',
+            title: 'This collection is empty right now',
+            text: 'New drops land regularly — check back soon, or explore what is in stock today.',
+            primary_label: 'Shop all products',
+            primary_url: routes.all_products_collection_url,
+            secondary_label: 'Back to home',
+            secondary_url: routes.root_url,
+            accent: s.accent_color,
+            text_color: s.text_color -%}
+        {%- endif -%}
+      {%- endif -%}
+    {%- endpaginate -%}
+  </div>
+
+  <div class="cf-drawer" id="CF-Drawer-{{ section.id }}" role="dialog" aria-modal="true" aria-label="Filters">
+    <div class="cf-drawer__panel">
+      <div class="cf-drawer__head">
+        <div><span class="cf-drawer__title"><svg class="cf-drawer__title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>Filter</span><span class="cf-drawer__count">{{ collection.products_count }} products</span></div>
+        <button type="button" class="cf-drawer__close js-cf-close" aria-label="Close filters"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      </div>
+      {%- capture tag_path -%}{% if current_tags.size > 0 %}/{% for t in current_tags %}{{ t | handleize }}{% unless forloop.last %}+{% endunless %}{% endfor %}{% endif %}{%- endcapture -%}
+      <form action="{{ collection.url }}{{ tag_path }}" method="get" class="cf-drawer__body">
+        {%- for filter in collection.filters -%}
+          {%- assign flbl = filter.label | downcase -%}
+          {%- assign act_count = 0 -%}
+          {%- for v in filter.values -%}{%- if v.active -%}{%- assign act_count = act_count | plus: 1 -%}{%- endif -%}{%- endfor -%}
+          <details class="cf-sec"{% if act_count > 0 %} open{% endif %}>
+            <summary class="cf-sec__head"><span class="cf-sec__lbl">{{ filter.label }}{% if act_count > 0 %}<span class="cf-sec__badge">{{ act_count }}</span>{% endif %}</span><svg class="cf-sec__pm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><line class="cf-sec__pm-v" x1="12" y1="5" x2="12" y2="19"/></svg></summary>
+            <div class="cf-sec__body">
+              {%- if filter.type == 'price_range' -%}
+                {%- assign price_max = filter.range_max | money_without_currency | replace: ',', '' -%}
+                <div class="cf-price">
+                  <label class="cf-price__field">Rs <input type="number" name="{{ filter.min_value.param_name }}" value="{{ filter.min_value.value }}" placeholder="0" min="0" inputmode="numeric"></label>
+                  <span class="cf-price__dash">–</span>
+                  <label class="cf-price__field">Rs <input type="number" name="{{ filter.max_value.param_name }}" value="{{ filter.max_value.value }}" placeholder="{{ price_max }}" min="0" inputmode="numeric"></label>
+                </div>
+              {%- elsif flbl contains 'color' or flbl contains 'colour' -%}
+                <div class="cf-swatches">
+                  {%- for v in filter.values -%}
+                    {%- liquid
+                      assign csw = ''
+                      if v.swatch.image
+                        assign csw_url = v.swatch.image | image_url: width: 60
+                        assign csw = 'background-image:url(' | append: csw_url | append: ');'
+                      elsif v.swatch.color
+                        assign csw = 'background-color:rgb(' | append: v.swatch.color.rgb | append: ');'
+                      else
+                        assign csw_name = v.label | downcase | split: ' ' | last
+                        assign csw = 'background-color:' | append: csw_name | append: ';'
+                      endif
+                    -%}
+                    <label class="cf-sw{% if v.active %} is-active{% endif %}" title="{{ v.label | escape }}"><input type="checkbox" name="{{ v.param_name }}" value="{{ v.value }}"{% if v.active %} checked{% endif %}><span class="cf-sw__dot" style="{{ csw }}"></span></label>
+                  {%- endfor -%}
+                </div>
+              {%- elsif flbl contains 'size' -%}
+                <div class="cf-sizes">
+                  {%- for v in filter.values -%}
+                    <label class="cf-sizebtn{% if v.active %} is-active{% endif %}{% if v.count == 0 and v.active == false %} is-empty{% endif %}"><input type="checkbox" name="{{ v.param_name }}" value="{{ v.value }}"{% if v.active %} checked{% endif %}>{{ v.label }}</label>
+                  {%- endfor -%}
+                </div>
+              {%- else -%}
+                <div class="cf-list">
+                  {%- for v in filter.values -%}
+                    <label class="cf-check{% if v.count == 0 and v.active == false %} is-empty{% endif %}"><input type="checkbox" name="{{ v.param_name }}" value="{{ v.value }}"{% if v.active %} checked{% endif %}><span class="cf-check__box"></span><span class="cf-check__label">{{ v.label }}</span><span class="cf-check__count">{{ v.count }}</span></label>
+                  {%- endfor -%}
+                </div>
+              {%- endif -%}
+            </div>
+          </details>
+        {%- endfor -%}
+        {%- if collection.sort_options.size > 0 -%}
+          <div class="cf-sortrow">
+            <span class="cf-sortrow__label">Sort by</span>
+            <select name="sort_by" class="cf-sortrow__select">
+              {%- for opt in collection.sort_options -%}<option value="{{ opt.value }}"{% if opt.value == collection.sort_by %} selected{% endif %}>{{ opt.name }}</option>{%- endfor -%}
+            </select>
+          </div>
+        {%- endif -%}
+        <div class="cf-drawer__foot">
+          <a href="{{ collection.url }}" class="cf-drawer__clear">Clear</a>
+          <button type="submit" class="cf-drawer__apply">Apply</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{%- style -%}
+#collection-filters-{{ section.id }}.cf { background: var(--cf-bg); color: var(--cf-text); padding: 0 0 var(--cf-pb, 0); }
+#collection-filters-{{ section.id }} .cf__inner { max-width: var(--cf-maxw); margin: 0 auto; padding: 0 16px; }
+#collection-filters-{{ section.id }} .cf__title { font-family: 'Zen Maru Gothic', sans-serif; font-size: 14px; font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase; margin: 10px 0 14px; }
+{%- comment -%} Sub-category cards — image + label overlay, left-aligned, horizontal scroll on overflow. {%- endcomment -%}
+#collection-filters-{{ section.id }} .cf__cats { display: flex; gap: 12px; margin: 16px 0 22px; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; padding-bottom: 2px; }
+#collection-filters-{{ section.id }} .cf__cats::-webkit-scrollbar { display: none; }
+#collection-filters-{{ section.id }} .cf__cat { flex: 0 0 auto; position: relative; width: 132px; aspect-ratio: 3/4; border-radius: 10px; overflow: hidden; background: #f0f0f0; text-decoration: none; }
+#collection-filters-{{ section.id }} .cf__cat-media { position: absolute; inset: 0; }
+#collection-filters-{{ section.id }} .cf__cat-media img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.5s cubic-bezier(.22,.61,.36,1); }
+#collection-filters-{{ section.id }} .cf__cat:hover .cf__cat-media img { transform: scale(1.06); }
+#collection-filters-{{ section.id }} .cf__cat::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.05) 52%, rgba(0,0,0,0) 80%); }
+#collection-filters-{{ section.id }} .cf__cat-label { position: absolute; left: 11px; right: 11px; bottom: 10px; z-index: 1; font-family: 'Zen Maru Gothic', sans-serif; font-size: 12px; font-weight: 700; line-height: 1.25; color: #fff; }
+#collection-filters-{{ section.id }} .cf__cat.is-active { box-shadow: inset 0 0 0 2px var(--cf-accent, #C6F135), inset 0 0 0 4px rgba(0,0,0,0.85); }
+@media (max-width: 749px) { #collection-filters-{{ section.id }} .cf__cats { gap: 9px; margin: 14px 0 18px; } #collection-filters-{{ section.id }} .cf__cat { width: 108px; } }
+#collection-filters-{{ section.id }} .cf__bar { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 14px; flex-wrap: wrap; }
+#collection-filters-{{ section.id }} .cf__filter-btn { display: inline-flex; align-items: center; gap: 8px; padding: 4px 0; font-family: 'Zen Maru Gothic', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cf-text); background: transparent; border: 0; cursor: pointer; transition: opacity 0.15s ease; }
+#collection-filters-{{ section.id }} .cf__filter-btn:hover { opacity: 0.6; }
+#collection-filters-{{ section.id }} .cf__filter-btn svg { width: 18px; height: 18px; }
+#collection-filters-{{ section.id }} .cf__bar-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+#collection-filters-{{ section.id }} .cf__sortlabel { font-size: 12.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; opacity: 0.85; display: inline-flex; align-items: center; gap: 6px; }
+#collection-filters-{{ section.id }} .cf__sort { font-family: 'Zen Maru Gothic', sans-serif; font-size: 12.5px; font-weight: 700; color: var(--cf-text); background: transparent; border: 0; cursor: pointer; padding: 2px; text-transform: uppercase; }
+#collection-filters-{{ section.id }} .cf__count { font-size: 11.5px; font-weight: 600; opacity: 0.5; letter-spacing: 0.04em; text-transform: uppercase; }
+#collection-filters-{{ section.id }} .cf__active { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 18px; }
+#collection-filters-{{ section.id }} .cf__chip { display: inline-flex; align-items: center; min-height: 30px; padding: 0 0 0 10px; font-size: 12px; font-weight: 400; line-height: 1; color: var(--cf-text); text-decoration: none; border: 1px solid rgba(0,0,0,0.14); border-radius: 2px; transition: border-color 0.15s ease; }
+#collection-filters-{{ section.id }} .cf__chip span { align-self: stretch; display: inline-flex; align-items: center; justify-content: center; margin-left: 10px; padding: 0 9px; font-size: 13px; line-height: 1; opacity: 0.45; border-left: 1px solid rgba(0,0,0,0.14); transition: opacity 0.15s ease; }
+#collection-filters-{{ section.id }} .cf__chip:hover { border-color: rgba(0,0,0,0.4); }
+#collection-filters-{{ section.id }} .cf__chip:hover span { opacity: 0.9; }
+#collection-filters-{{ section.id }} .cf__clear-all { font-size: 12px; font-weight: 400; color: var(--cf-text); opacity: 0.6; text-decoration: underline; text-underline-offset: 3px; transition: opacity 0.15s ease; }
+#collection-filters-{{ section.id }} .cf__clear-all:hover { opacity: 1; }
+#collection-filters-{{ section.id }} .pg__inner { padding-left: 0 !important; padding-right: 0 !important; }
+#collection-filters-{{ section.id }} .pg { transition: opacity 0.25s ease; }
+#collection-filters-{{ section.id }}.is-loading .pg { opacity: 0.4; pointer-events: none; }
+#collection-filters-{{ section.id }}.is-loading { cursor: progress; }
+#CF-Drawer-{{ section.id }} .cf-sec__lbl { display: inline-flex; align-items: center; gap: 9px; }
+#CF-Drawer-{{ section.id }} .cf-sec__badge { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 5px; font-size: 10.5px; font-weight: 800; color: #0a0a0a; background: var(--cf-accent); border-radius: 9999px; }
+#CF-Drawer-{{ section.id }} { position: fixed; inset: 0; z-index: 1004; display: flex; visibility: hidden; background-color: rgba(10,10,10,0); -webkit-backdrop-filter: blur(0); backdrop-filter: blur(0); transition: none; }
+#CF-Drawer-{{ section.id }}.cf-ready { transition: background-color 0.4s ease, -webkit-backdrop-filter 0.4s ease, backdrop-filter 0.4s ease, visibility 0.45s ease; }
+#CF-Drawer-{{ section.id }}.active { visibility: visible; background-color: rgba(10,10,10,0.44); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
+#CF-Drawer-{{ section.id }} .cf-drawer__panel { position: relative; width: min(400px, 90vw); height: 100%; background: #fff; box-shadow: 18px 0 60px rgba(0,0,0,0.2); transform: translateX(-100%); transition: none; display: flex; flex-direction: column; }
+#CF-Drawer-{{ section.id }}.cf-ready .cf-drawer__panel { transition: transform 0.5s cubic-bezier(.16,1,.3,1); }
+#CF-Drawer-{{ section.id }}.active .cf-drawer__panel { transform: translateX(0); }
+#CF-Drawer-{{ section.id }} .cf-drawer__head { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px; border-bottom: 1px solid rgba(0,0,0,0.09); flex-shrink: 0; }
+#CF-Drawer-{{ section.id }} .cf-drawer__title { display: inline-flex; align-items: center; gap: 9px; font-family: 'Zen Maru Gothic', sans-serif; font-size: 16px; font-weight: 800; letter-spacing: 0.02em; text-transform: uppercase; }
+#CF-Drawer-{{ section.id }} .cf-drawer__title-icon { width: 18px; height: 18px; flex-shrink: 0; }
+#CF-Drawer-{{ section.id }} .cf-drawer__count { display: block; font-size: 11.5px; font-weight: 500; opacity: 0.55; margin-top: 2px; }
+#CF-Drawer-{{ section.id }} .cf-drawer__close { width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; border: 0; background: transparent; border-radius: 50%; cursor: pointer; }
+#CF-Drawer-{{ section.id }} .cf-drawer__close svg { width: 18px; height: 18px; }
+#CF-Drawer-{{ section.id }} .cf-drawer__body { flex: 1; overflow-y: auto; padding: 0 20px 16px; }
+#CF-Drawer-{{ section.id }} .cf-sec { border-bottom: 1px solid rgba(0,0,0,0.08); }
+#CF-Drawer-{{ section.id }} .cf-sec__head { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; font-family: 'Zen Maru Gothic', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; list-style: none; }
+#CF-Drawer-{{ section.id }} .cf-sec__head::-webkit-details-marker { display: none; }
+#CF-Drawer-{{ section.id }} .cf-sec__pm { width: 18px; height: 18px; flex-shrink: 0; color: #0a0a0a; }
+#CF-Drawer-{{ section.id }} .cf-sec__pm-v { transition: opacity 0.15s ease; }
+#CF-Drawer-{{ section.id }} .cf-sec[open] .cf-sec__pm-v { opacity: 0; }
+#CF-Drawer-{{ section.id }} .cf-sec__body { padding: 0 0 16px; }
+#CF-Drawer-{{ section.id }} .cf-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; }
+#CF-Drawer-{{ section.id }} .cf-check { display: flex; align-items: center; gap: 8px; font-family: 'Zen Maru Gothic', sans-serif; font-size: 13px; cursor: pointer; }
+#CF-Drawer-{{ section.id }} .cf-check input { position: absolute; opacity: 0; width: 0; height: 0; }
+#CF-Drawer-{{ section.id }} .cf-check__box { flex-shrink: 0; width: 17px; height: 17px; border: 1.5px solid rgba(0,0,0,0.3); border-radius: 4px; position: relative; transition: background-color 0.15s ease, border-color 0.15s ease; }
+#CF-Drawer-{{ section.id }} .cf-check input:checked + .cf-check__box { background: #0a0a0a; border-color: #0a0a0a; }
+#CF-Drawer-{{ section.id }} .cf-check input:checked + .cf-check__box::after { content: ''; position: absolute; left: 5px; top: 2px; width: 4px; height: 8px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+#CF-Drawer-{{ section.id }} .cf-check__label { flex: 1; min-width: 0; }
+#CF-Drawer-{{ section.id }} .cf-check__count { font-size: 11px; opacity: 0.45; }
+#CF-Drawer-{{ section.id }} .cf-check.is-empty { opacity: 0.35; }
+#CF-Drawer-{{ section.id }} .cf-swatches { display: flex; flex-wrap: wrap; gap: 9px; }
+#CF-Drawer-{{ section.id }} .cf-sw { cursor: pointer; }
+#CF-Drawer-{{ section.id }} .cf-sw input { position: absolute; opacity: 0; width: 0; height: 0; }
+#CF-Drawer-{{ section.id }} .cf-sw__dot { display: block; width: 28px; height: 28px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.15); background-size: cover; background-position: center; transition: box-shadow 0.15s ease; }
+#CF-Drawer-{{ section.id }} .cf-sw input:checked + .cf-sw__dot { box-shadow: 0 0 0 2px #fff, 0 0 0 4px #0a0a0a; }
+#CF-Drawer-{{ section.id }} .cf-sizes { display: flex; flex-wrap: wrap; gap: 7px; }
+#CF-Drawer-{{ section.id }} .cf-sizebtn { display: inline-flex; align-items: center; justify-content: center; min-width: 42px; height: 38px; padding: 0 10px; font-family: 'Zen Maru Gothic', sans-serif; font-size: 13px; font-weight: 600; border: 1px solid rgba(0,0,0,0.2); border-radius: 8px; cursor: pointer; transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease; }
+#CF-Drawer-{{ section.id }} .cf-sizebtn input { position: absolute; opacity: 0; width: 0; height: 0; }
+#CF-Drawer-{{ section.id }} .cf-sizebtn.is-active, #CF-Drawer-{{ section.id }} .cf-sizebtn:has(input:checked) { background: #0a0a0a; color: #fff; border-color: #0a0a0a; }
+#CF-Drawer-{{ section.id }} .cf-sizebtn.is-empty { opacity: 0.4; }
+#CF-Drawer-{{ section.id }} .cf-price { display: flex; align-items: center; gap: 10px; }
+#CF-Drawer-{{ section.id }} .cf-price__field { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; border: 1px solid rgba(0,0,0,0.2); border-radius: 8px; padding: 8px 10px; flex: 1; }
+#CF-Drawer-{{ section.id }} .cf-price__field input { width: 100%; border: 0; outline: 0; font-family: 'Zen Maru Gothic', sans-serif; font-size: 14px; background: transparent; -moz-appearance: textfield; }
+#CF-Drawer-{{ section.id }} .cf-price__field input::-webkit-outer-spin-button, #CF-Drawer-{{ section.id }} .cf-price__field input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+#CF-Drawer-{{ section.id }} .cf-price__dash { opacity: 0.5; }
+#CF-Drawer-{{ section.id }} .cf-sortrow { display: flex; align-items: center; justify-content: space-between; padding: 17px 0; }
+#CF-Drawer-{{ section.id }} .cf-sortrow__label { font-family: 'Zen Maru Gothic', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+#CF-Drawer-{{ section.id }} .cf-sortrow__select { font-family: 'Zen Maru Gothic', sans-serif; font-size: 13px; font-weight: 600; color: #0a0a0a; background: transparent; border: 0; cursor: pointer; padding: 4px 0; text-align: right; }
+#CF-Drawer-{{ section.id }} .cf-drawer__foot { display: flex; gap: 12px; padding: 16px 20px; border-top: 1px solid rgba(0,0,0,0.09); flex-shrink: 0; }
+#CF-Drawer-{{ section.id }} .cf-drawer__clear { flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; padding: 0 24px; font-family: 'Zen Maru Gothic', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: #0a0a0a; text-decoration: none; }
+#CF-Drawer-{{ section.id }} .cf-drawer__apply { flex: 1; min-height: 50px; border: 0; border-radius: 10px; background: #0a0a0a; color: #fff; font-family: 'Zen Maru Gothic', sans-serif; font-size: 13px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; }
+@media (max-width: 749px) { #CF-Drawer-{{ section.id }} .cf-drawer__panel { width: 100vw; } #CF-Drawer-{{ section.id }} .cf-list { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { #CF-Drawer-{{ section.id }}, #CF-Drawer-{{ section.id }} .cf-drawer__panel { transition-duration: 0.01ms !important; } }
+{%- endstyle -%}
+
+<script>
+(function () {
+  var SID = '{{ section.id }}';
+  var root = document.getElementById('collection-filters-' + SID);
+  if (!root) return;
+
+  function getDrawer() { return document.getElementById('CF-Drawer-' + SID); }
+  function openDrawer() { var d = getDrawer(); if (!d) return; d.classList.add('cf-ready'); requestAnimationFrame(function () { d.classList.add('active'); }); document.documentElement.style.overflow = 'hidden'; }
+  function closeDrawer() { var d = getDrawer(); if (d) d.classList.remove('active'); document.documentElement.style.overflow = ''; }
+
+  function navigate(url) {
+    root.classList.add('is-loading');
+    var sep = url.indexOf('?') > -1 ? '&' : '?';
+    fetch(url + sep + 'sections=' + SID).then(function (r) { return r.json(); }).then(function (data) {
+      var html = data[SID];
+      if (!html) { window.location.href = url; return; }
+      var fresh = new DOMParser().parseFromString(html, 'text/html').getElementById('collection-filters-' + SID);
+      if (fresh) root.innerHTML = fresh.innerHTML;
+      try { history.pushState({ cf: true }, '', url); } catch (e) {}
+      if (window.zeeneInitCards) window.zeeneInitCards(root);
+      root.classList.remove('is-loading');
+      var top = root.getBoundingClientRect().top + window.pageYOffset - 80;
+      if (window.pageYOffset > top + 40) window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+    }).catch(function () { window.location.href = url; });
+  }
+
+  function loadMore(lm) {
+    var url = lm.getAttribute('data-next-url');
+    var track = document.getElementById(lm.getAttribute('data-target'));
+    if (!url || lm.dataset.loading) return;
+    lm.dataset.loading = '1';
+    var orig = lm.textContent; lm.textContent = 'Loading…';
+    fetch(url).then(function (r) { return r.text(); }).then(function (html) {
+      var doc = new DOMParser().parseFromString(html, 'text/html');
+      var nt = track ? doc.getElementById(track.id) : null;
+      if (!nt) nt = doc.querySelector('.pg__track');
+      if (nt && track) { var cs = nt.querySelectorAll('.pc'); for (var i = 0; i < cs.length; i++) track.appendChild(cs[i]); if (window.zeeneInitCards) window.zeeneInitCards(track); }
+      var nb = doc.querySelector('.js-cf-loadmore');
+      if (nb && nb.getAttribute('data-next-url')) { lm.setAttribute('data-next-url', nb.getAttribute('data-next-url')); lm.dataset.loading = ''; lm.textContent = orig; }
+      else { lm.remove(); }
+    }).catch(function () { lm.dataset.loading = ''; lm.textContent = orig; });
+  }
+
+  root.addEventListener('click', function (e) {
+    var t = e.target;
+    if (t.closest('.js-cf-open')) { openDrawer(); return; }
+    if (t.closest('.js-cf-close')) { closeDrawer(); return; }
+    if (t.id === 'CF-Drawer-' + SID) { closeDrawer(); return; }
+    var lm = t.closest('.js-cf-loadmore'); if (lm) { loadMore(lm); return; }
+    var tag = t.closest('.cf__cat'); if (tag) { e.preventDefault(); navigate(tag.getAttribute('href')); return; }
+    var chip = t.closest('.cf__chip, .cf__clear-all, .cf-drawer__clear'); if (chip) { e.preventDefault(); closeDrawer(); navigate(chip.getAttribute('href')); return; }
+  });
+
+  root.addEventListener('change', function (e) {
+    var sortSel = e.target.closest('.js-cf-sort');
+    if (sortSel) { var u = new URL(window.location.href); u.searchParams.set('sort_by', sortSel.value); u.searchParams.delete('page'); navigate(u.pathname + u.search); }
+  });
+
+  root.addEventListener('submit', function (e) {
+    var form = e.target.closest('.cf-drawer__body');
+    if (!form) return;
+    e.preventDefault();
+    var params = new URLSearchParams();
+    new FormData(form).forEach(function (val, key) { if (String(val).trim() !== '') params.append(key, val); });
+    closeDrawer();
+    var qs = params.toString();
+    navigate(form.getAttribute('action') + (qs ? '?' + qs : ''));
+  });
+
+  document.addEventListener('keydown', function (e) { var d = getDrawer(); if (e.key === 'Escape' && d && d.classList.contains('active')) closeDrawer(); });
+  window.addEventListener('popstate', function () { window.location.reload(); });
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Collection filters",
+  "tag": "section",
+  "class": "section-collection-filters",
+  "settings": [
+    { "type": "paragraph", "content": "Filters come from Shopify → Settings → Search & Discovery → Filters. Enable the filters you want there. Top tabs use one list filter." },
+    { "type": "header", "content": "Top tabs (sub-categories)" },
+    { "type": "checkbox", "id": "show_title", "label": "Show collection title", "default": true },
+    { "type": "checkbox", "id": "show_top_tags", "label": "Show top tabs", "default": true },
+    { "type": "link_list", "id": "top_tabs_menu", "label": "Sub-category menu (fallback)", "info": "Tabs sirf menu se aate hain. Behtar: har collection par metafield custom.subcategory_menu (menu ka handle) set karein taake har category apne tabs dikhaye. Wo na ho to yeh menu use hota hai. Dono na hon to koi tab nahi aata." },
+    { "type": "header", "content": "Products" },
+    { "type": "range", "id": "products_per_page", "min": 8, "max": 48, "step": 4, "label": "Products per page", "default": 24 },
+    { "type": "header", "content": "Layout" },
+    { "type": "range", "id": "columns_desktop", "min": 2, "max": 6, "step": 1, "label": "Desktop columns", "default": 5 },
+    { "type": "select", "id": "image_ratio", "label": "Image aspect ratio", "options": [ { "value": "1/1", "label": "Square (1:1)" }, { "value": "4/5", "label": "Portrait (4:5)" }, { "value": "3/4", "label": "Portrait (3:4)" }, { "value": "2/3", "label": "Tall portrait (2:3)" } ], "default": "3/4" },
+    { "type": "range", "id": "gap", "min": 4, "max": 28, "step": 2, "unit": "px", "label": "Gap between cards", "default": 16 },
+    { "type": "range", "id": "corner_radius", "min": 0, "max": 32, "step": 2, "unit": "px", "label": "Image corner radius", "default": 14 },
+    { "type": "range", "id": "max_width", "min": 1000, "max": 1600, "step": 20, "unit": "px", "label": "Max content width", "default": 1280 },
+    { "type": "header", "content": "Card content" },
+    { "type": "checkbox", "id": "show_swatches", "label": "Show color swatches", "default": true },
+    { "type": "range", "id": "max_swatches", "min": 3, "max": 8, "step": 1, "label": "Max swatches before \"+N\"", "default": 5 },
+    { "type": "checkbox", "id": "show_quick_add", "label": "Show quick \"+\" button", "default": false },
+    { "type": "checkbox", "id": "show_sizes", "label": "Show size buttons on hover", "default": true },
+    { "type": "checkbox", "id": "show_sale_badge", "label": "Show sale badge", "default": true },
+    { "type": "checkbox", "id": "show_vendor", "label": "Show vendor", "default": false },
+    { "type": "checkbox", "id": "show_rating", "label": "Show star rating", "default": true },
+    { "type": "checkbox", "id": "show_rating_count", "label": "Show review count", "default": false },
+    { "type": "checkbox", "id": "rating_fallback", "label": "Show 5.0 placeholder when no reviews", "default": false },
+    { "type": "color", "id": "star_color", "label": "Star color", "default": "#f5a623" },
+    { "type": "header", "content": "Colors" },
+    { "type": "color", "id": "bg_color", "label": "Background", "default": "#ffffff" },
+    { "type": "color", "id": "text_color", "label": "Text", "default": "#0a0a0a" },
+    { "type": "color", "id": "accent_color", "label": "Neon accent", "default": "#C6F135" },
+    { "type": "header", "content": "Spacing" },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 100, "step": 4, "unit": "px", "label": "Padding bottom", "default": 56 }
+  ],
+  "presets": [
+    { "name": "Collection filters" }
+  ]
+}
+{% endschema %}

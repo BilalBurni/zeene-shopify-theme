@@ -1,0 +1,401 @@
+{%- comment -%}
+  Promo popup — shows products, not a signup form.
+
+  Rendered once in theme.liquid, so it is available on every page and edits live in the
+  customizer under "Popup promo".
+
+  Products come from product blocks when they exist, otherwise from the chosen collection.
+  Closing it parks a floating tab on the right edge; clicking that tab opens it again.
+{%- endcomment -%}
+{%- liquid
+  assign s = section.settings
+  assign picked = section.blocks | where: 'type', 'product'
+
+  comment
+    Page rules: popup ko checkout/cart/password par nahi dikhana — wahan customer ka
+    intent already khareedne ka hai, popup sirf rukawat banta hai.
+  endcomment
+  assign allowed = true
+  if template.name == 'cart' or template.name == 'password' or template.name == 'gift_card'
+    assign allowed = false
+  endif
+  if s.pages == 'home' and template.name != 'index'
+    assign allowed = false
+  endif
+-%}
+
+{%- if s.enable and allowed -%}
+  {%- liquid
+    comment
+      Product source: blocks > chosen collection > all products. Kuch set na ho tab bhi
+      popup khali nahi lagta.
+    endcomment
+    assign product_list = ''
+    if picked.size == 0
+      if s.collection != blank
+        assign product_list = s.collection.products
+      else
+        assign product_list = collections.all.products
+      endif
+    endif
+
+    comment
+      Side image: apni upload ki hui image > pehle product ki image > demo placeholder.
+      Is tarah split layout hamesha banta hai, chahe abhi kuch upload na kiya ho.
+    endcomment
+    comment
+      Countdown flash-sale.js se chalta hai (wahi shared ticker). Date di ho to us tak,
+      warna rozana reset - popup kabhi bina timer ke nahi rehta.
+    endcomment
+    assign pop_time = s.timer_time | default: '23:59'
+    assign pop_target = ''
+    assign pop_daily = ''
+    if s.timer_date != blank
+      assign pop_target = s.timer_date | append: 'T' | append: pop_time
+    else
+      assign pop_daily = pop_time
+    endif
+
+    assign side_img = s.image
+    if side_img == blank
+      if picked.size > 0
+        assign side_img = picked.first.settings.product.featured_image
+      else
+        assign side_img = product_list.first.featured_image
+      endif
+    endif
+  -%}
+
+  <script src="{{ 'flash-sale.js' | asset_url }}" defer="defer"></script>
+
+  <div
+    id="zpop-{{ section.id }}"
+    class="zpop"
+    data-trigger="{{ s.trigger }}"
+    data-delay="{{ s.delay }}"
+    data-scroll="{{ s.scroll_percent }}"
+    data-days="{{ s.remember_days }}"
+    data-key="zpop-{{ s.storage_key | default: 'promo' | handle }}"
+    style="--zp-accent:{{ s.accent_color }};--zp-text:{{ s.text_color }};--zp-bg:{{ s.bg_color }};--zp-radius:{{ s.corner_radius }}px;--zp-w:{{ s.max_width }}px;"
+  >
+    <div class="zpop__overlay js-zpop-close" aria-hidden="true"></div>
+
+    <div class="zpop__box" role="dialog" aria-modal="true" aria-labelledby="zpop-title-{{ section.id }}">
+      <button type="button" class="zpop__x js-zpop-close" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+
+      <div class="zpop__content">
+        {%- if s.eyebrow != blank -%}<span class="zpop__eyebrow">{{ s.eyebrow }}</span>{%- endif -%}
+        {%- if s.heading != blank -%}<h2 class="zpop__heading" id="zpop-title-{{ section.id }}">{{ s.heading }}</h2>{%- endif -%}
+        {%- if s.text != blank -%}<p class="zpop__text">{{ s.text }}</p>{%- endif -%}
+
+        {%- if s.show_timer -%}
+          <span class="zpop__timer js-fs-timer" data-target="{{ pop_target }}" data-daily="{{ pop_daily }}" data-ended="{{ s.timer_ended | default: 'Offer ended' | escape }}">
+            <span class="fs-card__timer-label zpop__timer-label">{{ s.timer_label | default: 'Offer ends in' }}</span>
+            <span class="zpop__timer-units">
+              <b data-u="d">00</b><i>d</i><b data-u="h">00</b><i>h</i><b data-u="m">00</b><i>m</i><b data-u="s">00</b><i>s</i>
+            </span>
+          </span>
+        {%- endif -%}
+        <div class="zpop__products{% if s.products_limit == 1 or picked.size == 1 %} zpop__products--one{% endif %}">
+          {%- if picked.size > 0 -%}
+            {%- for block in picked -%}
+              {%- assign p = block.settings.product -%}
+              {%- if p != blank -%}
+                {%- render 'popup-product', product: p, badge: block.settings.badge, buy_label: s.buy_label -%}
+              {%- endif -%}
+            {%- endfor -%}
+          {%- else -%}
+            {%- for p in product_list limit: s.products_limit -%}
+              {%- render 'popup-product', product: p, buy_label: s.buy_label -%}
+            {%- endfor -%}
+          {%- endif -%}
+        </div>
+
+        {%- if s.button_label != blank and s.button_link != blank -%}
+          <a class="zpop__btn" href="{{ s.button_link }}">
+            {{ s.button_label }}
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </a>
+        {%- endif -%}
+
+        {%- if s.note != blank -%}<p class="zpop__note">{{ s.note }}</p>{%- endif -%}
+      </div>
+
+      <div class="zpop__media">
+        {%- if side_img != blank -%}
+          <img
+            src="{{ side_img | image_url: width: 900 }}"
+            srcset="{{ side_img | image_url: width: 500 }} 500w, {{ side_img | image_url: width: 900 }} 900w"
+            sizes="(max-width: 749px) 100vw, 46vw"
+            alt="{{ s.heading | default: 'Promo' | escape }}"
+            width="900"
+            height="1100"
+            loading="lazy"
+            decoding="async"
+          >
+        {%- else -%}
+          <img src="{% render 'demo-image', set: 'product', index: 1, width: 900 %}" alt="{{ s.heading | default: 'Promo' | escape }}" width="900" height="1100" loading="lazy" decoding="async">
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+
+  {%- if s.show_tab -%}
+    <div class="zpop-tab js-zpop-tab" hidden>
+      <button type="button" class="zpop-tab__x js-zpop-tab-close" aria-label="Hide">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+      <button type="button" class="zpop-tab__label js-zpop-open">{{ s.tab_label | default: "Don't miss out!" }}</button>
+    </div>
+  {%- endif -%}
+{%- endif -%}
+
+{%- style -%}
+#zpop-{{ section.id }} { position: fixed; inset: 0; z-index: 1003; display: flex; align-items: center; justify-content: center; padding: 20px; visibility: hidden; opacity: 0; background-color: rgba(10,10,10,0); transition: opacity 0.32s ease, visibility 0.36s ease, background-color 0.32s ease; }
+#zpop-{{ section.id }}.is-open { visibility: visible; opacity: 1; background-color: rgba(10,10,10,0.62); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
+#zpop-{{ section.id }} *, #zpop-{{ section.id }} *::before, #zpop-{{ section.id }} *::after { box-sizing: border-box; }
+#zpop-{{ section.id }} .zpop__overlay { position: absolute; inset: 0; }
+
+#zpop-{{ section.id }} .zpop__box { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 0.86fr); width: 100%; max-width: var(--zp-w); max-height: min(520px, calc(100vh - 48px)); background: var(--zp-bg); border-radius: var(--zp-radius); overflow: hidden; box-shadow: 0 40px 90px -40px rgba(0,0,0,0.6); transform: translateY(14px) scale(0.98); transition: transform 0.4s cubic-bezier(.16,1,.3,1); }
+#zpop-{{ section.id }}.is-open .zpop__box { transform: none; }
+
+#zpop-{{ section.id }} .zpop__x { position: absolute; top: 14px; right: 14px; z-index: 3; display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; padding: 0; color: #0a0a0a; background: rgba(255,255,255,0.92); border: 0; border-radius: 50%; cursor: pointer; box-shadow: 0 4px 14px rgba(0,0,0,0.18); transition: background-color 0.18s ease, transform 0.18s ease; }
+#zpop-{{ section.id }} .zpop__x svg { width: 17px; height: 17px; }
+#zpop-{{ section.id }} .zpop__x:hover { background: #fff; transform: rotate(90deg); }
+
+#zpop-{{ section.id }} .zpop__content { padding: clamp(22px, 2.4vw, 30px); overflow-y: auto; }
+#zpop-{{ section.id }} .zpop__eyebrow { display: inline-block; margin: 0 0 12px; padding: 6px 12px; font-family: 'Zen Maru Gothic', sans-serif; font-size: 10px; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; color: #0a0a0a; background: var(--zp-accent); border-radius: 7px; }
+#zpop-{{ section.id }} .zpop__heading { margin: 0; font-family: 'Zen Maru Gothic', sans-serif; font-size: clamp(20px, 2.4vw, 26px); font-weight: 700; line-height: 1.18; letter-spacing: -0.015em; color: var(--zp-text); }
+#zpop-{{ section.id }} .zpop__text { margin: 8px 0 0; font-size: 13.5px; line-height: 1.55; color: var(--zp-text); opacity: 0.65; }
+
+{%- comment -%} Timer aur product ek hi "offer block" lagte hain — dark band upar, card neeche. {%- endcomment -%}
+#zpop-{{ section.id }} .zpop__timer { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 20px 0 0; padding: 11px 14px; background: #111114; border-radius: 10px 10px 0 0; }
+#zpop-{{ section.id }} .zpop__timer-label { font-family: 'Zen Maru Gothic', sans-serif; font-size: 9.5px; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; color: var(--zp-accent); white-space: nowrap; }
+#zpop-{{ section.id }} .zpop__timer-units { display: inline-flex; align-items: baseline; gap: 2px; color: #fff; font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+#zpop-{{ section.id }} .zpop__timer-units b { font-family: 'Zen Maru Gothic', sans-serif; font-size: 16px; font-weight: 800; line-height: 1; }
+#zpop-{{ section.id }} .zpop__timer-units i { margin-right: 8px; font-size: 9.5px; font-style: normal; font-weight: 700; opacity: 0.5; }
+#zpop-{{ section.id }} .zpop__timer-units i:last-child { margin-right: 0; }
+#zpop-{{ section.id }} .zpop__timer.is-ended { justify-content: center; }
+#zpop-{{ section.id }} .zpop__timer.is-ended .zpop__timer-units { display: none; }
+#zpop-{{ section.id }} .zpop__timer + .zpop__products { margin-top: 0; }
+#zpop-{{ section.id }} .zpop__timer + .zpop__products .zpop-p { border-top-left-radius: 0; border-top-right-radius: 0; border-top-color: transparent; }
+
+#zpop-{{ section.id }} .zpop__products { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 16px 0 0; }
+{%- comment -%} Ek hi product ho to card horizontal - popup ki height bhi kam rehti hai. {%- endcomment -%}
+#zpop-{{ section.id }} .zpop__products--one { grid-template-columns: 1fr; }
+#zpop-{{ section.id }} .zpop__products--one .zpop-p { flex-direction: row; align-items: stretch; }
+#zpop-{{ section.id }} .zpop__products--one .zpop-p__media { flex: 0 0 116px; width: 116px; aspect-ratio: auto; }
+#zpop-{{ section.id }} .zpop__products--one .zpop-p__info { flex: 1; justify-content: center; padding: 14px 16px; gap: 6px; }
+#zpop-{{ section.id }} .zpop__products--one .zpop-p__title { font-size: 14px; -webkit-line-clamp: 2; }
+#zpop-{{ section.id }} .zpop__products--one .zpop-p__price { font-size: 14px; font-weight: 800; }
+#zpop-{{ section.id }} .zpop__products--one .zpop-p__price s { font-size: 12px; }
+#zpop-{{ section.id }} .zpop__btn { display: inline-flex; align-items: center; justify-content: center; gap: 9px; width: 100%; margin-top: 12px; padding: 15px 22px; font-size: 12.5px; font-family: 'Zen Maru Gothic', sans-serif; font-size: 12px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: #0a0a0a; text-decoration: none; background: var(--zp-accent); border-radius: 10px; transition: filter 0.18s ease, gap 0.2s ease; }
+#zpop-{{ section.id }} .zpop__btn:hover { gap: 13px; filter: brightness(0.95); }
+#zpop-{{ section.id }} .zpop__note { margin: 9px 0 0; font-size: 11.5px; line-height: 1.55; text-align: center; color: var(--zp-text); opacity: 0.5; }
+
+#zpop-{{ section.id }} .zpop__media { position: relative; }
+#zpop-{{ section.id }} .zpop__media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+
+@media (max-width: 749px) {
+  #zpop-{{ section.id }} { padding: 16px; }
+  {%- comment -%} Single column, image hidden: on a phone the products matter, not the photo. {%- endcomment -%}
+  #zpop-{{ section.id }} .zpop__box { grid-template-columns: minmax(0, 1fr); max-height: 78vh; }
+  #zpop-{{ section.id }} .zpop__media { display: none; }
+  #zpop-{{ section.id }} .zpop__content { padding: 20px 16px 22px; }
+  #zpop-{{ section.id }} .zpop__products { gap: 10px; margin-top: 18px; }
+  #zpop-{{ section.id }} .zpop__btn { margin-top: 18px; padding: 14px 20px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #zpop-{{ section.id }}, #zpop-{{ section.id }} .zpop__box, #zpop-{{ section.id }} .zpop__x { transition: none; }
+}
+
+{%- comment -%} Floating tab — popup band karne ke baad right edge par, wapas kholne ke liye. {%- endcomment -%}
+.zpop-tab { position: fixed; top: 50%; right: 0; z-index: 1001; transform: translateY(-50%); display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 6px 14px; background: #fff; border: 1px solid #0a0a0a; border-right: 0; border-radius: 0; box-shadow: -8px 0 26px -14px rgba(0,0,0,0.4); animation: zpopTabIn 0.4s cubic-bezier(.16,1,.3,1); }
+.zpop-tab[hidden] { display: none; }
+@keyframes zpopTabIn { from { transform: translate(100%, -50%); } to { transform: translate(0, -50%); } }
+.zpop-tab__x { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; padding: 0; color: #0a0a0a; background: transparent; border: 0; border-radius: 50%; cursor: pointer; opacity: 0.5; transition: opacity 0.18s ease, background-color 0.18s ease; }
+.zpop-tab__x:hover { opacity: 1; background: rgba(0,0,0,0.06); }
+.zpop-tab__x svg { width: 13px; height: 13px; }
+.zpop-tab__label { padding: 4px 2px; font-family: 'Zen Maru Gothic', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 0.02em; color: #0a0a0a; background: transparent; border: 0; cursor: pointer; writing-mode: vertical-rl; text-orientation: mixed; transition: color 0.18s ease; }
+.zpop-tab__label:hover { color: {{ s.accent_color | color_modify: 'alpha', 1.0 }}; filter: brightness(0.8); }
+@media (max-width: 749px) {
+  .zpop-tab { padding: 10px 5px 12px; }
+  .zpop-tab__label { font-size: 12px; }
+}
+@media (prefers-reduced-motion: reduce) { .zpop-tab { animation: none; } }
+html.zpop-open { overflow: hidden; }
+{%- endstyle -%}
+
+<script>
+(function () {
+  var root = document.getElementById('zpop-{{ section.id }}');
+  if (!root) return;
+  var tab = document.querySelector('.js-zpop-tab');
+  var key = root.getAttribute('data-key');
+  var days = parseInt(root.getAttribute('data-days'), 10) || 0;
+  var opened = false;
+
+  // localStorage private mode mein throw kar sakta hai, is liye har access try/catch mein.
+  function dismissedRecently() {
+    if (!days) return false;
+    try {
+      var at = parseInt(window.localStorage.getItem(key) || '0', 10);
+      return at > 0 && (Date.now() - at) < days * 86400000;
+    } catch (e) { return false; }
+  }
+  function remember() {
+    try { window.localStorage.setItem(key, String(Date.now())); } catch (e) {}
+  }
+
+  function open() {
+    root.classList.add('is-open');
+    document.documentElement.classList.add('zpop-open');
+    if (tab) tab.hidden = true;
+    opened = true;
+  }
+
+  function close() {
+    root.classList.remove('is-open');
+    document.documentElement.classList.remove('zpop-open');
+    remember();
+    if (tab) tab.hidden = false;
+  }
+
+  root.addEventListener('click', function (e) {
+    if (e.target.closest('.js-zpop-close')) { close(); return; }
+
+    // Buy now: cart mein daalo aur seedha checkout par bhejo.
+    var buy = e.target.closest('.js-zpop-buy');
+    if (buy && !buy.classList.contains('is-loading')) {
+      var vid = parseInt(buy.getAttribute('data-vid'), 10);
+      if (!vid) return;
+      buy.classList.add('is-loading');
+      fetch('/cart/add.js', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: [{ id: vid, quantity: 1 }] })
+      }).then(function (r) { return r.json(); }).then(function (res) {
+        if (res && res.status) { buy.classList.remove('is-loading'); return; }
+        remember();
+        window.location = '/checkout';
+      }).catch(function () { window.location = '/cart'; });
+    }
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && root.classList.contains('is-open')) close();
+  });
+
+  if (tab) {
+    tab.addEventListener('click', function (e) {
+      if (e.target.closest('.js-zpop-tab-close')) { tab.hidden = true; return; }
+      if (e.target.closest('.js-zpop-open')) open();
+    });
+  }
+
+  // Theme editor mein hamesha khula rahe warna client usay dekh hi nahi paata.
+  if (window.Shopify && window.Shopify.designMode) { open(); return; }
+  if (dismissedRecently()) { if (tab) tab.hidden = false; return; }
+
+  var trigger = root.getAttribute('data-trigger');
+
+  if (trigger === 'scroll') {
+    var pct = parseInt(root.getAttribute('data-scroll'), 10) || 35;
+    var onScroll = function () {
+      if (opened) return;
+      var h = document.documentElement.scrollHeight - window.innerHeight;
+      if (h <= 0 || (window.scrollY / h) * 100 >= pct) {
+        open();
+        window.removeEventListener('scroll', onScroll);
+      }
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+  } else if (trigger === 'exit') {
+    var onLeave = function (e) {
+      if (opened || e.clientY > 0) return;
+      open();
+      document.removeEventListener('mouseout', onLeave);
+    };
+    document.addEventListener('mouseout', onLeave);
+    // Phone par exit intent hota hi nahi — wahan delay par gir jao.
+    if (window.matchMedia('(max-width: 749px)').matches) {
+      setTimeout(function () { if (!opened) open(); }, 12000);
+    }
+  } else {
+    var delay = (parseFloat(root.getAttribute('data-delay')) || 4) * 1000;
+    setTimeout(function () { if (!opened) open(); }, delay);
+  }
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Popup promo",
+  "settings": [
+    { "type": "checkbox", "id": "enable", "label": "Enable popup", "default": true },
+    {
+      "type": "select", "id": "pages", "label": "Show on", "default": "all",
+      "options": [ { "value": "all", "label": "All pages" }, { "value": "home", "label": "Homepage only" } ],
+      "info": "Never shown on cart, checkout or the password page."
+    },
+
+    { "type": "header", "content": "When it opens" },
+    {
+      "type": "select", "id": "trigger", "label": "Trigger", "default": "delay",
+      "options": [
+        { "value": "delay", "label": "After a few seconds" },
+        { "value": "scroll", "label": "After scrolling down" },
+        { "value": "exit", "label": "On exit intent (mouse leaves)" }
+      ]
+    },
+    { "type": "range", "id": "delay", "min": 1, "max": 30, "step": 1, "unit": "s", "label": "Delay", "default": 4 },
+    { "type": "range", "id": "scroll_percent", "min": 10, "max": 90, "step": 5, "unit": "%", "label": "Scroll depth", "default": 35 },
+    { "type": "range", "id": "remember_days", "min": 0, "max": 30, "step": 1, "label": "Do not show again for (days)", "default": 3, "info": "0 = show on every visit." },
+    { "type": "text", "id": "storage_key", "label": "Campaign key", "default": "promo", "info": "Change this to show the popup again to everyone after a new campaign." },
+
+    { "type": "header", "content": "Countdown" },
+    { "type": "checkbox", "id": "show_timer", "label": "Show countdown", "default": true },
+    { "type": "text", "id": "timer_label", "label": "Countdown label", "default": "Offer ends in" },
+    { "type": "text", "id": "timer_date", "label": "Target date", "info": "YYYY-MM-DD. Leave empty for a daily countdown that resets at the time below." },
+    { "type": "text", "id": "timer_time", "label": "Target time", "default": "23:59", "info": "24-hour format, visitor's local time." },
+    { "type": "text", "id": "timer_ended", "label": "Finished label", "default": "Offer ended" },
+
+    { "type": "header", "content": "Content" },
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Don't miss out" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Be the first to explore" },
+    { "type": "textarea", "id": "text", "label": "Text", "default": "New drops, latest trends and exclusive discounts — grab them before they are gone." },
+    { "type": "image_picker", "id": "image", "label": "Side image", "info": "Shown on the right. Leave empty and the first product's image is used. Hidden on mobile." },
+    { "type": "text", "id": "button_label", "label": "Button label", "default": "Shop the drop" },
+    { "type": "url", "id": "button_link", "label": "Button link" },
+    { "type": "text", "id": "note", "label": "Small note under the button" },
+
+    { "type": "header", "content": "Products" },
+    { "type": "paragraph", "content": "Add Product blocks below to pick exact products. With no blocks, the first products from this collection are used." },
+    { "type": "collection", "id": "collection", "label": "Collection" },
+    { "type": "range", "id": "products_limit", "min": 1, "max": 6, "step": 1, "label": "How many products", "default": 1, "info": "1 = a single wide card with a Buy now button." },
+    { "type": "text", "id": "buy_label", "label": "Buy button label", "default": "Buy now", "info": "Leave empty to hide the button." },
+
+    { "type": "header", "content": "Floating tab" },
+    { "type": "checkbox", "id": "show_tab", "label": "Show reopen tab after closing", "default": true },
+    { "type": "text", "id": "tab_label", "label": "Tab label", "default": "Don't miss out!" },
+
+    { "type": "header", "content": "Style" },
+    { "type": "color", "id": "bg_color", "label": "Background", "default": "#ffffff" },
+    { "type": "color", "id": "text_color", "label": "Text", "default": "#0a0a0a" },
+    { "type": "color", "id": "accent_color", "label": "Neon accent", "default": "#C6F135" },
+    { "type": "range", "id": "corner_radius", "min": 0, "max": 28, "step": 2, "unit": "px", "label": "Corner radius", "default": 8 },
+    { "type": "range", "id": "max_width", "min": 560, "max": 1000, "step": 20, "unit": "px", "label": "Popup width", "default": 820 }
+  ],
+  "blocks": [
+    {
+      "type": "product",
+      "name": "Product",
+      "settings": [
+        { "type": "product", "id": "product", "label": "Product" },
+        { "type": "text", "id": "badge", "label": "Badge", "info": "Optional, e.g. Bestseller." }
+      ]
+    }
+  ]
+}
+{% endschema %}

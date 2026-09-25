@@ -1,0 +1,100 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "flash-sale": {
+      "type": "flash-sale-hub",
+      "blocks": {
+        "sale-1": {
+          "type": "sale",
+          "settings": {
+            "status": "auto",
+            "badge": "Flash sale",
+            "title": "Winter Flash Sale",
+            "description": "Hoodies, tracksuits and joggers at their lowest prices of the season.",
+            "tags": "Hoodies, Tracksuits, Joggers",
+            "show_countdown": true,
+            "countdown_date": "",
+            "countdown_time": "23:59",
+            "countdown_label": "Ends in",
+            "offer": "Up to 50% off"
+          }
+        },
+        "sale-2": {
+          "type": "sale",
+          "settings": {
+            "status": "auto",
+            "badge": "Bundle deal",
+            "title": "Buy 2 Get 1 Free",
+            "description": "Mix and match any three everyday essentials and pay for two.",
+            "tags": "Oversized Tees, Basics",
+            "show_countdown": true,
+            "countdown_date": "2026-08-31",
+            "countdown_time": "23:59",
+            "countdown_label": "Ends in",
+            "offer": "Buy 2 get 1"
+          }
+        },
+        "sale-3": {
+          "type": "sale",
+          "settings": {
+            "status": "coming_soon",
+            "badge": "Upcoming",
+            "title": "Mega Sale — Up To 70% Off",
+            "description": "Our biggest drop of the year. Set a reminder so you don't miss it.",
+            "tags": "Sitewide",
+            "starts_text": "Starts soon",
+            "show_countdown": true,
+            "countdown_date": "2026-09-25",
+            "countdown_time": "00:00",
+            "countdown_label": "Starts in",
+            "offer": "Up to 70% off"
+          }
+        }
+      },
+      "block_order": [
+        "sale-1",
+        "sale-2",
+        "sale-3"
+      ],
+      "settings": {
+        "eyebrow": "Limited time",
+        "heading": "Flash sales",
+        "subheading": "Limited-time drops at their lowest prices. Once the timer runs out, prices go back up.",
+        "live_label": "Live now",
+        "soon_label": "Coming soon",
+        "cta_label": "View collection",
+        "soon_cta_label": "Coming soon",
+        "columns_desktop": 3,
+        "image_ratio": "16/9",
+        "corner_radius": 18,
+        "max_width": 1280,
+        "padding_top": 0,
+        "padding_bottom": 72,
+        "bg_color": "#ffffff",
+        "text_color": "#0a0a0a",
+        "accent_color": "#C6F135",
+        "divider_color": "#e6e6e6",
+        "show_hero": true,
+        "hero_height": 340,
+        "hero_height_mobile": 240,
+        "hero_overlay": 45,
+        "hero_align": "center",
+        "hero_full_width": false,
+        "hero_radius": 18,
+        "show_tag_filter": true,
+        "all_label": "All"
+      }
+    }
+  },
+  "order": [
+    "flash-sale"
+  ]
+}

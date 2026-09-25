@@ -1,0 +1,100 @@
+{%- comment -%} Handles are stored in localStorage; each card is fetched from /products/{handle}?section_id=zeene-card-render. {%- endcomment -%}
+{%- liquid
+  assign s = section.settings
+  assign cols = s.columns_desktop
+  assign pb_m = s.padding_bottom | times: 0.5 | round
+-%}
+{{ 'zeene-card.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'zeene-card.js' | asset_url }}" defer="defer"></script>
+
+<div id="rv-{{ section.id }}" class="rv" data-handle="{{ product.handle }}" data-limit="{{ s.products_to_show }}" data-cols="{{ cols }}" hidden>
+  <div class="pg zeene-pg" style="--pg-bg:{{ s.bg_color }};--pg-text:{{ s.text_color }};--pg-accent:{{ s.accent_color }};--pg-star:{{ s.star_color }};--pg-radius:{{ s.corner_radius }}px;--pg-ratio:{{ s.image_ratio }};--pg-cols:{{ cols }};--pg-gap:{{ s.gap }}px;--pg-maxw:{{ s.max_width }}px;--pg-pt:{{ s.padding_top }}px;--pg-pb:{{ s.padding_bottom }}px;--pg-pt-m:{{ s.padding_top | times: 0.5 | round }}px;--pg-pb-m:{{ pb_m }}px;">
+    <div class="pg__inner">
+      <div class="pg__head">
+        <div>
+          <h2 class="pg__heading">{{ s.heading | default: 'Recently viewed products' }}</h2>
+        </div>
+      </div>
+      <div class="pg__track js-rv-track"></div>
+    </div>
+  </div>
+</div>
+
+{%- style -%}
+#rv-{{ section.id }}[hidden] { display: none; }
+{%- endstyle -%}
+
+<script>
+(function () {
+  var root = document.getElementById('rv-{{ section.id }}');
+  if (!root) return;
+
+  var KEY = 'zeene:recently-viewed';
+  var MAX_STORE = 12;
+  var cur = root.getAttribute('data-handle') || '';
+  var limit = parseInt(root.getAttribute('data-limit'), 10) || 4;
+  var track = root.querySelector('.js-rv-track');
+
+  function read() {
+    try { var v = JSON.parse(localStorage.getItem(KEY)); return Array.isArray(v) ? v : []; }
+    catch (e) { return []; } // private mode / corrupt value — chup-chaap khali list.
+  }
+  function write(list) { try { localStorage.setItem(KEY, JSON.stringify(list)); } catch (e) {} }
+
+var show = read().filter(function (h) { return h && h !== cur; }).slice(0, limit);
+
+  if (cur) {
+    var next = read().filter(function (h) { return h !== cur; });
+    next.unshift(cur);
+    write(next.slice(0, MAX_STORE));
+  }
+
+  if (!show.length || !track) return;
+
+  Promise.all(show.map(function (h) {
+    return fetch('/products/' + encodeURIComponent(h) + '?section_id=zeene-card-render')
+      .then(function (r) { return r.ok ? r.text() : ''; })
+      .catch(function () { return ''; }); // deleted/unavailable product poori row na girae.
+  })).then(function (chunks) {
+    var frag = document.createDocumentFragment();
+    chunks.forEach(function (html) {
+      if (!html.trim()) return;
+      var card = new DOMParser().parseFromString(html, 'text/html').querySelector('.pc');
+      if (card) frag.appendChild(card);
+    });
+    if (!frag.childNodes.length) return;
+    track.appendChild(frag);
+    root.hidden = false;
+    if (window.zeeneInitCards) window.zeeneInitCards(track);
+  });
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Recently viewed",
+  "tag": "section",
+  "class": "section-recently-viewed",
+  "settings": [
+    { "type": "paragraph", "content": "Visitor ke browser (localStorage) mein mehfooz handles se chalta hai. Koi recently viewed product na ho to section apne aap chhup jata hai — is liye theme editor mein aksar khali dikhega." },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Recently viewed products" },
+    { "type": "range", "id": "products_to_show", "min": 2, "max": 8, "step": 1, "label": "Products to show", "default": 4 },
+    { "type": "range", "id": "columns_desktop", "min": 2, "max": 6, "step": 1, "label": "Desktop columns", "default": 4 },
+    { "type": "select", "id": "image_ratio", "label": "Image aspect ratio", "options": [ { "value": "1/1", "label": "Square (1:1)" }, { "value": "4/5", "label": "Portrait (4:5)" }, { "value": "3/4", "label": "Portrait (3:4)" }, { "value": "2/3", "label": "Tall portrait (2:3)" } ], "default": "3/4" },
+    { "type": "range", "id": "gap", "min": 4, "max": 28, "step": 2, "unit": "px", "label": "Gap between cards", "default": 16 },
+    { "type": "range", "id": "corner_radius", "min": 0, "max": 32, "step": 2, "unit": "px", "label": "Image corner radius", "default": 14 },
+    { "type": "range", "id": "max_width", "min": 1000, "max": 1600, "step": 20, "unit": "px", "label": "Max content width", "default": 1280 },
+    { "type": "header", "content": "Colors" },
+    { "type": "color", "id": "bg_color", "label": "Background", "default": "#ffffff" },
+    { "type": "color", "id": "text_color", "label": "Text", "default": "#0a0a0a" },
+    { "type": "color", "id": "accent_color", "label": "Neon accent", "default": "#C6F135" },
+    { "type": "color", "id": "star_color", "label": "Star color", "default": "#f5a623" },
+    { "type": "header", "content": "Spacing" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 100, "step": 4, "unit": "px", "label": "Padding top", "default": 8 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 100, "step": 4, "unit": "px", "label": "Padding bottom", "default": 8 }
+  ],
+  "presets": [
+    { "name": "Recently viewed" }
+  ]
+}
+{% endschema %}

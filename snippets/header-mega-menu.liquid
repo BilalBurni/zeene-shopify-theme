@@ -1,0 +1,357 @@
+{% comment %}
+  Renders a megamenu for the header. Supports optional promo images via
+  "Mega menu images" header blocks matched to a top-level menu item by title.
+
+  Usage:
+  {% render 'header-mega-menu' %}
+{% endcomment %}
+
+<nav class="header__inline-menu">
+  <ul class="list-menu list-menu--inline" role="list">
+    {%- for link in section.settings.menu.links -%}
+      <li>
+        {%- liquid
+          assign link_title_dc = link.title | downcase
+          assign sale_cls = ''
+          comment
+            "Flash sale" is checked first: it also contains "sale", and it gets its own
+            treatment (live dot) instead of the red glass-shine used for a plain Sale link.
+          endcomment
+          if link_title_dc contains 'flash'
+            assign sale_cls = ' header__menu-item--flash'
+          elsif link_title_dc contains 'sale'
+            assign sale_cls = ' header__menu-item--sale'
+          endif
+        -%}
+        {%- if link.links != blank -%}
+          {%- liquid
+            assign promo_block = null
+            assign mm_title = link.title | strip | downcase
+            for block in section.blocks
+              if block.type == 'mega_promo'
+                assign bmi = block.settings.menu_item | strip | downcase
+                if bmi == mm_title
+                  assign promo_block = block
+                  break
+                endif
+              endif
+            endfor
+
+# The featured collection resolves itself so every menu works without setup: the block's collection, else the top-level link's collection, else the first child collection.
+            assign mm_col = null
+            if promo_block != null and promo_block.settings.featured_collection != blank
+              assign mm_col = collections[promo_block.settings.featured_collection]
+            elsif link.type == 'collection_link'
+              assign mm_col = link.object
+            else
+              for cl in link.links
+                if cl.type == 'collection_link'
+                  assign mm_col = cl.object
+                  break
+                endif
+                for gcl in cl.links
+                  if gcl.type == 'collection_link'
+                    assign mm_col = gcl.object
+                    break
+                  endif
+                endfor
+                if mm_col != null
+                  break
+                endif
+              endfor
+            endif
+
+            assign has_promo_img = false
+            if promo_block != null
+              if promo_block.settings.image_1 != blank or promo_block.settings.image_2 != blank or promo_block.settings.image_3 != blank
+                assign has_promo_img = true
+              endif
+            endif
+
+            comment
+              Banner ki values section settings se aati hain, aur agar us menu ka apna
+              block hai to uski settings jeet jati hain.
+            endcomment
+            assign ss = section.settings
+            assign b_image = ss.mm_banner_image
+            assign b_head = ss.mm_banner_heading
+            assign b_text = ss.mm_banner_text
+            assign b_btn = ss.mm_banner_button
+            assign b_url = ss.mm_banner_link
+
+            if promo_block != null
+              if promo_block.settings.banner_image != blank
+                assign b_image = promo_block.settings.banner_image
+              endif
+              if promo_block.settings.banner_heading != blank
+                assign b_head = promo_block.settings.banner_heading
+              endif
+              if promo_block.settings.banner_text != blank
+                assign b_text = promo_block.settings.banner_text
+              endif
+              if promo_block.settings.banner_button != blank
+                assign b_btn = promo_block.settings.banner_button
+              endif
+              if promo_block.settings.banner_link != blank
+                assign b_url = promo_block.settings.banner_link
+              endif
+            endif
+
+            assign show_banner = false
+            if ss.mm_banner_enable
+              if b_image != blank or b_head != blank or b_btn != blank
+                assign show_banner = true
+              endif
+            endif
+
+            assign feat_cols = 4
+            if has_promo_img
+              assign feat_cols = 3
+            endif
+            assign show_feat = false
+            if section.settings.mega_featured and mm_col != null and mm_col.products.size > 0
+              assign show_feat = true
+            endif
+
+            comment
+              Banner khud ek card hai: products ek slot kam lete hain, row ki chaurai aur
+              card ka size wahi rehta hai.
+            endcomment
+            assign feat_limit = feat_cols
+            if show_banner and show_feat
+              assign feat_limit = feat_cols | minus: 1
+            endif
+
+            comment
+              Banner image: uploaded > featured collection ki image > uske pehle product ki
+              image. Kuch na mile to plain neon panel — banner phir bhi dikhta hai.
+            endcomment
+            assign b_img = blank
+            if show_banner
+              assign b_img = b_image
+              if b_img == blank and mm_col != blank
+                assign b_img = mm_col.image
+                if b_img == blank
+                  assign b_img = mm_col.products.first.featured_image
+                endif
+              endif
+              assign b_link = b_url | default: link.url
+            endif
+          -%}
+          <header-menu>
+            <details id="Details-HeaderMenu-{{ forloop.index }}" class="mega-menu">
+              <summary
+                id="HeaderMenu-{{ link.handle }}"
+                class="header__menu-item list-menu__item link focus-inset{{ sale_cls }}"
+              >
+                <span
+                  {%- if link.child_active %}
+                    class="header__active-menu-item"
+                  {% endif %}
+                >
+                  {{- link.title | escape -}}
+                </span>
+                {%- if sale_cls contains 'flash' -%}<i class="header__flash-dot" aria-hidden="true"></i>{%- endif -%}
+                {{- 'icon-caret.svg' | inline_asset_content -}}
+              </summary>
+              <div
+                id="MegaMenu-Content-{{ forloop.index }}"
+                class="mega-menu__content color-{{ section.settings.menu_color_scheme }} gradient motion-reduce global-settings-popup"
+                tabindex="-1"
+              >
+                {%- if show_banner -%}
+                  {%- comment -%}
+                    Banner ab products row ka aakhri card hai — bilkul product card jaisa
+                    frame, upar ki poori-chaurai strip ki jagah.
+                  {%- endcomment -%}
+                  {%- capture banner_card -%}
+                    <a class="mega-menu__feat-card mega-menu__feat-card--banner{% if b_img == blank %} mega-menu__feat-card--banner-plain{% endif %}" href="{{ b_link }}">
+                      <span class="mega-menu__feat-media">
+                        {%- if b_img != blank -%}
+                          <img src="{{ b_img | image_url: width: 320 }}" srcset="{{ b_img | image_url: width: 200 }} 200w, {{ b_img | image_url: width: 320 }} 320w" sizes="150px" alt="{{ b_head | default: link.title | escape }}" width="150" height="188" loading="lazy" decoding="async">
+                        {%- endif -%}
+                        <span class="mega-menu__banner-scrim" aria-hidden="true"></span>
+                        <span class="mega-menu__banner-body">
+                          {%- if b_head != blank -%}<span class="mega-menu__banner-h">{{ b_head }}</span>{%- endif -%}
+                          {%- if b_text != blank -%}<span class="mega-menu__banner-t">{{ b_text }}</span>{%- endif -%}
+                          {%- if b_btn != blank -%}
+                            <span class="mega-menu__banner-btn">{{ b_btn }}
+                              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                            </span>
+                          {%- endif -%}
+                        </span>
+                      </span>
+                    </a>
+                  {%- endcapture -%}
+                {%- endif -%}
+                <div class="mega-menu__layout page-width{% if has_promo_img %} mega-menu__layout--has-promo{% endif %}{% if show_feat %} mega-menu__layout--has-feat{% endif %}">
+                  <ul
+                    class="mega-menu__list{% if link.levels == 1 %} mega-menu__list--condensed{% endif %}"
+                    role="list"
+                  >
+                    {%- for childlink in link.links -%}
+                      <li>
+                        <a
+                          id="HeaderMenu-{{ link.handle }}-{{ childlink.handle }}"
+                          href="{{ childlink.url }}"
+                          class="mega-menu__link mega-menu__link--level-2 link{% if childlink.current %} mega-menu__link--active{% endif %}"
+                          {% if childlink.current %}
+                            aria-current="page"
+                          {% endif %}
+                        >
+                          {{ childlink.title | escape }}
+                        </a>
+                        {%- if childlink.links != blank -%}
+                          <ul class="list-unstyled" role="list">
+                            {%- for grandchildlink in childlink.links -%}
+                              <li>
+                                <a
+                                  id="HeaderMenu-{{ link.handle }}-{{ childlink.handle }}-{{ grandchildlink.handle }}"
+                                  href="{{ grandchildlink.url }}"
+                                  class="mega-menu__link link{% if grandchildlink.current %} mega-menu__link--active{% endif %}"
+                                  {% if grandchildlink.current %}
+                                    aria-current="page"
+                                  {% endif %}
+                                >
+                                  {{ grandchildlink.title | escape }}
+                                </a>
+                              </li>
+                            {%- endfor -%}
+                          </ul>
+                        {%- endif -%}
+                      </li>
+                    {%- endfor -%}
+                  </ul>
+
+                  {%- if show_feat -%}
+                    <div class="mega-menu__feat" style="--mm-feat-cols: {{ feat_cols }};">
+                      <div class="mega-menu__feat-head">
+                        <span class="mega-menu__feat-title">{{ mm_col.title }}</span>
+                        <a class="mega-menu__feat-all" href="{{ mm_col.url }}">View all<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+                      </div>
+                      <div class="mega-menu__feat-row">
+                        {%- for fp in mm_col.products limit: feat_limit -%}
+                          {%- liquid
+                            assign fp_sale = false
+                            if fp.compare_at_price > fp.price and fp.available
+                              assign fp_sale = true
+                            endif
+                          -%}
+                          <a class="mega-menu__feat-card" href="{{ fp.url }}">
+                            <span class="mega-menu__feat-media">
+                              {%- if fp.featured_media -%}
+                                <img src="{{ fp.featured_media | image_url: width: 320 }}" srcset="{{ fp.featured_media | image_url: width: 200 }} 200w, {{ fp.featured_media | image_url: width: 320 }} 320w" sizes="150px" alt="{{ fp.featured_media.alt | default: fp.title | escape }}" width="150" height="188" loading="lazy" decoding="async">
+                              {%- else -%}
+                                <img src="{% render 'demo-image', set: 'product', index: forloop.index0, width: 320 %}" alt="{{ fp.title | escape }}" width="150" height="188" loading="lazy" decoding="async">
+                              {%- endif -%}
+                            </span>
+                            <span class="mega-menu__feat-name">{{ fp.title }}</span>
+                            <span class="mega-menu__feat-price{% if fp_sale %} mega-menu__feat-price--sale{% endif %}">{{ fp.price | money }}{%- if fp_sale -%}<s>{{ fp.compare_at_price | money }}</s>{%- endif -%}</span>
+                          </a>
+                        {%- endfor -%}
+                        {%- if show_banner -%}
+                          {{ banner_card }}
+                        {%- endif -%}
+                      </div>
+                    </div>
+                  {%- elsif show_banner -%}
+                    <div class="mega-menu__feat mega-menu__feat--solo">
+                      <div class="mega-menu__feat-row" style="--mm-feat-cols: 1;">
+                        {{ banner_card }}
+                      </div>
+                    </div>
+                  {%- endif -%}
+
+                  {%- if has_promo_img -%}
+                    <div class="mega-menu__promo" {{ promo_block.shopify_attributes }}>
+                      {%- for i in (1..3) -%}
+                        {%- liquid
+                          assign img_key = 'image_' | append: i
+                          assign head_key = 'image_' | append: i | append: '_heading'
+                          assign link_key = 'image_' | append: i | append: '_link'
+                          assign pimg = promo_block.settings[img_key]
+                        -%}
+                        {%- if pimg != blank -%}
+                          <a href="{{ promo_block.settings[link_key] | default: link.url }}" class="mega-menu__promo-card">
+                            <img src="{{ pimg | image_url: width: 440 }}" srcset="{{ pimg | image_url: width: 240 }} 240w, {{ pimg | image_url: width: 440 }} 440w" sizes="220px" alt="{{ promo_block.settings[head_key] | default: link.title | escape }}" width="220" height="275" loading="lazy" decoding="async">
+                            <span class="mega-menu__promo-overlay"></span>
+                            {%- if promo_block.settings[head_key] != blank -%}
+                              <span class="mega-menu__promo-cap">{{ promo_block.settings[head_key] }}<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+                            {%- endif -%}
+                          </a>
+                        {%- endif -%}
+                      {%- endfor -%}
+                    </div>
+                  {%- endif -%}
+                </div>
+              </div>
+            </details>
+          </header-menu>
+        {%- else -%}
+          <a
+            id="HeaderMenu-{{ link.handle }}"
+            href="{{ link.url }}"
+            class="header__menu-item list-menu__item link link--text focus-inset{{ sale_cls }}"
+            {% if link.current %}
+              aria-current="page"
+            {% endif %}
+          >
+            <span
+              {%- if link.current %}
+                class="header__active-menu-item"
+              {% endif %}
+            >
+              {{- link.title | escape -}}
+            </span>
+            {%- if sale_cls contains 'flash' -%}<i class="header__flash-dot" aria-hidden="true"></i>{%- endif -%}
+          </a>
+        {%- endif -%}
+      </li>
+    {%- endfor -%}
+  </ul>
+</nav>
+
+<script>
+(function () {
+  var nav = document.querySelector('.header__inline-menu');
+  if (!nav) return;
+  var mq = window.matchMedia('(min-width: 990px)');
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var EXIT_MS = 200; // header.liquid ki .is-closing transition ke barabar rakhein.
+
+function closeMenu(d, instant) {
+    if (!d.hasAttribute('open')) return;
+    if (d._closeT) clearTimeout(d._closeT);
+    if (instant || reduce.matches) { d.classList.remove('is-closing'); d.removeAttribute('open'); return; }
+    d.classList.add('is-closing');
+    d._closeT = setTimeout(function () { d.classList.remove('is-closing'); d.removeAttribute('open'); d._closeT = null; }, EXIT_MS);
+  }
+
+  function openMenu(d) {
+    if (d._closeT) { clearTimeout(d._closeT); d._closeT = null; }
+    d.classList.remove('is-closing');
+nav.querySelectorAll('details.mega-menu[open]').forEach(function (o) { if (o !== d) closeMenu(o, true); });
+    d.setAttribute('open', '');
+  }
+
+  nav.querySelectorAll('header-menu').forEach(function (hm) {
+    var d = hm.querySelector('details.mega-menu');
+    if (!d) return;
+    var hoverT;
+    hm.addEventListener('mouseenter', function () {
+      if (!mq.matches) return;
+      clearTimeout(hoverT);
+      openMenu(d);
+    });
+    hm.addEventListener('mouseleave', function () {
+      if (!mq.matches) return;
+      hoverT = setTimeout(function () { closeMenu(d); }, 140);
+    });
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') return;
+    nav.querySelectorAll('details.mega-menu[open]').forEach(function (o) { closeMenu(o); });
+  });
+})();
+</script>

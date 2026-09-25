@@ -1,0 +1,1052 @@
+{%- liquid
+  assign s = section.settings
+  assign p = product
+  assign cur = p.selected_or_first_available_variant
+  assign on_sale = false
+  if p.compare_at_price > p.price
+    assign on_sale = true
+  endif
+  assign save_pct = 0
+  if on_sale
+    assign save_pct = p.compare_at_price | minus: p.price | times: 100 | divided_by: p.compare_at_price
+  endif
+  assign imgs = p.media | where: 'media_type', 'image'
+  assign sc_img = blank
+  if p.metafields.custom.size_chart.value != blank
+    assign sc_img = p.metafields.custom.size_chart.value
+  elsif s.size_chart_image != blank
+    assign sc_img = s.size_chart_image
+  endif
+-%}
+
+{%- comment -%} Styles must come before the markup, or the drawer / lightbox / sticky bar paint unstyled before CSS hides them. {%- endcomment -%}
+{% render 'zeene-product-styles', id: section.id %}
+
+<div id="zeene-product-{{ section.id }}" class="zp" data-pid="{{ p.id }}" style="--zp-accent:{{ s.accent_color }};--zp-maxw:{{ s.max_width }}px;">
+  <div class="zp__inner">
+    <div class="zp__media">
+      <div class="zp__grid js-zp-grid">
+        {%- if imgs.size > 0 -%}
+          {%- for m in imgs -%}
+            <div class="zp__cell{% if forloop.first %} zp__cell--wide{% endif %}" data-media-id="{{ m.id }}">
+              <img src="{{ m | image_url: width: 1100 }}" srcset="{{ m | image_url: width: 500 }} 500w, {{ m | image_url: width: 800 }} 800w, {{ m | image_url: width: 1100 }} 1100w, {{ m | image_url: width: 1600 }} 1600w" sizes="(max-width: 989px) 88vw, 30vw" alt="{{ m.alt | default: p.title | escape }}" width="{{ m.preview_image.width }}" height="{{ m.preview_image.height }}" loading="{% if forloop.index <= 2 %}eager{% else %}lazy{% endif %}" decoding="async">
+            </div>
+          {%- endfor -%}
+        {%- else -%}
+          <div class="zp__cell zp__cell--wide"><img src="{% render 'demo-image', set: 'product', index: 0, width: 1100 %}" alt="{{ p.title | escape }}" width="1100" height="1400"></div>
+        {%- endif -%}
+      </div>
+    </div>
+
+    <div class="zp__info">
+      {%- capture zp_ctags -%}{%- render 'collection-tags', product: p, tag_class: 'zp__ctag' -%}{%- endcapture -%}
+      <div class="zp__head">
+        {%- if s.eyebrow != blank -%}<span class="zp__eyebrow">{{ s.eyebrow }}</span>{%- endif -%}
+        {%- if zp_ctags != blank -%}<div class="zp__ctags">{{ zp_ctags }}</div>{%- endif -%}
+        {%- if s.show_rating -%}
+          {%- liquid
+            assign r_avg = 0
+            assign r_cnt = p.metafields.reviews.rating_count.value | plus: 0
+            if p.metafields.reviews.rating.value != blank and r_cnt > 0
+              assign r_avg = p.metafields.reviews.rating.value.rating | plus: 0.0
+            endif
+          -%}
+          <span class="zp__rating">
+            <span class="zp__stars" style="--r: {{ r_avg | divided_by: 5.0 | times: 100 }}%">★★★★★</span>
+            {%- if r_cnt > 0 -%}<span class="zp__rcount">{{ r_avg | round: 1 }} ({{ r_cnt }})</span>{%- else -%}<span class="zp__rcount">No reviews</span>{%- endif -%}
+          </span>
+        {%- endif -%}
+      </div>
+
+      <h1 class="zp__title">{{ p.title }}</h1>
+      {%- assign zp_subtitle = p.metafields.custom.subtitle | default: p.vendor -%}
+      {%- if zp_subtitle != blank and s.show_vendor -%}<p class="zp__vendor">{{ zp_subtitle }}</p>{%- endif -%}
+
+      <div class="zp__prices">
+        <span class="zp__price js-zp-price{% if on_sale %} zp__price--sale{% endif %}">{{ cur.price | money }}</span>
+        {%- if on_sale -%}<s class="zp__compare">{{ p.compare_at_price | money }}</s>{%- endif -%}
+      </div>
+
+      {%- comment -%}
+        No promo mechanics on gift cards: any discount on stored value is a direct loss on face
+        value, and the card itself already spends like cash. Liquid evaluates and/or right to
+        left, so this flag is computed once instead of being inlined into each condition.
+      {%- endcomment -%}
+      {%- liquid
+        assign promo_ok = true
+        if p.gift_card?
+          assign promo_ok = false
+        endif
+        assign show_deal = false
+        if promo_ok
+          if s.show_timer or on_sale
+            assign show_deal = true
+          endif
+        endif
+      -%}
+      {%- if show_deal -%}
+        <div class="zp__deal{% unless on_sale %} zp__deal--notag{% endunless %}"{% if s.show_timer %} data-reset="{{ s.timer_end }}"{% endif %}>
+          {%- if on_sale -%}<span class="zp__deal-tag">{{ save_pct }}% OFF</span>{%- endif -%}
+          {%- if s.show_timer -%}
+            <span class="zp__deal-timer">
+              <span class="zp__deal-label">{{ s.timer_label | default: 'Ends in' }}</span>
+              <span class="zp__deal-clock">
+                <span class="zp__deal-unit"><b data-unit="hours">00</b><i>hrs</i></span>
+                <span class="zp__deal-colon">:</span>
+                <span class="zp__deal-unit"><b data-unit="minutes">00</b><i>min</i></span>
+                <span class="zp__deal-colon">:</span>
+                <span class="zp__deal-unit"><b data-unit="seconds">00</b><i>sec</i></span>
+              </span>
+            </span>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+
+      {%- if promo_ok and s.prepaid_show and s.prepaid_saving != blank -%}
+        <button type="button" class="zp__prepaid js-zp-prepaid" aria-expanded="false">
+          <span class="zp__prepaid-row">
+            <span class="zp__prepaid-ic"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M2 10h20"/></svg></span>
+            <span class="zp__prepaid-text">{{ s.prepaid_label | default: 'Pay online &amp; save' }}</span>
+            <span class="zp__prepaid-pill">Rs {{ s.prepaid_saving }} off</span>
+            <svg class="zp__prepaid-caret" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+          </span>
+          <span class="zp__prepaid-wrap"><span class="zp__prepaid-note">{{ s.prepaid_note | default: 'Choose online payment (card / wallet) at checkout to unlock this discount.' }}</span></span>
+        </button>
+      {%- endif -%}
+
+      {%- if s.promo_text != blank -%}
+        <div class="zp__promo">
+          <span class="zp__promo-icon">{{ '★' }}</span>
+          <span class="zp__promo-text">{{ s.promo_text }}</span>
+          {%- if s.promo_badge != blank -%}<span class="zp__promo-badge">{{ s.promo_badge }}</span>{%- endif -%}
+        </div>
+      {%- endif -%}
+
+      {%- if s.urgency_text != blank -%}
+        <p class="zp__urgency"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"/><path d="M17 7h4v4"/></svg>{{ s.urgency_text }}</p>
+      {%- endif -%}
+
+      {%- if p.metafields.custom.article_no != blank -%}
+        <p class="zp__article"><strong>Article No:</strong> {{ p.metafields.custom.article_no }}</p>
+      {%- endif -%}
+      {%- if p.metafields.custom.key_features != blank -%}
+        {%- assign feats = p.metafields.custom.key_features | newline_to_br | split: '<br />' -%}
+        <ul class="zp__features">
+          {%- for f in feats -%}{%- assign ff = f | strip | strip_newlines -%}{%- if ff != blank -%}<li>{{ ff }}</li>{%- endif -%}{%- endfor -%}
+        </ul>
+      {%- endif -%}
+      {%- comment -%} Model line — size aur height ke values RED. custom.model_size / custom.model_height se; na hon to purana model_info (plain) fallback. {%- endcomment -%}
+      {%- assign m_size = p.metafields.custom.model_size -%}
+      {%- assign m_height = p.metafields.custom.model_height -%}
+      {%- if m_size != blank or m_height != blank -%}
+        {%- capture m_size_html -%}<b class="zp__red">{{ m_size }}</b>{%- endcapture -%}
+        {%- capture m_height_html -%}<b class="zp__red">{{ m_height }}</b>{%- endcapture -%}
+        {%- assign m_tpl = settings.model_info_template | default: 'The model is wearing size: [size]; Model height: [height]' -%}
+        <p class="zp__modelinfo">{{ m_tpl | replace: '[size]', m_size_html | replace: '[height]', m_height_html }}</p>
+      {%- elsif p.metafields.custom.model_info != blank -%}
+        {%- assign mi_parts = p.metafields.custom.model_info.value | split: '~' -%}
+        <p class="zp__modelinfo">{%- for part in mi_parts -%}{%- assign mi_rem = forloop.index0 | modulo: 2 -%}{%- if mi_rem == 1 -%}<b class="zp__red">{{ part }}</b>{%- else -%}{{ part }}{%- endif -%}{%- endfor -%}</p>
+      {%- endif -%}
+
+      <form class="zp__form js-zp-form">
+        {%- comment -%} The main variant selector is the source of truth; volume tiers follow whatever is selected here. {%- endcomment -%}
+        {%- unless p.has_only_default_variant -%}
+          {%- for option in p.options_with_values -%}
+            {%- assign onm = option.name | downcase -%}
+            {%- assign is_color = false -%}
+            {%- if onm contains 'color' or onm contains 'colour' -%}{%- assign is_color = true -%}{%- endif -%}
+            <div class="zp__opt" data-opt-index="{{ forloop.index0 }}">
+              <div class="zp__opt-label">{{ option.name }}: <span class="js-zp-optval">{{ option.selected_value }}</span></div>
+              {%- if is_color -%}
+                <div class="zp__swatches">
+                  {%- for value in option.values -%}
+                    {%- liquid
+                      assign v_str = value | append: ''
+                      assign color_img = blank
+                      for pv in p.variants
+                        if pv.image and pv.options contains v_str
+                          assign color_img = pv.image
+                          break
+                        endif
+                      endfor
+                      assign sw = ''
+                      if value.swatch.image
+                        assign sw_url = value.swatch.image | image_url: width: 100
+                        assign sw = 'background-image:url(' | append: sw_url | append: ');'
+                      elsif color_img != blank
+                        assign sw_url = color_img | image_url: width: 100
+                        assign sw = 'background-image:url(' | append: sw_url | append: ');'
+                      elsif value.swatch.color
+                        assign sw = 'background-color:rgb(' | append: value.swatch.color.rgb | append: ');'
+                      else
+                        assign sw_name = value | downcase | split: ' ' | last
+                        assign sw = 'background-color:' | append: sw_name | append: ';'
+                      endif
+                    -%}
+                    <button type="button" class="zp__sw js-zp-optvalue{% if value.selected %} is-active{% endif %}" data-opt="{{ forloop.parentloop.index0 }}" data-value="{{ value | escape }}" style="{{ sw }}" title="{{ value | escape }}" aria-label="{{ value | escape }}"></button>
+                  {%- endfor -%}
+                </div>
+              {%- else -%}
+                <div class="zp__sizes">
+                  {%- for value in option.values -%}
+                    <button type="button" class="zp__size js-zp-optvalue{% if value.selected %} is-active{% endif %}" data-opt="{{ forloop.parentloop.index0 }}" data-value="{{ value | escape }}">{{ value }}</button>
+                  {%- endfor -%}
+                </div>
+              {%- endif -%}
+            </div>
+          {%- endfor -%}
+        {%- endunless -%}
+
+        {%- if promo_ok and s.vm_show -%}
+          {%- assign vm_n = s.vm_tiers | default: 4 -%}
+          {%- assign vm_best = s.vm_best | default: vm_n -%}
+          <div class="zp-vm js-zp-vm">
+            {%- if s.vm_heading != blank -%}<div class="zp-vm__head">{{ s.vm_heading }}</div>{%- endif -%}
+            {%- for i in (2..vm_n) -%}
+              {%- assign vm_pkey = 'vm_' | append: i | append: '_pct' -%}
+              {%- assign vm_pct = section.settings[vm_pkey] | default: 0 -%}
+              <div class="zp-vm__tier" data-qty="{{ i }}">
+                <button type="button" class="zp-vm__row js-vm-row">
+                  <span class="zp-vm__radio" aria-hidden="true"></span>
+                  <span class="zp-vm__main"><span class="zp-vm__buy">Buy {{ i }}</span>{% if vm_pct > 0 %}<span class="zp-vm__badge">{{ vm_pct }}% OFF</span>{% endif %}</span>
+                  <span class="zp-vm__prices"><span class="zp-vm__now js-vm-now" data-qty="{{ i }}" data-pct="{{ vm_pct }}"></span>{% if vm_pct > 0 %}<s class="zp-vm__was js-vm-was" data-qty="{{ i }}"></s>{% endif %}</span>
+                </button>
+                {%- if i == vm_best and vm_pct > 0 -%}<span class="zp-vm__best">Best Value</span>{%- endif -%}
+                {%- unless p.has_only_default_variant -%}<div class="zp-vm__units js-vm-units" data-qty="{{ i }}"></div>{%- endunless -%}
+              </div>
+            {%- endfor -%}
+            <p class="zp-vm__warn js-vm-warn" role="alert"></p>
+          </div>
+        {%- endif -%}
+
+        {%- comment -%}
+          Gift card recipient fields. Shopify sends the code itself when these exact line-item
+          properties are present; only "Recipient phone" is ours, for a manual WhatsApp send.
+        {%- endcomment -%}
+        {%- if p.gift_card? -%}
+          {%- render 'gift-card-notice', context: 'product' -%}
+          <div class="zp__gift js-zp-gift">
+            <label class="zp__gift-toggle">
+              <input type="checkbox" class="js-zp-gift-on">
+              <span class="zp__gift-box" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+              </span>
+              <span class="zp__gift-toggle-text">{{ section.settings.gift_toggle_label | default: 'I want to send this as a gift' }}</span>
+            </label>
+
+            <div class="zp__gift-fields js-zp-gift-fields" hidden>
+              <div class="zp__gift-row">
+                <label class="zp__gift-field">
+                  <span class="zp__gift-label">Recipient name</span>
+                  <input type="text" class="zp__gift-input js-zp-gc" data-prop="Recipient name" placeholder="Who is it for?">
+                </label>
+                <label class="zp__gift-field">
+                  <span class="zp__gift-label">Send on <i>(optional)</i></span>
+                  <input type="date" class="zp__gift-input js-zp-gc" data-prop="Send on">
+                </label>
+              </div>
+              <label class="zp__gift-field">
+                <span class="zp__gift-label">Recipient email <b>*</b></span>
+                <input type="email" class="zp__gift-input js-zp-gc" data-prop="Recipient email" placeholder="them@email.com" autocomplete="off" spellcheck="false">
+              </label>
+              <label class="zp__gift-field">
+                <span class="zp__gift-label">Recipient WhatsApp <i>(optional)</i></span>
+                <input type="tel" class="zp__gift-input js-zp-gc" data-prop="Recipient phone" placeholder="03XX XXXXXXX">
+              </label>
+              <label class="zp__gift-field">
+                <span class="zp__gift-label">Message <i>(optional)</i></span>
+                <textarea rows="3" class="zp__gift-input zp__gift-area js-zp-gc" data-prop="Message" placeholder="Write something nice…"></textarea>
+              </label>
+              <p class="zp__gift-err js-zp-gift-err" hidden>Please enter the recipient's email address.</p>
+              <p class="zp__gift-note">{{ section.settings.gift_note | default: 'The code is emailed to them once the order is paid.' }}</p>
+            </div>
+          </div>
+        {%- endif -%}
+        <div class="zp__qtyrow">
+          {%- unless promo_ok and s.vm_show -%}
+          <div class="zp__qty">
+            <button type="button" class="js-zp-qminus" aria-label="Decrease">&minus;</button>
+            <input type="number" class="js-zp-qty" value="1" min="1" inputmode="numeric" aria-label="Quantity">
+            <button type="button" class="js-zp-qplus" aria-label="Increase">+</button>
+          </div>
+          {%- endunless -%}
+
+          <button type="button" class="zp__add js-zp-add" data-vid="{{ cur.id }}"{% unless p.available %} disabled{% endunless %}><svg class="zp__btn-ic" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2 3 6v13a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg><span class="js-zp-addtext">{% if p.available %}Add to cart{% else %}Sold out{% endif %}</span></button>
+        </div>
+        <button type="button" class="zp__buynow js-zp-buynow"{% unless p.available %} disabled{% endunless %}><svg class="zp__btn-ic" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M13 2 3 14h7l-1 8 10-12h-7z"/></svg><span>Buy it now</span></button>
+      </form>
+
+      {%- comment -%} Delivery estimate — dates JS se auto (aaj purchased → +N processing → +M delivered). Countdown daily cutoff tak. {%- endcomment -%}
+      {%- if s.del_show -%}
+        <div class="zp-del js-zp-del" data-cutoff="{{ s.del_cutoff | default: '23:59' }}" data-proc="{{ s.del_processing_days | default: 1 }}" data-deliv="{{ s.del_delivery_days | default: 3 }}">
+          <p class="zp-del__head">
+            <svg class="zp-del__clock" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+            <span>{{ s.del_before | default: 'Order today within' }} <b class="js-zp-del-timer">00:00:00</b> {{ s.del_dispatch | default: 'for dispatch today.' }} {{ s.del_receive | default: "You'll receive your package between" }} <b class="js-zp-del-range"></b></span>
+          </p>
+          <div class="zp-del__track">
+            <div class="zp-del__stage">
+              <span class="zp-del__ic"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2 3 6v13a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></span>
+              <span class="zp-del__label">{{ s.del_s1 | default: 'Purchased' }}</span>
+              <span class="zp-del__date js-zp-del-d1"></span>
+            </div>
+            <span class="zp-del__line"></span>
+            <div class="zp-del__stage">
+              <span class="zp-del__ic"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 4h12v11H1z"/><path d="M13 8h5l4 4v3h-9z"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="18" r="2"/></svg></span>
+              <span class="zp-del__label">{{ s.del_s2 | default: 'Processing' }}</span>
+              <span class="zp-del__date js-zp-del-d2"></span>
+            </div>
+            <span class="zp-del__line"></span>
+            <div class="zp-del__stage">
+              <span class="zp-del__ic"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
+              <span class="zp-del__label">{{ s.del_s3 | default: 'Delivered' }}</span>
+              <span class="zp-del__date js-zp-del-d3"></span>
+            </div>
+          </div>
+        </div>
+      {%- endif -%}
+
+      {%- comment -%} Both bundles use one snippet: "Complete your set" from the custom.complete_your_set metafield, "Frequently bought together" from section settings. Empty items = block hidden. {%- endcomment -%}
+      {%- assign cys_head = s.cys_heading | default: 'Complete your set' -%}
+      {%- assign fbt_head = s.fbt_heading | default: 'Frequently bought together' -%}
+      {%- if s.cys_show -%}
+        {%- render 'zeene-fbt',
+          items: p.metafields.custom.complete_your_set.value,
+          heading: cys_head,
+          product: p,
+          variant: cur,
+          add_label: s.cys_button,
+          note: s.cys_note
+        -%}
+      {%- endif -%}
+
+      {%- if s.fbt_show -%}
+        {%- render 'zeene-fbt',
+          items: s.fbt_products,
+          heading: fbt_head,
+          product: p,
+          variant: cur,
+          add_label: s.fbt_button,
+          note: s.fbt_note,
+          skip_id: p.id
+        -%}
+      {%- endif -%}
+
+      {%- if s.disclaimer != blank -%}
+        <p class="zp__disclaimer">{{ s.disclaimer }}</p>
+      {%- endif -%}
+
+      {%- if s.info1_content != blank or s.info2_content != blank -%}
+        <div class="zp__info-links">
+          {%- if s.info1_content != blank -%}
+            <button type="button" class="zp__info-link js-zp-info" data-tab="1"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 4h12v11H1z"/><path d="M13 8h5l4 4v3h-9z"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="18" r="2"/></svg>{{ s.info1_label | default: 'Deliveries & Exchange' }}</button>
+          {%- endif -%}
+          {%- if s.info2_content != blank -%}
+            <button type="button" class="zp__info-link js-zp-info" data-tab="2"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8l5-4 3 2 3-2 5 4-3 3v9H7v-9z"/></svg>{{ s.info2_label | default: 'Product Care' }}</button>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+
+      {%- if p.description != blank -%}
+        <div class="zp__acc">
+          <button type="button" class="zp__acc-head js-zp-acc" aria-expanded="false">Description<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+          <div class="zp__acc-wrap"><div class="zp__acc-body rte">{{ p.description }}</div></div>
+        </div>
+      {%- endif -%}
+      {%- if sc_img != blank -%}
+        <div class="zp__acc">
+          <button type="button" class="zp__acc-head js-zp-acc" aria-expanded="false">Size chart<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+          <div class="zp__acc-wrap"><div class="zp__acc-body"><img class="zp__sc-img" src="{{ sc_img | image_url: width: 1000 }}" srcset="{{ sc_img | image_url: width: 600 }} 600w, {{ sc_img | image_url: width: 1000 }} 1000w" sizes="(max-width: 989px) 100vw, 46vw" alt="Size chart" width="{{ sc_img.width | default: 1000 }}" height="{{ sc_img.height | default: 1200 }}" loading="lazy" decoding="async"></div></div>
+        </div>
+      {%- endif -%}
+      {%- if s.shipping_info != blank -%}
+        <div class="zp__acc">
+          <button type="button" class="zp__acc-head js-zp-acc" aria-expanded="false">Shipping &amp; Returns<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+          <div class="zp__acc-wrap"><div class="zp__acc-body rte">{{ s.shipping_info }}</div></div>
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+
+  {%- if s.info1_content != blank or s.info2_content != blank -%}
+    <div class="zp-info" id="zp-info-{{ section.id }}" role="dialog" aria-modal="true" aria-label="Product information">
+      <div class="zp-info__overlay js-zp-info-close"></div>
+      <div class="zp-info__panel">
+        <div class="zp-info__head">
+          <span class="zp-info__title">{{ s.info_title | default: 'Product Information' }}</span>
+          <button type="button" class="zp-info__close js-zp-info-close" aria-label="Close"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+        </div>
+        <div class="zp-info__tabs" role="tablist">
+          {%- if s.info1_content != blank -%}<button type="button" class="zp-info__tab is-active js-zp-info-tab" data-tab="1">{{ s.info1_label | default: 'Deliveries & Exchange' }}</button>{%- endif -%}
+          {%- if s.info2_content != blank -%}<button type="button" class="zp-info__tab{% if s.info1_content == blank %} is-active{% endif %} js-zp-info-tab" data-tab="2">{{ s.info2_label | default: 'Product Care' }}</button>{%- endif -%}
+        </div>
+        <div class="zp-info__body">
+          {%- if s.info1_content != blank -%}<div class="zp-info__pane is-active rte" data-tab="1">{{ s.info1_content }}</div>{%- endif -%}
+          {%- if s.info2_content != blank -%}<div class="zp-info__pane{% if s.info1_content == blank %} is-active{% endif %} rte" data-tab="2">{{ s.info2_content }}</div>{%- endif -%}
+        </div>
+      </div>
+    </div>
+  {%- endif -%}
+
+  {%- liquid
+    assign vid_native = p.media | where: 'media_type', 'video' | first
+    assign vid_ext = p.media | where: 'media_type', 'external_video' | first
+    assign has_vid = false
+    if vid_native != blank or vid_ext != blank
+      assign has_vid = true
+    endif
+    if vid_native != blank
+      assign v_low = vid_native.sources | where: 'format', 'mp4' | first
+      assign v_high = vid_native.sources | where: 'format', 'mp4' | last
+      assign v_poster = vid_native.preview_image
+    else
+      assign v_poster = vid_ext.preview_image
+    endif
+  -%}
+  {%- if s.video_show and has_vid -%}
+    <div class="zp-vid js-zp-vid">
+      <button type="button" class="zp-vid__bubble js-zp-vid-open" aria-label="Play product video">
+        {%- if vid_native != blank -%}
+          <video class="zp-vid__prev js-zp-vid-prev" muted loop playsinline preload="metadata" poster="{{ v_poster | image_url: width: 300 }}"><source src="{{ v_low.url }}" type="video/mp4"></video>
+        {%- elsif v_poster != blank -%}
+          <img class="zp-vid__prev" src="{{ v_poster | image_url: width: 300 }}" alt="" width="86" height="86" loading="lazy" decoding="async">
+        {%- endif -%}
+        <span class="zp-vid__play"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></span>
+      </button>
+      <button type="button" class="zp-vid__x js-zp-vid-hide" aria-label="Hide video"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+
+    <div class="zp-vid-lb js-zp-vid-lb" role="dialog" aria-modal="true" aria-label="Product video">
+      <button type="button" class="zp-vid-lb__close js-zp-vid-close" aria-label="Close video"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      <div class="zp-vid-lb__inner">
+        {%- if vid_native != blank -%}
+          <video class="js-zp-vid-full" controls playsinline preload="none" poster="{{ v_poster | image_url: width: 1200 }}"><source src="{{ v_high.url }}" type="video/mp4"></video>
+        {%- else -%}
+          <div class="zp-vid-lb__frame js-zp-vid-frame" data-host="{{ vid_ext.host }}" data-vid="{{ vid_ext.external_id }}"></div>
+        {%- endif -%}
+      </div>
+    </div>
+  {%- endif -%}
+
+  {%- if s.sticky_bar -%}
+    <div class="zp-sticky js-zp-sticky" aria-hidden="true">
+      <div class="zp-sticky__inner">
+        <div class="zp-sticky__prod">
+          <span class="zp-sticky__media">{%- if p.featured_media -%}<img src="{{ p.featured_media | image_url: width: 100 }}" alt="{{ p.title | escape }}" width="40" height="40" loading="lazy">{%- endif -%}</span>
+          <span class="zp-sticky__meta">
+            <span class="zp-sticky__name">{{ p.title }}</span>
+            <span class="zp-sticky__price js-zp-sticky-price">{{ cur.price | money }}</span>
+          </span>
+        </div>
+        <div class="zp-sticky__actions">
+          {%- if p.variants.size > 1 -%}
+            <select class="zp-sticky__var js-zp-sticky-var" aria-label="Choose option">
+              {%- for v in p.variants -%}<option value="{{ v.id }}" data-price="{{ v.price }}"{% if v.id == cur.id %} selected{% endif %}{% unless v.available %} disabled{% endunless %}>{{ v.title }}{% unless v.available %} — sold out{% endunless %}</option>{%- endfor -%}
+            </select>
+          {%- endif -%}
+          <button type="button" class="zp-sticky__add js-zp-sticky-add"{% unless p.available %} disabled{% endunless %}><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2 3 6v13a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg><span>{% if p.available %}Add to cart{% else %}Sold out{% endif %}</span></button>
+        </div>
+      </div>
+    </div>
+  {%- endif -%}
+
+  <script type="application/json" class="js-zp-variants">[{%- for v in p.variants -%}{"id":{{ v.id }},"available":{{ v.available }},"options":{{ v.options | json }},"price":{{ v.price }},"price_str":{{ v.price | money | json }},"compare_at":{{ v.compare_at_price | default: 0 }},"media_id":{% if v.featured_media %}{{ v.featured_media.id }}{% else %}null{% endif %}}{% unless forloop.last %},{% endunless %}{%- endfor -%}]</script>
+  <script type="application/json" class="js-zp-options">[{%- for o in p.options_with_values -%}{"name":{{ o.name | json }},"values":[{%- for val in o.values -%}{{ val | json }}{% unless forloop.last %},{% endunless %}{%- endfor -%}]}{% unless forloop.last %},{% endunless %}{%- endfor -%}]</script>
+</div>
+
+<script>
+(function () {
+  var root = document.getElementById('zeene-product-{{ section.id }}');
+  if (!root) return;
+  var dataEl = root.querySelector('.js-zp-variants');
+  var variants = [];
+  try { variants = JSON.parse(dataEl.textContent); } catch (e) {}
+
+var moneyFmt = {{ shop.money_format | json }};
+  function money(cents) {
+    var v = cents / 100;
+    var s2 = v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    var out = moneyFmt.replace(/\{\{\s*amount\s*\}\}/, s2).replace(/\{\{\s*amount_no_decimals\s*\}\}/, Math.round(v).toLocaleString('en-US'));
+    return out === moneyFmt ? 'Rs ' + s2 : out;
+  }
+  function curPrice() { var v = match(selectedOpts()); return v ? v.price : (variants[0] ? variants[0].price : 0); }
+  var optEl = root.querySelector('.js-zp-options');
+  var vmOptions = []; try { vmOptions = JSON.parse(optEl.textContent); } catch (e) {}
+  var vmEl = root.querySelector('.js-zp-vm');
+
+  function getQty() {
+    var t = root.querySelector('.zp-vm__tier.is-active');
+    if (t) return Math.max(1, parseInt(t.getAttribute('data-qty'), 10) || 1);
+    var q = root.querySelector('.js-zp-qty');
+    return q ? Math.max(1, parseInt(q.value, 10) || 1) : 1;
+  }
+  function vmPrices() {
+    var pr = curPrice();
+    root.querySelectorAll('.js-vm-now').forEach(function (el) {
+      var qty = parseInt(el.getAttribute('data-qty'), 10) || 1;
+      var pct = parseFloat(el.getAttribute('data-pct')) || 0;
+      el.textContent = money(Math.round(pr * qty * (1 - pct / 100)));
+    });
+    root.querySelectorAll('.js-vm-was').forEach(function (el) {
+      el.textContent = money(pr * (parseInt(el.getAttribute('data-qty'), 10) || 1));
+    });
+  }
+  function esc(x) { return String(x).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function unitDefaultOpts() {
+    var fb = null;
+    for (var i = 0; i < variants.length; i++) { if (variants[i].available) { fb = variants[i].options; break; } }
+    if (!fb) fb = variants[0] ? variants[0].options : [];
+    var sel = selectedOpts();
+    var out = [];
+    for (var o = 0; o < vmOptions.length; o++) out[o] = sel[o] != null ? sel[o] : fb[o];
+    return out;
+  }
+function buildUnits(tier) {
+    var cont = tier.querySelector('.js-vm-units');
+    if (!cont || cont.childElementCount || !vmOptions.length) return;
+    var qty = parseInt(tier.getAttribute('data-qty'), 10) || 1;
+    if (qty < 2) return;
+    var def = unitDefaultOpts();
+    var html = '';
+    for (var u = 1; u <= qty; u++) {
+      html += '<div class="zp-vm__unit"><span class="zp-vm__unit-n">#' + u + '</span><span class="zp-vm__unit-sels">';
+      for (var o = 0; o < vmOptions.length; o++) {
+        html += '<select class="js-vm-unit-var zp-vm__unit-var" data-opt="' + o + '" aria-label="' + esc(vmOptions[o].name) + '">';
+        for (var vi = 0; vi < vmOptions[o].values.length; vi++) {
+          var val = vmOptions[o].values[vi];
+          html += '<option value="' + esc(val) + '"' + (def[o] === val ? ' selected' : '') + '>' + esc(val) + '</option>';
+        }
+        html += '</select>';
+      }
+      html += '</span></div>';
+    }
+    cont.innerHTML = html;
+  }
+  function unitOpts(unit) {
+    var opts = [];
+    unit.querySelectorAll('.js-vm-unit-var').forEach(function (sel) { opts[parseInt(sel.getAttribute('data-opt'), 10)] = sel.value; });
+    return opts;
+  }
+function comboAvailable(optIdx, val, others) {
+    for (var i = 0; i < variants.length; i++) {
+      var v = variants[i];
+      if (!v.available || v.options[optIdx] !== val) continue;
+      var ok = true;
+      for (var j = 0; j < others.length; j++) { if (j !== optIdx && others[j] != null && v.options[j] !== others[j]) { ok = false; break; } }
+      if (ok) return true;
+    }
+    return false;
+  }
+  // Sold-out combos are disabled in the dropdown, otherwise the unit was silently dropped at add-to-cart.
+  function vmUnitAvail(unit) {
+    for (var pass = 0; pass < 2; pass++) {
+      var cur = unitOpts(unit);
+      unit.querySelectorAll('.js-vm-unit-var').forEach(function (sel) {
+        var oi = parseInt(sel.getAttribute('data-opt'), 10);
+        var firstOk = null;
+        for (var k = 0; k < sel.options.length; k++) {
+          var op = sel.options[k];
+          var ok = comboAvailable(oi, op.value, cur);
+          op.disabled = !ok;
+          if (ok && firstOk === null) firstOk = op.value;
+        }
+        var chosen = sel.options[sel.selectedIndex];
+        if ((!chosen || chosen.disabled) && firstOk !== null) sel.value = firstOk;
+      });
+    }
+  }
+  function vmAllUnitsAvail() { root.querySelectorAll('.zp-vm__unit').forEach(vmUnitAvail); }
+  // Changing the main selector re-syncs the units that already exist.
+  function vmSyncUnits() {
+    var def = unitDefaultOpts();
+    root.querySelectorAll('.js-vm-unit-var').forEach(function (sel) {
+      var o = parseInt(sel.getAttribute('data-opt'), 10);
+      if (def[o] != null) sel.value = def[o];
+    });
+    vmAllUnitsAvail();
+  }
+function vmValidate() {
+    if (!vmEl) return;
+    var tier = root.querySelector('.zp-vm__tier.is-active');
+    var warn = root.querySelector('.js-vm-warn');
+if (!tier) { if (warn) warn.textContent = ''; return; }
+    var want = parseInt(tier.getAttribute('data-qty'), 10) || 1;
+    var got = 0;
+    vmItems().forEach(function (it) { got += it.quantity; });
+    var bad = got < want;
+    var addBtn = root.querySelector('.js-zp-add');
+    var buyBtn = root.querySelector('.js-zp-buynow');
+    if (addBtn) addBtn.disabled = bad;
+    if (buyBtn) buyBtn.disabled = bad;
+    if (warn) warn.textContent = bad ? 'Some selections are unavailable — please change them.' : '';
+  }
+function vmSelect(tier) {
+    var off = tier.classList.contains('is-active');
+    root.querySelectorAll('.zp-vm__tier').forEach(function (t) { t.classList.toggle('is-active', !off && t === tier); });
+    if (!off) buildUnits(tier);
+    update();
+  }
+  root.querySelectorAll('.js-vm-row').forEach(function (row) {
+    row.addEventListener('click', function () { vmSelect(row.closest('.zp-vm__tier')); });
+  });
+  if (vmEl) vmEl.addEventListener('change', function (e) {
+    var sel = e.target.closest ? e.target.closest('.js-vm-unit-var') : null;
+    if (!sel) return;
+    vmUnitAvail(sel.closest('.zp-vm__unit'));
+    vmValidate();
+  });
+function vmItems() {
+    var tier = root.querySelector('.zp-vm__tier.is-active');
+if (!tier) { var v1 = match(selectedOpts()) || variants[0]; return v1 ? [{ id: v1.id, quantity: 1 }] : []; }
+    var map = {};
+    var units = tier.querySelectorAll('.zp-vm__unit');
+    if (!units.length) {
+      // Buy 1 (ya default-variant product) — main selector wala variant × tier qty.
+      var qn = parseInt(tier.getAttribute('data-qty'), 10) || 1;
+      var v0 = match(selectedOpts()) || variants[0]; if (v0) map[v0.id] = qn;
+    } else {
+      units.forEach(function (unit) {
+        var opts = [];
+        unit.querySelectorAll('.js-vm-unit-var').forEach(function (sel) { opts[parseInt(sel.getAttribute('data-opt'), 10)] = sel.value; });
+        var v = match(opts);
+        if (v && v.available) map[v.id] = (map[v.id] || 0) + 1;
+      });
+    }
+    var arr = []; for (var id in map) arr.push({ id: parseInt(id, 10), quantity: map[id] });
+    return arr;
+  }
+  function addCartMulti(items) { return fetch('/cart/add.js', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items: items }) }).then(function (r) { return r.json(); }); }
+
+  // block:'nearest' so desktop only scrolls when the image is out of view; inline:'center' for the mobile carousel.
+  function showMedia(id) {
+    if (!id) return;
+    var cell = root.querySelector('.zp__cell[data-media-id="' + id + '"]');
+    if (cell) cell.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  }
+
+  function selectedOpts() {
+    var opts = [];
+    root.querySelectorAll('.zp__opt').forEach(function (o) {
+      var i = parseInt(o.getAttribute('data-opt-index'), 10);
+      var a = o.querySelector('.js-zp-optvalue.is-active');
+      opts[i] = a ? a.getAttribute('data-value') : null;
+    });
+    return opts;
+  }
+  function match(opts) {
+    for (var k = 0; k < variants.length; k++) { var ok = true; for (var j = 0; j < opts.length; j++) { if (opts[j] != null && variants[k].options[j] !== opts[j]) { ok = false; break; } } if (ok) return variants[k]; }
+    return null;
+  }
+  function updateSizes() {
+    var sw = root.querySelector('.zp__swatches');
+    var color = null; if (sw) { var a = sw.querySelector('.js-zp-optvalue.is-active'); color = a ? a.getAttribute('data-value') : null; }
+    root.querySelectorAll('.zp__size').forEach(function (btn) {
+      var sz = btn.getAttribute('data-value'); var ok = false;
+      for (var i = 0; i < variants.length; i++) { var o = variants[i].options; if (variants[i].available && o.indexOf(sz) > -1 && (!color || o.indexOf(color) > -1)) { ok = true; break; } }
+      btn.classList.toggle('is-unavailable', !ok);
+    });
+  }
+  function update() {
+    var v = match(selectedOpts());
+    var addBtn = root.querySelector('.js-zp-add');
+    var addText = root.querySelector('.js-zp-addtext');
+    var priceEl = root.querySelector('.js-zp-price');
+    var buyBtn = root.querySelector('.js-zp-buynow');
+    root.querySelectorAll('.zp__opt').forEach(function (o) { var a = o.querySelector('.js-zp-optvalue.is-active'); var l = o.querySelector('.js-zp-optval'); if (a && l) l.textContent = a.getAttribute('data-value'); });
+    if (v) {
+      if (addBtn) { addBtn.setAttribute('data-vid', v.id); addBtn.disabled = !v.available; }
+      if (buyBtn) buyBtn.disabled = !v.available;
+      if (addText) addText.textContent = v.available ? 'Add to cart' : 'Sold out';
+      if (priceEl && v.price_str) priceEl.textContent = v.price_str;
+      if (v.media_id) showMedia(v.media_id);
+    } else {
+      if (addBtn) addBtn.disabled = true; if (buyBtn) buyBtn.disabled = true;
+      if (addText) addText.textContent = 'Unavailable';
+    }
+    vmPrices();
+    vmSyncUnits();
+    vmValidate();
+  }
+  root.querySelectorAll('.js-zp-optvalue').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var o = b.closest('.zp__opt');
+      o.querySelectorAll('.js-zp-optvalue').forEach(function (x) { x.classList.remove('is-active'); });
+      b.classList.add('is-active');
+      updateSizes(); update();
+    });
+  });
+  updateSizes();
+  vmPrices();
+  vmValidate();
+
+  var qi = root.querySelector('.js-zp-qty');
+  var qm = root.querySelector('.js-zp-qminus'); var qp = root.querySelector('.js-zp-qplus');
+  if (qm && qi) qm.addEventListener('click', function () { qi.value = Math.max(1, (parseInt(qi.value, 10) || 1) - 1); });
+  if (qp && qi) qp.addEventListener('click', function () { qi.value = (parseInt(qi.value, 10) || 1) + 1; });
+
+  // Gift card: Shopify in exact property names par hi recipient ko code bhejta hai.
+  var giftWrap = root.querySelector('.js-zp-gift');
+  function giftProps() {
+    if (!giftWrap) return null;
+    var on = giftWrap.querySelector('.js-zp-gift-on');
+    if (!on || !on.checked) return null;
+    var props = { '__shopify_send_gift_card_to_recipient': 'if_present' };
+    giftWrap.querySelectorAll('.js-zp-gc').forEach(function (el) {
+      var v = (el.value || '').trim();
+      if (v) props[el.getAttribute('data-prop')] = v;
+    });
+    props['__shopify_offset'] = String(new Date().getTimezoneOffset());
+    return props;
+  }
+
+  function giftValid() {
+    if (!giftWrap) return true;
+    var on = giftWrap.querySelector('.js-zp-gift-on');
+    if (!on || !on.checked) return true;
+    var mail = giftWrap.querySelector('[data-prop="Recipient email"]');
+    var ok = mail && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(mail.value.trim());
+    var err = giftWrap.querySelector('.js-zp-gift-err');
+    if (err) err.hidden = !!ok;
+    if (!ok && mail) mail.focus();
+    return !!ok;
+  }
+
+  function addCart(vid, qty) {
+    var item = { id: parseInt(vid, 10), quantity: qty };
+    var props = giftProps();
+    if (props) item.properties = props;
+    return fetch('/cart/add.js', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items: [item] }) }).then(function (r) { return r.json(); });
+  }
+  // #cart-icon-bubble lives on the header <a>, not inside this section's output, so look it up outside the fetched HTML.
+  function refreshCartCount() {
+    return fetch('/?section_id=cart-icon-bubble').then(function (r) { return r.text(); }).then(function (h) {
+      var doc = new DOMParser().parseFromString(h, 'text/html');
+      var fresh = doc.querySelector('#shopify-section-cart-icon-bubble') || doc.querySelector('.shopify-section');
+      var cb = document.querySelector('#cart-icon-bubble');
+      if (fresh && cb) cb.innerHTML = fresh.innerHTML;
+    }).catch(function () {});
+  }
+  function openDrawer() {
+    var cart = document.querySelector('cart-drawer');
+    return fetch('/?section_id=cart-drawer').then(function (r) { return r.text(); }).then(function (html) {
+      var fresh = new DOMParser().parseFromString(html, 'text/html').querySelector('#CartDrawer');
+      var curEl = document.querySelector('#CartDrawer');
+      if (fresh && curEl) curEl.innerHTML = fresh.innerHTML;
+      if (cart) { cart.classList.remove('is-empty'); if (typeof cart.open === 'function') cart.open(); }
+      refreshCartCount();
+    });
+  }
+  if (giftWrap) {
+    var giftOn = giftWrap.querySelector('.js-zp-gift-on');
+    var giftFields = giftWrap.querySelector('.js-zp-gift-fields');
+    if (giftOn && giftFields) {
+      giftOn.addEventListener('change', function () {
+        giftFields.hidden = !giftOn.checked;
+        giftWrap.classList.toggle('is-on', giftOn.checked);
+      });
+    }
+  }
+
+  var addBtn = root.querySelector('.js-zp-add');
+  if (addBtn) addBtn.addEventListener('click', function () {
+    if (addBtn.disabled || !giftValid()) return;
+    addBtn.classList.add('is-loading');
+    var done = function (res) { addBtn.classList.remove('is-loading'); if (res && res.status) return; openDrawer(); };
+    var fail = function () { addBtn.classList.remove('is-loading'); window.location = '/cart'; };
+    if (vmEl) { var items = vmItems(); if (!items.length) { addBtn.classList.remove('is-loading'); return; } addCartMulti(items).then(done).catch(fail); }
+    else { var vid = addBtn.getAttribute('data-vid'); if (!vid) { addBtn.classList.remove('is-loading'); return; } addCart(vid, getQty()).then(done).catch(fail); }
+  });
+  var buyBtn = root.querySelector('.js-zp-buynow');
+  if (buyBtn) buyBtn.addEventListener('click', function () {
+    if (buyBtn.disabled || !giftValid()) return;
+    buyBtn.classList.add('is-loading');
+    var go = function (res) { if (res && res.status) { buyBtn.classList.remove('is-loading'); return; } window.location = '/checkout'; };
+    var fail = function () { buyBtn.classList.remove('is-loading'); window.location = '/cart'; };
+    if (vmEl) { var items = vmItems(); if (!items.length) { buyBtn.classList.remove('is-loading'); return; } addCartMulti(items).then(go).catch(fail); }
+    else { var vid = addBtn.getAttribute('data-vid'); if (!vid) { buyBtn.classList.remove('is-loading'); return; } addCart(vid, getQty()).then(go).catch(fail); }
+  });
+
+  // Uses .is-open (CSS grid 0fr -> 1fr), not <details open>: that flashes the full height for one frame.
+  var accs = Array.prototype.slice.call(root.querySelectorAll('.zp__acc'));
+  accs.forEach(function (acc) {
+    var head = acc.querySelector('.js-zp-acc');
+    if (!head) return;
+    head.addEventListener('click', function () {
+      var willOpen = !acc.classList.contains('is-open');
+      accs.forEach(function (o) {
+        o.classList.remove('is-open');
+        var h = o.querySelector('.js-zp-acc');
+        if (h) h.setAttribute('aria-expanded', 'false');
+      });
+      if (willOpen) { acc.classList.add('is-open'); head.setAttribute('aria-expanded', 'true'); }
+    });
+  });
+
+  var timer = root.querySelector('.zp__deal[data-reset]');
+  if (timer) {
+    var m = /^(\d{1,2}):(\d{2})$/.exec((timer.getAttribute('data-reset') || '').trim());
+    var rh = m ? parseInt(m[1], 10) : 23, rmn = m ? parseInt(m[2], 10) : 59;
+    var hE = timer.querySelector('[data-unit="hours"]'), mE = timer.querySelector('[data-unit="minutes"]'), sE = timer.querySelector('[data-unit="seconds"]');
+    function pad(n) { return String(n).padStart(2, '0'); }
+    function tick() {
+      var now = new Date();
+      var target = new Date(now.getFullYear(), now.getMonth(), now.getDate(), rh, rmn, 0, 0);
+      if (now >= target) target.setDate(target.getDate() + 1);
+      var d = target - now; if (d < 0) d = 0;
+      hE.textContent = pad(Math.floor(d / 3600000)); mE.textContent = pad(Math.floor((d / 60000) % 60)); sE.textContent = pad(Math.floor((d / 1000) % 60));
+    }
+    tick(); setInterval(tick, 1000);
+  }
+
+  // Prepaid strip — tap par note reveal/collapse.
+  var prepaid = root.querySelector('.js-zp-prepaid');
+  if (prepaid) {
+    prepaid.addEventListener('click', function () {
+      prepaid.setAttribute('aria-expanded', prepaid.getAttribute('aria-expanded') === 'true' ? 'false' : 'true');
+    });
+  }
+
+var vidWrap = root.querySelector('.js-zp-vid');
+  var vidLb = root.querySelector('.js-zp-vid-lb');
+  if (vidWrap && vidLb) {
+    var vPrev = vidWrap.querySelector('.js-zp-vid-prev');
+    var vFull = vidLb.querySelector('.js-zp-vid-full');
+    var vFrame = vidLb.querySelector('.js-zp-vid-frame');
+    var vReduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+    function vPlayPrev() { if (vPrev && !vReduce.matches) { var pr = vPrev.play(); if (pr && pr.catch) pr.catch(function () {}); } }
+    vPlayPrev();
+    document.addEventListener('visibilitychange', function () {
+      if (!vPrev) return;
+      if (document.hidden) vPrev.pause(); else if (!vidLb.classList.contains('active')) vPlayPrev();
+    });
+
+    function vidOpen() {
+      vidLb.classList.add('active');
+      document.documentElement.style.overflow = 'hidden';
+      if (vPrev) vPrev.pause();
+      if (vFull) { try { vFull.currentTime = 0; } catch (e) {} var fp = vFull.play(); if (fp && fp.catch) fp.catch(function () {}); }
+      if (vFrame && !vFrame.querySelector('iframe')) {
+        var host = vFrame.getAttribute('data-host'), vid = vFrame.getAttribute('data-vid');
+        var src = host === 'vimeo' ? 'https://player.vimeo.com/video/' + vid + '?autoplay=1' : 'https://www.youtube.com/embed/' + vid + '?autoplay=1&rel=0';
+        var f = document.createElement('iframe');
+        f.setAttribute('src', src);
+        f.setAttribute('allow', 'autoplay; encrypted-media; fullscreen; picture-in-picture');
+        f.setAttribute('allowfullscreen', '');
+        f.setAttribute('frameborder', '0');
+        f.setAttribute('title', 'Product video');
+        vFrame.appendChild(f);
+      }
+    }
+    function vidClose() {
+      vidLb.classList.remove('active');
+      document.documentElement.style.overflow = '';
+      if (vFull) vFull.pause();
+      if (vFrame) vFrame.innerHTML = ''; // iframe hata do warna background mein chalti rehti hai
+      vPlayPrev();
+    }
+    var vOpenBtn = vidWrap.querySelector('.js-zp-vid-open');
+    if (vOpenBtn) vOpenBtn.addEventListener('click', vidOpen);
+    var vHideBtn = vidWrap.querySelector('.js-zp-vid-hide');
+    if (vHideBtn) vHideBtn.addEventListener('click', function () { if (vPrev) vPrev.pause(); vidWrap.remove(); });
+    vidLb.addEventListener('click', function (e) { if (e.target === vidLb || e.target.closest('.js-zp-vid-close')) vidClose(); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && vidLb.classList.contains('active')) vidClose(); });
+  }
+
+  // Delivery estimate — dates visitor ke "aaj" se auto, countdown daily cutoff tak.
+  var del = root.querySelector('.js-zp-del');
+  if (del) {
+    var dProc = parseInt(del.getAttribute('data-proc'), 10) || 1;
+    var dDeliv = parseInt(del.getAttribute('data-deliv'), 10) || 3;
+    var dcut = (del.getAttribute('data-cutoff') || '23:59').split(':');
+    var dch = parseInt(dcut[0], 10) || 23, dcm = parseInt(dcut[1], 10) || 59;
+    function fmtDate(off) { var d = new Date(); d.setDate(d.getDate() + off); return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); }
+    var dd1 = del.querySelector('.js-zp-del-d1'), dd2 = del.querySelector('.js-zp-del-d2'), dd3 = del.querySelector('.js-zp-del-d3'), drng = del.querySelector('.js-zp-del-range');
+    if (dd1) dd1.textContent = fmtDate(0);
+    if (dd2) dd2.textContent = fmtDate(dProc);
+    if (dd3) dd3.textContent = fmtDate(dDeliv);
+    if (drng) drng.textContent = fmtDate(Math.max(1, dDeliv - 1)) + ' – ' + fmtDate(dDeliv);
+    var dtEl = del.querySelector('.js-zp-del-timer');
+    function dpad(n) { return String(n).padStart(2, '0'); }
+    function dtick() {
+      var now = new Date();
+      var target = new Date(now.getFullYear(), now.getMonth(), now.getDate(), dch, dcm, 0, 0);
+      if (now >= target) target.setDate(target.getDate() + 1);
+      var diff = target - now; if (diff < 0) diff = 0;
+      if (dtEl) dtEl.textContent = dpad(Math.floor(diff / 3600000)) + ':' + dpad(Math.floor((diff / 60000) % 60)) + ':' + dpad(Math.floor((diff / 1000) % 60));
+    }
+    dtick(); setInterval(dtick, 1000);
+  }
+
+var sticky = root.querySelector('.js-zp-sticky');
+  var mainAdd = root.querySelector('.js-zp-add');
+  if (sticky && mainAdd && 'IntersectionObserver' in window) {
+    var sio = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        sticky.classList.toggle('is-visible', !e.isIntersecting && e.boundingClientRect.top < 0);
+      });
+    }, { threshold: 0 });
+    sio.observe(mainAdd);
+
+    var stickyVar = sticky.querySelector('.js-zp-sticky-var');
+    var stickyPrice = sticky.querySelector('.js-zp-sticky-price');
+    if (stickyVar) stickyVar.addEventListener('change', function () {
+      var o = stickyVar.options[stickyVar.selectedIndex];
+      if (o && stickyPrice) stickyPrice.textContent = money(parseInt(o.getAttribute('data-price'), 10) || 0);
+    });
+    var stickyAdd = sticky.querySelector('.js-zp-sticky-add');
+    if (stickyAdd) stickyAdd.addEventListener('click', function () {
+      if (stickyAdd.disabled) return;
+      var vid = stickyVar ? stickyVar.value : null;
+      if (!vid) { var mv = match(selectedOpts()); vid = mv ? mv.id : (variants[0] ? variants[0].id : null); }
+      if (!vid) return;
+      stickyAdd.classList.add('is-loading');
+      addCart(vid, 1).then(function (res) { stickyAdd.classList.remove('is-loading'); if (res && res.status) return; openDrawer(); }).catch(function () { stickyAdd.classList.remove('is-loading'); window.location = '/cart'; });
+    });
+  }
+
+  // Product info drawer (Deliveries & Exchange / Product Care): a link opens the drawer on that tab.
+  var info = root.querySelector('.zp-info');
+  if (info) {
+    function infoTab(n) {
+      info.querySelectorAll('.js-zp-info-tab').forEach(function (t) { t.classList.toggle('is-active', t.getAttribute('data-tab') === n); });
+      info.querySelectorAll('.zp-info__pane').forEach(function (p) { p.classList.toggle('is-active', p.getAttribute('data-tab') === n); });
+    }
+    function infoOpen(n) { if (info.querySelector('.js-zp-info-tab[data-tab="' + n + '"]')) infoTab(n); info.classList.add('active'); document.documentElement.style.overflow = 'hidden'; }
+    function infoClose() { info.classList.remove('active'); document.documentElement.style.overflow = ''; }
+    root.querySelectorAll('.js-zp-info').forEach(function (b) { b.addEventListener('click', function () { infoOpen(b.getAttribute('data-tab')); }); });
+    info.querySelectorAll('.js-zp-info-tab').forEach(function (t) { t.addEventListener('click', function () { infoTab(t.getAttribute('data-tab')); }); });
+    info.querySelectorAll('.js-zp-info-close').forEach(function (c) { c.addEventListener('click', infoClose); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && info.classList.contains('active')) infoClose(); });
+  }
+
+  // querySelectorAll is required: both bundle blocks share this markup, and querySelector left the second one dead.
+  root.querySelectorAll('.js-zp-fbt').forEach(function (fbt) {
+var mainVarSel = fbt.querySelector('.js-fbt-mainvar');
+    function mainPrice() {
+      if (mainVarSel) { var o = mainVarSel.options[mainVarSel.selectedIndex]; if (o) return parseInt(o.getAttribute('data-price'), 10) || 0; }
+      var v = match(selectedOpts()); return v ? v.price : (variants[0] ? variants[0].price : 0);
+    }
+    function itemPrice(pid) {
+      var v = fbt.querySelector('.js-fbt-var[data-pid="' + pid + '"]');
+      if (!v) return 0;
+      if (v.tagName === 'SELECT') { var o = v.options[v.selectedIndex]; return o ? (parseInt(o.getAttribute('data-price'), 10) || 0) : 0; }
+      return parseInt(v.getAttribute('data-price'), 10) || 0;
+    }
+    function fbtTotal() {
+      var t = mainPrice();
+      fbt.querySelectorAll('.js-fbt-check:checked').forEach(function (c) { t += itemPrice(c.getAttribute('data-pid')); });
+      var totalEl = fbt.querySelector('.js-fbt-total'); if (totalEl) totalEl.textContent = money(t);
+    }
+    // Per-item price label variant badalne par update.
+    fbt.querySelectorAll('.js-fbt-var').forEach(function (v) {
+      if (v.tagName !== 'SELECT') return;
+      v.addEventListener('change', function () {
+        var lbl = fbt.querySelector('.zp-fbt__price[data-pid="' + v.getAttribute('data-pid') + '"]');
+        var o = v.options[v.selectedIndex];
+        if (lbl && o) lbl.textContent = money(parseInt(o.getAttribute('data-price'), 10) || 0);
+        fbtTotal();
+      });
+    });
+    fbt.querySelectorAll('.js-fbt-check').forEach(function (c) { c.addEventListener('change', fbtTotal); });
+    if (mainVarSel) mainVarSel.addEventListener('change', fbtTotal);
+    fbtTotal();
+
+    var fbtAdd = fbt.querySelector('.js-fbt-add');
+    if (fbtAdd) fbtAdd.addEventListener('click', function () {
+      var items = [];
+      var mainId = mainVarSel ? mainVarSel.value : (root.querySelector('.js-zp-add') && root.querySelector('.js-zp-add').getAttribute('data-vid'));
+      if (mainId) items.push({ id: parseInt(mainId, 10), quantity: 1 });
+      fbt.querySelectorAll('.js-fbt-check:checked').forEach(function (c) {
+        var v = fbt.querySelector('.js-fbt-var[data-pid="' + c.getAttribute('data-pid') + '"]');
+        var id = v ? (v.tagName === 'SELECT' ? v.value : v.value) : null;
+        if (id) items.push({ id: parseInt(id, 10), quantity: 1 });
+      });
+      if (!items.length) return;
+      fbtAdd.classList.add('is-loading');
+      fetch('/cart/add.js', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items: items }) })
+        .then(function (r) { return r.json(); })
+        .then(function (res) { fbtAdd.classList.remove('is-loading'); if (res && res.status) return; openDrawer(); })
+        .catch(function () { fbtAdd.classList.remove('is-loading'); window.location = '/cart'; });
+    });
+  });
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Zeene Product",
+  "tag": "section",
+  "class": "section-zeene-product",
+  "settings": [
+    { "type": "header", "content": "Gift card products" },
+    { "type": "text", "id": "gift_toggle_label", "label": "Gift toggle label", "default": "I want to send this as a gift" },
+    { "type": "text", "id": "gift_note", "label": "Note under the fields", "default": "The code is emailed to them once the order is paid." },
+
+    { "type": "header", "content": "Above title" },
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow badge", "info": "Small label above title, e.g. PRE-ORDER LIVE NOW" },
+    { "type": "checkbox", "id": "show_rating", "label": "Show star rating", "default": true },
+    { "type": "checkbox", "id": "show_vendor", "label": "Show vendor / subtitle", "default": true },
+    { "type": "header", "content": "Countdown timer" },
+    { "type": "checkbox", "id": "show_timer", "label": "Show offer countdown", "default": false },
+    { "type": "text", "id": "timer_label", "label": "Timer label", "default": "Offer ends in" },
+    { "type": "text", "id": "timer_end", "label": "Daily reset time (HH:MM, 24h)", "default": "23:59" },
+    { "type": "header", "content": "Prepaid saver" },
+    { "type": "checkbox", "id": "prepaid_show", "label": "Show prepaid saver strip", "default": true },
+    { "type": "text", "id": "prepaid_saving", "label": "Saving amount (Rs)", "info": "e.g. 500. Khali chhorein to strip nahi dikhega.", "default": "500" },
+    { "type": "text", "id": "prepaid_label", "label": "Label", "default": "Pay online &amp; save" },
+    { "type": "text", "id": "prepaid_note", "label": "Reveal note", "default": "Choose online payment (card / wallet) at checkout to unlock this discount." },
+    { "type": "header", "content": "Promo & urgency" },
+    { "type": "text", "id": "promo_text", "label": "Promo box text", "info": "e.g. Get it for Rs 4,999" },
+    { "type": "text", "id": "promo_badge", "label": "Promo badge", "info": "e.g. Extra Rs 1000 off" },
+    { "type": "text", "id": "urgency_text", "label": "Urgency text", "info": "e.g. 1200+ people viewed this recently" },
+    { "type": "header", "content": "Size chart" },
+    { "type": "image_picker", "id": "size_chart_image", "label": "Size chart image", "info": "Or set a per-product metafield custom.size_chart (image). Shows a 'Size chart' link near sizes." },
+    { "type": "checkbox", "id": "sticky_bar", "label": "Sticky buy bar on scroll", "default": true, "info": "Scroll karne par upar ek chhota add-to-cart bar aata hai." },
+    { "type": "checkbox", "id": "video_show", "label": "Floating product video", "default": true, "info": "Product ke media mein video (upload ya YouTube/Vimeo) ho to neeche-baayein chhota floating video aata hai — click par lightbox." },
+    { "type": "header", "content": "Delivery estimate" },
+    { "type": "checkbox", "id": "del_show", "label": "Show delivery timeline", "default": true, "info": "Dates visitor ke 'aaj' se auto-calculate hoti hain." },
+    { "type": "range", "id": "del_processing_days", "min": 1, "max": 5, "step": 1, "unit": "d", "label": "Processing after (days)", "default": 1 },
+    { "type": "range", "id": "del_delivery_days", "min": 2, "max": 10, "step": 1, "unit": "d", "label": "Delivered after (days)", "default": 3 },
+    { "type": "text", "id": "del_cutoff", "label": "Dispatch cutoff (HH:MM, 24h)", "default": "23:59", "info": "Countdown isi waqt tak — 'order within X for dispatch today'." },
+    { "type": "text", "id": "del_before", "label": "Text before timer", "default": "Order today within" },
+    { "type": "text", "id": "del_dispatch", "label": "Text after timer", "default": "for dispatch today." },
+    { "type": "text", "id": "del_receive", "label": "Receive text", "default": "You'll receive your package between" },
+    { "type": "text", "id": "del_s1", "label": "Stage 1 label", "default": "Purchased" },
+    { "type": "text", "id": "del_s2", "label": "Stage 2 label", "default": "Processing" },
+    { "type": "text", "id": "del_s3", "label": "Stage 3 label", "default": "Delivered" },
+    { "type": "header", "content": "Buy More, Save More (volume tiers)" },
+    { "type": "checkbox", "id": "vm_show", "label": "Show volume tiers", "default": false, "info": "'Buy 2 / 3 / 4…' tiers (Buy 1 tier nahi hota — koi tier select na ho to cart mein 1 hi jata hai). Discount checkout par lagne ke liye Shopify Admin → Discounts → Automatic mein matching quantity discounts banayein." },
+    { "type": "text", "id": "vm_heading", "label": "Heading", "default": "Buy More, Save More" },
+    { "type": "range", "id": "vm_tiers", "min": 2, "max": 5, "step": 1, "label": "Highest tier (Buy N)", "default": 4, "info": "Tiers Buy 2 se is number tak dikhte hain." },
+    { "type": "range", "id": "vm_2_pct", "min": 0, "max": 60, "step": 1, "unit": "%", "label": "Buy 2 — discount", "default": 4 },
+    { "type": "range", "id": "vm_3_pct", "min": 0, "max": 60, "step": 1, "unit": "%", "label": "Buy 3 — discount", "default": 7 },
+    { "type": "range", "id": "vm_4_pct", "min": 0, "max": 60, "step": 1, "unit": "%", "label": "Buy 4 — discount", "default": 10 },
+    { "type": "range", "id": "vm_5_pct", "min": 0, "max": 60, "step": 1, "unit": "%", "label": "Buy 5 — discount", "default": 12 },
+    { "type": "range", "id": "vm_best", "min": 2, "max": 5, "step": 1, "label": "\"Best Value\" tier", "default": 4 },
+    { "type": "header", "content": "Complete your set" },
+    { "type": "paragraph", "content": "Ye block HAR PRODUCT ka apna hota hai — products us product ke metafield custom.complete_your_set (List of products) se aate hain. Jis product par metafield khali ho wahan block nahi dikhta." },
+    { "type": "checkbox", "id": "cys_show", "label": "Show \"Complete your set\"", "default": true },
+    { "type": "text", "id": "cys_heading", "label": "Heading", "default": "Complete your set" },
+    { "type": "text", "id": "cys_button", "label": "Button text", "default": "Add bundle to cart" },
+    { "type": "text", "id": "cys_note", "label": "Note under total", "default": "Selected items will be added to cart." },
+    { "type": "header", "content": "Frequently bought together" },
+    { "type": "paragraph", "content": "Ye block GLOBAL hai — yahan chuni hui products SAB products par same dikhengi. Complete your set ke neeche aata hai. Agar customer usi product ke page par ho jo list mein hai, to woh list se khud hat jata hai." },
+    { "type": "checkbox", "id": "fbt_show", "label": "Show \"Frequently bought together\"", "default": true },
+    { "type": "text", "id": "fbt_heading", "label": "Heading", "default": "Frequently bought together" },
+    { "type": "product_list", "id": "fbt_products", "label": "Products", "limit": 6, "info": "Sab products par yahi list dikhegi." },
+    { "type": "text", "id": "fbt_button", "label": "Button text", "default": "Add bundle to cart" },
+    { "type": "text", "id": "fbt_note", "label": "Note under total", "default": "Selected items will be added to cart." },
+    { "type": "header", "content": "Disclaimer & info drawer" },
+    { "type": "paragraph", "content": "Ye content SAB products par same rehta hai (ek dafa yahan set karein). Jis tab ka content khali ho wo link/tab nahi dikhta." },
+    { "type": "textarea", "id": "disclaimer", "label": "Disclaimer text", "default": "Disclaimer: Actual product color and texture may slightly vary from the image." },
+    { "type": "text", "id": "info_title", "label": "Drawer title", "default": "Product Information" },
+    { "type": "text", "id": "info1_label", "label": "Tab 1 label", "default": "Deliveries & Exchange" },
+    { "type": "html", "id": "info1_content", "label": "Tab 1 content (HTML)", "info": "Headings ke liye <h4>, bold ke liye <strong>, bullets ke liye <ul><li>.", "default": "<h4>Delivery Terms &amp; Conditions</h4><ul><li>Enjoy <strong>FREE DELIVERY</strong> on paid orders.</li><li>Cash on Delivery (COD) available nationwide.</li><li>Orders are typically delivered within 2–5 working days. During grand sales, delivery may take longer.</li></ul><h4>Exchange Eligibility</h4><ul><li>Items can be exchanged within 7 days of delivery.</li><li>The item must be unused, unwashed, and returned with all tags intact.</li><li>Faulty or incorrect items are eligible for a free exchange.</li></ul>" },
+    { "type": "text", "id": "info2_label", "label": "Tab 2 label", "default": "Product Care" },
+    { "type": "html", "id": "info2_content", "label": "Tab 2 content (HTML)", "default": "<p>To keep your garment in the best condition, follow these care instructions:</p><p><strong>Washing</strong>: Machine wash cold with like colors on a gentle cycle with mild detergent.</p><p><strong>Bleaching</strong>: Do not bleach. Avoid harsh chemicals that may damage the fabric.</p><p><strong>Drying</strong>: Tumble dry low or hang to dry. Avoid high heat to prevent shrinkage.</p><p><strong>Ironing</strong>: Iron on low heat if needed. Avoid direct contact with prints or embellishments.</p><p><strong>Storage</strong>: Store in a cool, dry place away from direct sunlight.</p>" },
+    { "type": "richtext", "id": "shipping_info", "label": "Shipping & Returns text (accordion)" },
+    { "type": "header", "content": "Layout & colors" },
+    { "type": "range", "id": "max_width", "min": 1000, "max": 1600, "step": 20, "unit": "px", "label": "Max content width", "default": 1280 },
+    { "type": "color", "id": "accent_color", "label": "Neon accent", "default": "#C6F135" }
+  ]
+}
+{% endschema %}

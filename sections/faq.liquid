@@ -1,0 +1,204 @@
+{%- comment -%} Accordion uses grid-template-rows 0fr -> 1fr, so the answer height never has to be guessed. {%- endcomment -%}
+{%- liquid
+  assign s = section.settings
+  assign items = section.blocks | where: 'type', 'faq_item'
+-%}
+
+{%- if items.size > 0 -%}
+  {%- style -%}
+  #faq-{{ section.id }} { background: {{ s.bg_color }}; padding: {{ s.padding_top }}px 0 {{ s.padding_bottom }}px; }
+  #faq-{{ section.id }} .faq__inner { max-width: {{ s.max_width }}px; margin: 0 auto; padding: 0 16px; }
+  {%- if s.layout == 'split' -%}
+  #faq-{{ section.id }} .faq__grid { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.6fr); gap: 20px 56px; align-items: start; }
+  {%- else -%}
+  #faq-{{ section.id }} .faq__grid { display: block; }
+  #faq-{{ section.id }} .faq__head { text-align: center; max-width: 680px; margin-left: auto; margin-right: auto; }
+  {%- endif -%}
+  #faq-{{ section.id }} .faq__head { margin-bottom: {% if s.layout == 'split' %}0{% else %}30px{% endif %}; }
+  #faq-{{ section.id }} .faq__eyebrow { display: inline-block; margin: 0 0 8px; font-size: 12px; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; color: {{ s.text_color }}; opacity: 0.55; }
+  #faq-{{ section.id }} .faq__heading { margin: 0; font-family: 'Zen Maru Gothic', sans-serif; font-size: clamp(22px, 3vw, 30px); font-weight: 500; line-height: 1.25; letter-spacing: -0.01em; color: {{ s.text_color }}; }
+  #faq-{{ section.id }} .faq__sub { margin: 10px 0 0; font-size: 14px; line-height: 1.6; color: {{ s.text_color }}; opacity: 0.65; }
+  #faq-{{ section.id }} .faq__contact { display: inline-flex; align-items: center; gap: 8px; margin-top: 16px; font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: {{ s.text_color }}; text-decoration: none; padding-bottom: 4px; border-bottom: 2px solid {{ s.accent_color }}; transition: gap 0.25s ease, opacity 0.25s ease; }
+  #faq-{{ section.id }} .faq__contact:hover { gap: 13px; opacity: 0.85; }
+
+  #faq-{{ section.id }} .faq__list { border-top: 1px solid {{ s.divider_color }}; }
+  #faq-{{ section.id }} .faq__item { border-bottom: 1px solid {{ s.divider_color }}; }
+  #faq-{{ section.id }} .faq__q { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: {{ s.row_padding }}px 0; background: none; border: 0; cursor: pointer; text-align: left; font-family: 'Zen Maru Gothic', sans-serif; font-size: {{ s.question_size }}px; font-weight: 600; line-height: 1.45; color: {{ s.text_color }}; }
+  #faq-{{ section.id }} .faq__q:hover { opacity: 0.72; }
+  #faq-{{ section.id }} .faq__q svg { flex: 0 0 auto; width: 20px; height: 20px; color: {{ s.text_color }}; transition: transform 0.3s cubic-bezier(.16,1,.3,1); }
+  #faq-{{ section.id }} .faq__item.is-open .faq__q svg { transform: rotate(180deg); color: {{ s.accent_color }}; filter: brightness(0.8); }
+  #faq-{{ section.id }} .faq__wrap { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.34s cubic-bezier(.16,1,.3,1); }
+  #faq-{{ section.id }} .faq__item.is-open .faq__wrap { grid-template-rows: 1fr; }
+  #faq-{{ section.id }} .faq__a { min-height: 0; overflow: hidden; font-size: {{ s.answer_size }}px; line-height: 1.75; color: {{ s.text_color }}; opacity: 0.78; }
+  #faq-{{ section.id }} .faq__item.is-open .faq__a { padding-bottom: {{ s.row_padding }}px; }
+  #faq-{{ section.id }} .faq__a ul, #faq-{{ section.id }} .faq__a ol { list-style-position: outside; margin: 8px 0; padding-left: 18px; }
+  #faq-{{ section.id }} .faq__a li { margin: 0 0 6px; }
+  #faq-{{ section.id }} .faq__a li > p { margin: 0; }
+  #faq-{{ section.id }} .faq__a p:first-child { margin-top: 0; }
+  #faq-{{ section.id }} .faq__a p:last-child { margin-bottom: 0; }
+  #faq-{{ section.id }} .faq__a a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+
+  @media (max-width: 989px) {
+    #faq-{{ section.id }} .faq__grid { display: block; }
+    #faq-{{ section.id }} .faq__head { margin-bottom: 26px; }
+  }
+  @media (max-width: 749px) {
+    #faq-{{ section.id }} { padding-top: {{ s.padding_top | times: 0.65 | round }}px; padding-bottom: {{ s.padding_bottom | times: 0.65 | round }}px; }
+    #faq-{{ section.id }} .faq__inner { padding: 0 14px; }
+    #faq-{{ section.id }} .faq__q { font-size: {{ s.question_size | minus: 1 }}px; padding: {{ s.row_padding | times: 0.8 | round }}px 0; gap: 12px; }
+    #faq-{{ section.id }} .faq__a { font-size: {{ s.answer_size | minus: 0.5 }}px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #faq-{{ section.id }} .faq__wrap, #faq-{{ section.id }} .faq__q svg { transition: none; }
+  }
+  {%- endstyle -%}
+
+  <div id="faq-{{ section.id }}" class="faq">
+    <div class="faq__inner">
+      <div class="faq__grid">
+        <div class="faq__head">
+          {%- if s.eyebrow != blank -%}<span class="faq__eyebrow">{{ s.eyebrow }}</span>{%- endif -%}
+          {%- if s.heading != blank -%}<h2 class="faq__heading">{{ s.heading }}</h2>{%- endif -%}
+          {%- if s.subheading != blank -%}<p class="faq__sub">{{ s.subheading }}</p>{%- endif -%}
+          {%- if s.contact_label != blank and s.contact_link != blank -%}
+            <a class="faq__contact" href="{{ s.contact_link }}">{{ s.contact_label }}<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+          {%- endif -%}
+        </div>
+
+        <div class="faq__list js-faq-list" data-single="{{ s.one_at_a_time }}">
+          {%- for block in items -%}
+            {%- liquid
+              assign open_first = false
+              if s.open_first and forloop.first
+                assign open_first = true
+              endif
+            -%}
+            <div class="faq__item{% if open_first %} is-open{% endif %}" {{ block.shopify_attributes }}>
+              <button
+                type="button"
+                class="faq__q js-faq-q"
+                aria-expanded="{% if open_first %}true{% else %}false{% endif %}"
+                aria-controls="faq-{{ section.id }}-{{ block.id }}"
+              >
+                <span>{{ block.settings.question }}</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+              </button>
+              <div class="faq__wrap" id="faq-{{ section.id }}-{{ block.id }}">
+                <div class="faq__a rte">{{ block.settings.answer }}</div>
+              </div>
+            </div>
+          {%- endfor -%}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {%- if s.enable_schema -%}
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {%- for block in items -%}
+            {
+              "@type": "Question",
+              "name": {{ block.settings.question | strip_html | json }},
+              "acceptedAnswer": { "@type": "Answer", "text": {{ block.settings.answer | strip_html | strip_newlines | json }} }
+            }{%- unless forloop.last -%},{%- endunless -%}
+          {%- endfor -%}
+        ]
+      }
+    </script>
+  {%- endif -%}
+
+  <script>
+  (function () {
+    var root = document.getElementById('faq-{{ section.id }}');
+    if (!root) return;
+    var list = root.querySelector('.js-faq-list');
+    if (!list) return;
+    var single = list.getAttribute('data-single') === 'true';
+
+    list.addEventListener('click', function (e) {
+      var btn = e.target.closest ? e.target.closest('.js-faq-q') : null;
+      if (!btn) return;
+      var item = btn.parentElement;
+      var willOpen = !item.classList.contains('is-open');
+
+      if (single && willOpen) {
+        list.querySelectorAll('.faq__item.is-open').forEach(function (o) {
+          if (o === item) return;
+          o.classList.remove('is-open');
+          var ob = o.querySelector('.js-faq-q');
+          if (ob) ob.setAttribute('aria-expanded', 'false');
+        });
+      }
+
+      item.classList.toggle('is-open', willOpen);
+      btn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+    });
+  })();
+  </script>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "FAQ",
+  "tag": "section",
+  "class": "section-faq",
+  "settings": [
+    { "type": "header", "content": "Heading" },
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow (small text above)", "info": "Optional — leave empty to hide." },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Frequently Asked Questions" },
+    { "type": "text", "id": "subheading", "label": "Subheading", "default": "Everything you need to know before you order." },
+    { "type": "text", "id": "contact_label", "label": "Link label (optional)", "default": "Still need help?" },
+    { "type": "url", "id": "contact_link", "label": "Link URL (optional)" },
+
+    { "type": "header", "content": "Layout" },
+    {
+      "type": "select", "id": "layout", "label": "Layout", "default": "split",
+      "options": [
+        { "value": "split", "label": "Heading on the left, questions on the right" },
+        { "value": "stacked", "label": "Heading on top, questions below (centered)" }
+      ]
+    },
+    { "type": "checkbox", "id": "one_at_a_time", "label": "Open one question at a time", "default": true },
+    { "type": "checkbox", "id": "open_first", "label": "Open the first question by default", "default": false },
+    { "type": "range", "id": "row_padding", "min": 10, "max": 32, "step": 1, "unit": "px", "label": "Row spacing", "default": 18 },
+    { "type": "range", "id": "question_size", "min": 12, "max": 22, "step": 1, "unit": "px", "label": "Question text size", "default": 15 },
+    { "type": "range", "id": "answer_size", "min": 11, "max": 18, "step": 1, "unit": "px", "label": "Answer text size", "default": 13 },
+    { "type": "range", "id": "max_width", "min": 800, "max": 1600, "step": 20, "unit": "px", "label": "Max content width", "default": 1280 },
+
+    { "type": "header", "content": "Colors & spacing" },
+    { "type": "color", "id": "bg_color", "label": "Background", "default": "#ffffff" },
+    { "type": "color", "id": "text_color", "label": "Text", "default": "#0a0a0a" },
+    { "type": "color", "id": "accent_color", "label": "Accent", "default": "#C6F135" },
+    { "type": "color", "id": "divider_color", "label": "Divider lines", "default": "#e6e6e6" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 100, "step": 4, "unit": "px", "label": "Padding top", "default": 48 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 100, "step": 4, "unit": "px", "label": "Padding bottom", "default": 48 },
+
+    { "type": "header", "content": "SEO" },
+    { "type": "checkbox", "id": "enable_schema", "label": "Add FAQ schema for Google", "default": true, "info": "Lets Google show these questions directly in search results. Keep on unless the same questions appear in another FAQ section on the page." }
+  ],
+  "blocks": [
+    {
+      "type": "faq_item",
+      "name": "Question",
+      "settings": [
+        { "type": "text", "id": "question", "label": "Question", "default": "How long does delivery take?" },
+        { "type": "richtext", "id": "answer", "label": "Answer", "default": "<p>Orders are usually delivered within 3–5 working days across Pakistan.</p>" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "FAQ",
+      "blocks": [
+        { "type": "faq_item" },
+        { "type": "faq_item" },
+        { "type": "faq_item" }
+      ]
+    }
+  ]
+}
+{% endschema %}

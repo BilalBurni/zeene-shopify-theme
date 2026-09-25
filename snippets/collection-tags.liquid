@@ -1,0 +1,22 @@
+{%- comment -%} Shared by the card, quick view and product page so tags are configured in one place (collection metafields). {%- endcomment -%}
+{%- assign tag_class = tag_class | default: 'ctag' -%}
+{%- for c in product.collections -%}
+  {%- liquid
+    assign ct_text = c.metafields.custom.card_tag.value | default: c.metafields.custom.collection_tag.value
+    assign ct_on = c.metafields.custom.card_tag_show.value
+    if ct_on == nil
+      assign ct_on = c.metafields.custom.collection_tag_show.value
+    endif
+  -%}
+  {%- if ct_on and ct_text != blank -%}
+    {%- liquid
+      assign ct_bg = c.metafields.custom.card_tag_color.value | default: c.metafields.custom.collection_tag_color.value | default: '#FFD400'
+      assign ct_fg = '#0a0a0a'
+      assign ct_bright = ct_bg | color_brightness
+      if ct_bright < 140
+        assign ct_fg = '#ffffff'
+      endif
+    -%}
+    <span class="{{ tag_class }}" style="--ct-bg: {{ ct_bg }}; --ct-fg: {{ ct_fg }};">{{ ct_text }}</span>
+  {%- endif -%}
+{%- endfor -%}

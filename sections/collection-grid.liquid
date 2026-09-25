@@ -1,0 +1,136 @@
+{%- liquid
+  assign s = section.settings
+  assign cols = s.columns_desktop
+  assign radius = s.corner_radius
+  assign ratio = s.image_ratio
+  assign pt_m = s.padding_top | times: 0.5 | round
+  assign pb_m = s.padding_bottom | times: 0.5 | round
+-%}
+{{ 'zeene-card.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'zeene-card.js' | asset_url }}" defer="defer"></script>
+
+<div id="collection-grid-{{ section.id }}" class="pg zeene-pg" style="--pg-bg:{{ s.bg_color }};--pg-text:{{ s.text_color }};--pg-accent:{{ s.accent_color }};--pg-star:{{ s.star_color }};--pg-radius:{{ radius }}px;--pg-ratio:{{ ratio }};--pg-cols:{{ cols }};--pg-gap:{{ s.gap }}px;--pg-maxw:{{ s.max_width }}px;--pg-pt:{{ s.padding_top }}px;--pg-pb:{{ s.padding_bottom }}px;--pg-pt-m:{{ pt_m }}px;--pg-pb-m:{{ pb_m }}px;">
+  <div class="pg__inner">
+    {%- if s.show_heading -%}
+      <div class="pg__head">
+        <div>
+          <h1 class="pg__heading">{{ collection.title | default: 'Products' }}</h1>
+          {%- if s.show_count -%}<p class="pg__sub">{{ collection.products_count }} {% if collection.products_count == 1 %}product{% else %}products{% endif %}</p>{%- endif -%}
+        </div>
+      </div>
+    {%- endif -%}
+
+    {%- paginate collection.products by s.products_per_page -%}
+      {%- if collection.products.size > 0 -%}
+        <div class="pg__track" id="pg-track-{{ section.id }}">
+          {%- for product in collection.products -%}
+            {%- render 'zeene-card', product: product, cols: cols, show_swatches: s.show_swatches, max_swatches: s.max_swatches, show_quick_add: s.show_quick_add, show_sizes: s.show_sizes, show_sale_badge: s.show_sale_badge, show_vendor: s.show_vendor, show_rating: s.show_rating, show_rating_count: s.show_rating_count, rating_fallback: s.rating_fallback -%}
+          {%- endfor -%}
+        </div>
+
+        {%- if paginate.next -%}
+          <div class="pg__loadmore-wrap">
+            {%- if s.show_count -%}<span class="pg__loadmore-count js-lm-count" data-shown="{{ collection.products.size }}" data-total="{{ paginate.items }}">Showing {{ collection.products.size }} of {{ paginate.items }}</span>{%- endif -%}
+            <button type="button" class="pg__loadmore js-load-more" data-next-url="{{ paginate.next.url }}" data-target="pg-track-{{ section.id }}">Load more</button>
+          </div>
+        {%- endif -%}
+      {%- else -%}
+        {%- render 'empty-state',
+          icon: 'bag',
+          title: 'This collection is empty right now',
+          text: 'New drops land regularly — check back soon, or explore what is in stock today.',
+          primary_label: 'Shop all products',
+          primary_url: routes.all_products_collection_url,
+          secondary_label: 'Back to home',
+          secondary_url: routes.root_url,
+          accent: s.accent_color,
+          text_color: s.text_color -%}
+      {%- endif -%}
+    {%- endpaginate -%}
+  </div>
+</div>
+
+<script>
+(function () {
+  var root = document.getElementById('collection-grid-{{ section.id }}');
+  if (!root) return;
+  var btn = root.querySelector('.js-load-more');
+  if (!btn) return;
+  var track = document.getElementById(btn.getAttribute('data-target'));
+  var countEl = root.querySelector('.js-lm-count');
+  btn.addEventListener('click', function () {
+    var url = btn.getAttribute('data-next-url');
+    if (!url || btn.classList.contains('is-loading')) return;
+    btn.classList.add('is-loading');
+    var orig = btn.textContent;
+    btn.textContent = 'Loading…';
+    fetch(url).then(function (r) { return r.text(); }).then(function (html) {
+      var doc = new DOMParser().parseFromString(html, 'text/html');
+      var newTrack = track ? doc.getElementById(track.id) : null;
+      if (!newTrack) newTrack = doc.querySelector('.pg__track');
+      var added = 0;
+      if (newTrack && track) {
+        var cards = newTrack.querySelectorAll('.pc');
+        for (var i = 0; i < cards.length; i++) { track.appendChild(cards[i]); added++; }
+        if (window.zeeneInitCards) window.zeeneInitCards(track);
+        try { if (window.jdgm && typeof window.jdgm.customizeBadges === 'function') window.jdgm.customizeBadges(); } catch (e) {}
+      }
+      if (countEl) {
+        var shown = parseInt(countEl.getAttribute('data-shown'), 10) + added;
+        countEl.setAttribute('data-shown', shown);
+        countEl.textContent = 'Showing ' + shown + ' of ' + countEl.getAttribute('data-total');
+      }
+      var newBtn = doc.querySelector('.js-load-more');
+      if (newBtn && newBtn.getAttribute('data-next-url')) {
+        btn.setAttribute('data-next-url', newBtn.getAttribute('data-next-url'));
+        btn.classList.remove('is-loading');
+        btn.textContent = orig;
+      } else {
+        btn.remove();
+      }
+    }).catch(function () { btn.classList.remove('is-loading'); btn.textContent = orig; });
+  });
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Collection grid",
+  "tag": "section",
+  "class": "section-collection-grid",
+  "settings": [
+    { "type": "header", "content": "Heading" },
+    { "type": "checkbox", "id": "show_heading", "label": "Show collection title", "default": true },
+    { "type": "checkbox", "id": "show_count", "label": "Show product count", "default": true },
+    { "type": "header", "content": "Products" },
+    { "type": "range", "id": "products_per_page", "min": 8, "max": 48, "step": 4, "label": "Products per page", "default": 24 },
+    { "type": "header", "content": "Layout" },
+    { "type": "range", "id": "columns_desktop", "min": 2, "max": 6, "step": 1, "label": "Desktop columns", "default": 5 },
+    { "type": "select", "id": "image_ratio", "label": "Image aspect ratio", "options": [ { "value": "1/1", "label": "Square (1:1)" }, { "value": "4/5", "label": "Portrait (4:5)" }, { "value": "3/4", "label": "Portrait (3:4)" }, { "value": "2/3", "label": "Tall portrait (2:3)" } ], "default": "3/4" },
+    { "type": "range", "id": "gap", "min": 4, "max": 28, "step": 2, "unit": "px", "label": "Gap between cards", "default": 16 },
+    { "type": "range", "id": "corner_radius", "min": 0, "max": 32, "step": 2, "unit": "px", "label": "Image corner radius", "default": 14 },
+    { "type": "range", "id": "max_width", "min": 1000, "max": 1600, "step": 20, "unit": "px", "label": "Max content width", "default": 1280 },
+    { "type": "header", "content": "Card content" },
+    { "type": "checkbox", "id": "show_swatches", "label": "Show color swatches", "default": true },
+    { "type": "range", "id": "max_swatches", "min": 3, "max": 8, "step": 1, "label": "Max swatches before \"+N\"", "default": 5 },
+    { "type": "checkbox", "id": "show_quick_add", "label": "Show quick \"+\" button", "default": false },
+    { "type": "checkbox", "id": "show_sizes", "label": "Show size buttons on hover (add to cart)", "default": true, "info": "Needs a 'Size' option on products." },
+    { "type": "checkbox", "id": "show_sale_badge", "label": "Show sale badge", "default": true },
+    { "type": "checkbox", "id": "show_vendor", "label": "Show vendor", "default": false },
+    { "type": "checkbox", "id": "show_rating", "label": "Show star rating (Judge.me)", "default": true },
+    { "type": "checkbox", "id": "show_rating_count", "label": "Show review count next to rating", "default": false },
+    { "type": "checkbox", "id": "rating_fallback", "label": "Show 5.0 placeholder when no reviews", "default": false },
+    { "type": "color", "id": "star_color", "label": "Star color", "default": "#f5a623" },
+    { "type": "header", "content": "Colors" },
+    { "type": "color", "id": "bg_color", "label": "Background", "default": "#ffffff" },
+    { "type": "color", "id": "text_color", "label": "Text", "default": "#0a0a0a" },
+    { "type": "color", "id": "accent_color", "label": "Neon accent", "default": "#C6F135" },
+    { "type": "header", "content": "Spacing" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 100, "step": 4, "unit": "px", "label": "Padding top", "default": 40 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 100, "step": 4, "unit": "px", "label": "Padding bottom", "default": 56 }
+  ],
+  "presets": [
+    { "name": "Collection grid" }
+  ]
+}
+{% endschema %}
